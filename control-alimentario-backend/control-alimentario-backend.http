@@ -1,0 +1,6 @@
+@control_alimentario_backend_HostAddress = http://localhost:5073
+
+GET {{control_alimentario_backend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

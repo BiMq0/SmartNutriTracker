@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "control-alimentario-frontend", "control-alimentario-frontend\control-alimentario-frontend.csproj", "{5FB5613F-E9BC-0A0B-3180-1E901240B2FF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "control-alimentario-backend", "control-alimentario-backend\control-alimentario-backend.csproj", "{603814A2-961F-A83F-C4E2-99648A625608}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5FB5613F-E9BC-0A0B-3180-1E901240B2FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5FB5613F-E9BC-0A0B-3180-1E901240B2FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5FB5613F-E9BC-0A0B-3180-1E901240B2FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5FB5613F-E9BC-0A0B-3180-1E901240B2FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{603814A2-961F-A83F-C4E2-99648A625608}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{603814A2-961F-A83F-C4E2-99648A625608}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{603814A2-961F-A83F-C4E2-99648A625608}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{603814A2-961F-A83F-C4E2-99648A625608}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7A9AEB6F-C95A-4937-997E-6BA26BAB3AFF}
+	EndGlobalSection
+EndGlobal
