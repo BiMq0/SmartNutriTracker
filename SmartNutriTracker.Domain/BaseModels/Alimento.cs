@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace SmartNutriTracker.Back.Models.BaseModels;
+namespace SmartNutriTracker.Domain.Models.BaseModels;
 
 public class Alimento
 {

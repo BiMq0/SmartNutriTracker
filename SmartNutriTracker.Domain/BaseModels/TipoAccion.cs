@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SmartNutriTracker.Back.Models.BaseModels;
+namespace SmartNutriTracker.Domain.Models.BaseModels;
 
 public class TipoAccion
 {
