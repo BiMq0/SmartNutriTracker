@@ -2,6 +2,7 @@
 
 ## Descripción
 SmartNutriTracker es un proyecto académico orientado a resolver un problema real dentro del entorno educativo: el seguimiento y la gestión de la nutrición de los estudiantes.  
+
 ---
 
 ## Características principales
@@ -12,7 +13,8 @@ SmartNutriTracker es un proyecto académico orientado a resolver un problema rea
 - **Alertas y notificaciones** sobre hábitos no saludables  
 - **Reportes y dashboards gráficos** para análisis semanal  
 - **Seguridad con JWT y roles de usuario**  
-- **Documentación interactiva con Swagger**  
+- **Documentación interactiva con Swagger**
+
 ---
 
 ## Tecnologías utilizadas
@@ -20,7 +22,8 @@ SmartNutriTracker es un proyecto académico orientado a resolver un problema rea
 - **Frontend:** Blazor Pages
 - **Base de datos:** PostgreSQL + Supabase + Entity Framework Core  
 - **Seguridad:** Autenticación JWT, gestión de roles y logs de auditoría  
-- **Gestión de proyecto:** GitHub, Notion + Kanban, CI/CD con GitHub Actions  
+- **Gestión de proyecto:** GitHub, Notion + Kanban, CI/CD con GitHub Actions
+
 ---
 
 ## Objetivo
