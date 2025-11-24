@@ -10,4 +10,8 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\SmartNutriTracker.Shared\SmartNutriTracker.Shared.csproj" />
+  </ItemGroup>
+
 </Project>
