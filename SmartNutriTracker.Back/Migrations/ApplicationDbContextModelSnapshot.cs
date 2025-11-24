@@ -22,7 +22,7 @@ namespace SmartNutriTracker.Back.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.Alimento", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.Alimento", b =>
                 {
                     b.Property<int>("AlimentoId")
                         .ValueGeneratedOnAdd()
@@ -52,7 +52,7 @@ namespace SmartNutriTracker.Back.Migrations
                     b.ToTable("Alimentos");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.Estudiante", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.Estudiante", b =>
                 {
                     b.Property<int>("EstudianteId")
                         .ValueGeneratedOnAdd()
@@ -79,7 +79,7 @@ namespace SmartNutriTracker.Back.Migrations
                     b.ToTable("Estudiantes");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.Log", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.Log", b =>
                 {
                     b.Property<int>("LogId")
                         .ValueGeneratedOnAdd()
@@ -126,7 +126,7 @@ namespace SmartNutriTracker.Back.Migrations
                     b.ToTable("Logs");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.Menu", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.Menu", b =>
                 {
                     b.Property<int>("MenuId")
                         .ValueGeneratedOnAdd()
@@ -142,7 +142,7 @@ namespace SmartNutriTracker.Back.Migrations
                     b.ToTable("Menus");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.MenuAlimento", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.MenuAlimento", b =>
                 {
                     b.Property<int>("MenuAlimentoId")
                         .ValueGeneratedOnAdd()
@@ -165,7 +165,7 @@ namespace SmartNutriTracker.Back.Migrations
                     b.ToTable("MenuAlimentos");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.RegistroAlimento", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.RegistroAlimento", b =>
                 {
                     b.Property<int>("RegistroAlimentoId")
                         .ValueGeneratedOnAdd()
@@ -196,7 +196,7 @@ namespace SmartNutriTracker.Back.Migrations
                     b.ToTable("RegistroAlimentos");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.RegistroHabito", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.RegistroHabito", b =>
                 {
                     b.Property<int>("RegistroHabitoId")
                         .ValueGeneratedOnAdd()
@@ -217,7 +217,7 @@ namespace SmartNutriTracker.Back.Migrations
                     b.ToTable("RegistroHabitos");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.Rol", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.Rol", b =>
                 {
                     b.Property<int>("RolId")
                         .ValueGeneratedOnAdd()
@@ -238,7 +238,7 @@ namespace SmartNutriTracker.Back.Migrations
                     b.ToTable("Roles");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.TipoAccion", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.TipoAccion", b =>
                 {
                     b.Property<int>("TipoAccionId")
                         .ValueGeneratedOnAdd()
@@ -256,7 +256,7 @@ namespace SmartNutriTracker.Back.Migrations
                     b.ToTable("TiposAccion");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.TipoComida", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.TipoComida", b =>
                 {
                     b.Property<int>("TipoComidaId")
                         .ValueGeneratedOnAdd()
@@ -277,7 +277,7 @@ namespace SmartNutriTracker.Back.Migrations
                     b.ToTable("TiposComida");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.TipoResultado", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.TipoResultado", b =>
                 {
                     b.Property<int>("TipoResultadoId")
                         .ValueGeneratedOnAdd()
@@ -295,7 +295,7 @@ namespace SmartNutriTracker.Back.Migrations
                     b.ToTable("TiposResultado");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.Usuario", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.Usuario", b =>
                 {
                     b.Property<int>("UsuarioId")
                         .ValueGeneratedOnAdd()
@@ -326,21 +326,21 @@ namespace SmartNutriTracker.Back.Migrations
                     b.ToTable("Usuarios");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.Log", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.Log", b =>
                 {
-                    b.HasOne("SmartNutriTracker.Back.Models.BaseModels.TipoResultado", "Resultado")
+                    b.HasOne("SmartNutriTracker.Domain.Models.BaseModels.TipoResultado", "Resultado")
                         .WithMany("Logs")
                         .HasForeignKey("ResultadoId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SmartNutriTracker.Back.Models.BaseModels.TipoAccion", "TipoAccion")
+                    b.HasOne("SmartNutriTracker.Domain.Models.BaseModels.TipoAccion", "TipoAccion")
                         .WithMany("Logs")
                         .HasForeignKey("TipoAccionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SmartNutriTracker.Back.Models.BaseModels.Usuario", "Usuario")
+                    b.HasOne("SmartNutriTracker.Domain.Models.BaseModels.Usuario", "Usuario")
                         .WithMany("Logs")
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.SetNull);
@@ -352,15 +352,15 @@ namespace SmartNutriTracker.Back.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.MenuAlimento", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.MenuAlimento", b =>
                 {
-                    b.HasOne("SmartNutriTracker.Back.Models.BaseModels.Alimento", "Alimento")
+                    b.HasOne("SmartNutriTracker.Domain.Models.BaseModels.Alimento", "Alimento")
                         .WithMany("MenuAlimentos")
                         .HasForeignKey("AlimentoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SmartNutriTracker.Back.Models.BaseModels.Menu", "Menu")
+                    b.HasOne("SmartNutriTracker.Domain.Models.BaseModels.Menu", "Menu")
                         .WithMany("MenuAlimentos")
                         .HasForeignKey("MenuId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -371,21 +371,21 @@ namespace SmartNutriTracker.Back.Migrations
                     b.Navigation("Menu");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.RegistroAlimento", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.RegistroAlimento", b =>
                 {
-                    b.HasOne("SmartNutriTracker.Back.Models.BaseModels.Alimento", "Alimento")
+                    b.HasOne("SmartNutriTracker.Domain.Models.BaseModels.Alimento", "Alimento")
                         .WithMany("RegistroAlimentos")
                         .HasForeignKey("AlimentoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SmartNutriTracker.Back.Models.BaseModels.RegistroHabito", "RegistroHabito")
+                    b.HasOne("SmartNutriTracker.Domain.Models.BaseModels.RegistroHabito", "RegistroHabito")
                         .WithMany("RegistroAlimentos")
                         .HasForeignKey("RegistroHabitoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SmartNutriTracker.Back.Models.BaseModels.TipoComida", "TipoComida")
+                    b.HasOne("SmartNutriTracker.Domain.Models.BaseModels.TipoComida", "TipoComida")
                         .WithMany("RegistroAlimentos")
                         .HasForeignKey("TipoComidaId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -398,9 +398,9 @@ namespace SmartNutriTracker.Back.Migrations
                     b.Navigation("TipoComida");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.RegistroHabito", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.RegistroHabito", b =>
                 {
-                    b.HasOne("SmartNutriTracker.Back.Models.BaseModels.Estudiante", "Estudiante")
+                    b.HasOne("SmartNutriTracker.Domain.Models.BaseModels.Estudiante", "Estudiante")
                         .WithMany("RegistroHabitos")
                         .HasForeignKey("EstudianteId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -409,9 +409,9 @@ namespace SmartNutriTracker.Back.Migrations
                     b.Navigation("Estudiante");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.Usuario", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.Usuario", b =>
                 {
-                    b.HasOne("SmartNutriTracker.Back.Models.BaseModels.Rol", "Rol")
+                    b.HasOne("SmartNutriTracker.Domain.Models.BaseModels.Rol", "Rol")
                         .WithMany("Usuarios")
                         .HasForeignKey("RolId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -420,49 +420,49 @@ namespace SmartNutriTracker.Back.Migrations
                     b.Navigation("Rol");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.Alimento", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.Alimento", b =>
                 {
                     b.Navigation("MenuAlimentos");
 
                     b.Navigation("RegistroAlimentos");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.Estudiante", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.Estudiante", b =>
                 {
                     b.Navigation("RegistroHabitos");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.Menu", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.Menu", b =>
                 {
                     b.Navigation("MenuAlimentos");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.RegistroHabito", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.RegistroHabito", b =>
                 {
                     b.Navigation("RegistroAlimentos");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.Rol", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.Rol", b =>
                 {
                     b.Navigation("Usuarios");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.TipoAccion", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.TipoAccion", b =>
                 {
                     b.Navigation("Logs");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.TipoComida", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.TipoComida", b =>
                 {
                     b.Navigation("RegistroAlimentos");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.TipoResultado", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.TipoResultado", b =>
                 {
                     b.Navigation("Logs");
                 });
 
-            modelBuilder.Entity("SmartNutriTracker.Back.Models.BaseModels.Usuario", b =>
+            modelBuilder.Entity("SmartNutriTracker.Domain.Models.BaseModels.Usuario", b =>
                 {
                     b.Navigation("Logs");
                 });

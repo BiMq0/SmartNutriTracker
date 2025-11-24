@@ -22,4 +22,9 @@
 
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\SmartNutriTracker.Domain\SmartNutriTracker.Domain.csproj" />
+    <ProjectReference Include="..\SmartNutriTracker.Shared\SmartNutriTracker.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

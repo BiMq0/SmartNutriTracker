@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using SmartNutriTracker.Shared.DTOs.Usuarios;
+using SmartNutriTracker.Shared.Endpoints;
+using SmartNutriTracker.Back.Services.Users;
 
 namespace SmartNutriTracker.Back.Controllers
 {
@@ -10,10 +13,30 @@ namespace SmartNutriTracker.Back.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
-        [HttpGet]
-        public IActionResult Get()
+        private readonly IUserService _userService;
+        public UserController(IUserService userService)
         {
-            return Ok("User Controller is working!");
+            _userService = userService;
+        }
+
+        [HttpGet("ObtenerUsuarios")]
+        public async Task<List<UsuarioRegistroDTO>> ObtenerUsuarios()
+        {
+            return await _userService.ObtenerUsuariosAsync();
+        }
+
+        [HttpPost("RegistrarUsuario")]
+        public async Task<IActionResult> RegistrarUsuario([FromBody] UsuarioNuevoDTO nuevoUsuario)
+        {
+            bool resultado = await _userService.RegistrarUsuarioAsync(nuevoUsuario);
+            if (resultado)
+            {
+                return Ok(new { mensaje = "Usuario registrado exitosamente." });
+            }
+            else
+            {
+                return BadRequest(new { mensaje = "Error al registrar el usuario." });
+            }
         }
     }
 }

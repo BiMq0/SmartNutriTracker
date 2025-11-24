@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using SmartNutriTracker.Back.Models.BaseModels;
+using SmartNutriTracker.Domain.Models.BaseModels;
 
 namespace SmartNutriTracker.Back.Database
 {
