@@ -1,6 +1,7 @@
 ﻿using SmartNutriTracker.Shared.DTOs.Usuarios;
 using SmartNutriTracker.Domain.Models.BaseModels;
 using SmartNutriTracker.Back.Database;
+using SmartNutriTracker.Back.Services.Tokens;
 using Microsoft.EntityFrameworkCore;
 
 namespace SmartNutriTracker.Back.Services.Users;
@@ -8,10 +9,12 @@ namespace SmartNutriTracker.Back.Services.Users;
 public class UserService : IUserService
 {
     private readonly ApplicationDbContext _context;
+    private readonly ITokenService _tokenService;
 
-    public UserService(ApplicationDbContext context)
+    public UserService(ApplicationDbContext context, ITokenService tokenService)
     {
         _context = context;
+        _tokenService = tokenService; 
     }
 
     public async Task<List<UsuarioRegistroDTO>> ObtenerUsuariosAsync()
@@ -34,7 +37,7 @@ public class UserService : IUserService
         return resultado;
     }
 
-    public async Task<UsuarioRegistroDTO?> AutenticarUsuarioAsync(LoginDTO loginDTO)
+    public async Task<LoginResponseDTO?> AutenticarUsuarioAsync(LoginDTO loginDTO)
     {
         // 1. Buscar el usuario por username
         var usuario = await _context.Usuarios
@@ -48,9 +51,16 @@ public class UserService : IUserService
         // 3. Validar contraseña con BCrypt
         bool esValida = BCrypt.Net.BCrypt.Verify(loginDTO.Password, usuario.PasswordHash);
         
-        // 4. Si contraseña es válida, retornar datos del usuario
+        // 4. Si contraseña es válida, generar token y retornar respuesta
         if (esValida)
-            return new UsuarioRegistroDTO(usuario);
+        {
+            var token = _tokenService.GenerarToken(usuario);
+            return new LoginResponseDTO
+            {
+                Usuario = new UsuarioRegistroDTO(usuario),
+                Token = token
+            };
+        }
 
         return null;
     }
