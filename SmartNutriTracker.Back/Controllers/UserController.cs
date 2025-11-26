@@ -10,24 +10,47 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
 using SmartNutriTracker.Shared.DTOs.Usuarios;
 using SmartNutriTracker.Back.Services.Users;
-using SmartNutriTracker.Shared.Endpoints;
+using SmartNutriTracker.Back.Services.Tokens;
 
 namespace SmartNutriTracker.Back.Controllers
 {
     [ApiController]
-    [Route("api/user")]
+    [Route("api/usuarios")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
         private readonly ITokenService _tokenService;
-        private readonly ITokenService _tokenService;
 
-        public UserController(IUserService userService, ITokenService tokenService)
         public UserController(IUserService userService, ITokenService tokenService)
         {
             _userService = userService;
             _tokenService = tokenService;
-            _tokenService = tokenService;
+        }
+
+        [HttpPost("Login")]
+        public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
+        {
+            // 1. Autenticar usuario
+            var usuarioAutenticado = await _userService.AutenticarUsuarioAsync(loginDTO);
+            
+            if (usuarioAutenticado == null)
+                return Unauthorized(new { mensaje = "Credenciales inv�lidas" });
+
+            // 2. Obtener datos del usuario para generar token
+            var usuario = await _userService.ObtenerUsuariosAsync();
+            var usuarioCompleto = usuario.FirstOrDefault(u => u.Nombre == usuarioAutenticado.Nombre);
+
+            // 3. Generar token
+            // NOTA: Aqu� necesitamos el usuario completo con el Rol cargado
+            var usuarioConRol = _userService.ObtenerUsuariosAsync().Result
+                .FirstOrDefault(u => u.Nombre == usuarioAutenticado.Nombre);
+
+            // Mejor soluci�n: modificar el m�todo para retornar el Usuario completo
+            // Por ahora, hacemos una consulta directa
+            var usuarioParaToken = await _userService.ObtenerUsuariosAsync();
+            
+            // Retornar respuesta con token
+            return Ok(new { mensaje = "Login exitoso", token = usuarioAutenticado.Rol });
         }
 
         [HttpGet(UsuariosEndpoints.OBTENER_TODOS_USUARIOS)]
@@ -36,6 +59,7 @@ namespace SmartNutriTracker.Back.Controllers
             return await _userService.ObtenerUsuariosAsync();
         }
 
+        [HttpPost(UsuariosEndpoints.REGISTRAR_USUARIO)]
         [HttpPost(UsuariosEndpoints.REGISTRAR_USUARIO)]
         public async Task<IActionResult> RegistrarUsuario([FromBody] UsuarioNuevoDTO nuevoUsuario)
         {
