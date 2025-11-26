@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -5,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SmartNutriTracker.Back.Handlers;
 using SmartNutriTracker.Domain.Models.BaseModels;
+using SmartNutriTracker.Shared; 
 
 namespace SmartNutriTracker.Back.Services.Security
 {

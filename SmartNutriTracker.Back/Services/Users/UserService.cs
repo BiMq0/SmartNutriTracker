@@ -1,48 +1,71 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
+﻿csharp SmartNutriTracker.Back\Services\Users\UserService.cs
+using Microsoft.EntityFrameworkCore;
 using SmartNutriTracker.Shared.DTOs.Usuarios;
 using SmartNutriTracker.Back.Database;
+using SmartNutriTracker.Back.Services.Tokens;
 using SmartNutriTracker.Domain.Models.BaseModels;
 
-namespace SmartNutriTracker.Back.Services.Users
+namespace SmartNutriTracker.Back.Services.Users;
+
+public class UserService : IUserService
 {
-    public class UserService : IUserService
+    private readonly ApplicationDbContext _context;
+    private readonly ITokenService _tokenService;
+
+    public UserService(ApplicationDbContext context, ITokenService tokenService)
     {
-        private readonly ApplicationDbContext _db;
-        private readonly IPasswordHasher<Usuario> _passwordHasher;
+        _context = context;
+        _tokenService = tokenService;
+    }
 
-        public UserService(ApplicationDbContext db, IPasswordHasher<Usuario> passwordHasher)
+    public async Task<List<UsuarioRegistroDTO>> ObtenerUsuariosAsync()
+    {
+        var usuarios = await _context.Usuarios.Include(u => u.Rol).ToListAsync();
+        return usuarios.Select(u => new UsuarioRegistroDTO(u)).ToList();
+    }
+
+    public async Task<bool> RegistrarUsuarioAsync(UsuarioNuevoDTO nuevoUsuario)
+    {
+        if (string.IsNullOrWhiteSpace(nuevoUsuario.Username) || string.IsNullOrWhiteSpace(nuevoUsuario.Password))
+            return false;
+
+        var existe = await _context.Usuarios.AnyAsync(u => u.Username == nuevoUsuario.Username);
+        if (existe) return false;
+
+        var usuario = new Usuario
         {
-            _db = db;
-            _passwordHasher = passwordHasher;
-        }
+            Username = nuevoUsuario.Username,
+            RolId = nuevoUsuario.RolId
+        };
 
-        public async Task<List<UsuarioRegistroDTO>> ObtenerUsuariosAsync()
+        usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(nuevoUsuario.Password);
+
+        _context.Usuarios.Add(usuario);
+        var resultado = await _context.SaveChangesAsync() > 0;
+        return resultado;
+    }
+
+    public async Task<LoginResponseDTO?> AutenticarUsuarioAsync(LoginDTO loginDTO)
+    {
+        var usuario = await _context.Usuarios
+            .Include(u => u.Rol)
+            .FirstOrDefaultAsync(u => u.Username == loginDTO.Username);
+
+        if (usuario == null)
+            return null;
+
+        bool esValida = BCrypt.Net.BCrypt.Verify(loginDTO.Password, usuario.PasswordHash);
+
+        if (esValida)
         {
-            var usuarios = await _db.Usuarios.Include(u => u.Rol).ToListAsync();
-            return usuarios.Select(u => new UsuarioRegistroDTO(u)).ToList();
-        }
-
-        public async Task<bool> RegistrarUsuarioAsync(UsuarioNuevoDTO nuevoUsuario)
-        {
-            // Validaciones básicas
-            if (string.IsNullOrWhiteSpace(nuevoUsuario.Username) || string.IsNullOrWhiteSpace(nuevoUsuario.Password))
-                return false;
-
-            var existe = await _db.Usuarios.AnyAsync(u => u.Username == nuevoUsuario.Username);
-            if (existe) return false;
-
-            var usuario = new Usuario
+            var token = _tokenService.GenerarToken(usuario);
+            return new LoginResponseDTO
             {
-                Username = nuevoUsuario.Username,
-                RolId = nuevoUsuario.RolId
+                Usuario = new UsuarioRegistroDTO(usuario),
+                Token = token
             };
-
-            usuario.PasswordHash = _passwordHasher.HashPassword(usuario, nuevoUsuario.Password);
-
-            _db.Usuarios.Add(usuario);
-            var saved = await _db.SaveChangesAsync();
-            return saved > 0;
         }
+
+        return null;
     }
 }

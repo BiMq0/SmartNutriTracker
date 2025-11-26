@@ -1,8 +1,10 @@
+csharp SmartNutriTracker.Back\Controllers\UserController.cs
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using SmartNutriTracker.Shared.DTOs.Usuarios;
 using SmartNutriTracker.Shared.Endpoints;
 using SmartNutriTracker.Back.Services.Users;
@@ -37,6 +39,16 @@ namespace SmartNutriTracker.Back.Controllers
             {
                 return BadRequest(new { mensaje = "Error al registrar el usuario." });
             }
+        }
+
+        [AllowAnonymous]
+        [HttpPost("AutenticarUsuario")]
+        public async Task<IActionResult> AutenticarUsuario([FromBody] LoginDTO loginDTO)
+        {
+            var respuesta = await _userService.AutenticarUsuarioAsync(loginDTO);
+            if (respuesta == null)
+                return Unauthorized(new { mensaje = "Usuario o contraseña incorrectos." });
+            return Ok(respuesta);
         }
     }
 }
