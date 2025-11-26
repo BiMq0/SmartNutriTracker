@@ -4,6 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using SmartNutriTracker.Back.Handlers;
+using SmartNutriTracker.Back.Services.Tokens;
+using SmartNutriTracker.Back.Services.Users;
+using SmartNutriTracker.Back.Database;
+using Microsoft.EntityFrameworkCore;
 using System.Text;
 using SmartNutriTracker.Domain.Models.BaseModels;
 using Microsoft.AspNetCore.Identity;
@@ -18,11 +23,29 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 );
 builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JWT"));
 
-// Registrar hasher y servicio JWT
-builder.Services.AddScoped<IPasswordHasher<Usuario>, PasswordHasher<Usuario>>();
-builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
+// DbContext
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnectionString")));
 
-// Configurar autenticación JWT
+// Servicios
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddAllScopes(); // registra servicios/mappers por convenciï¿½n
+
+// MVC, Swagger y CORS
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", p => p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+});
+
+// Configuraciï¿½n JWT
+var jwtSettings = builder.Configuration.GetSection("JWT").Get<JWTSettings>()!;
+var key = Encoding.UTF8.GetBytes(jwtSettings.Key ?? string.Empty);
+
+// Configurar autenticaciï¿½n JWT
 var jwtSection = builder.Configuration.GetSection("JWT");
 var key = Encoding.UTF8.GetBytes(jwtSection.GetValue<string>("Key") ?? "");
 builder.Services.AddAuthentication(options =>
@@ -31,7 +54,7 @@ builder.Services.AddAuthentication(options =>
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 }).AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = true;
+    options.RequireHttpsMetadata = false; // poner true en producciï¿½n
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -64,16 +87,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-    });
-    app.MapGet("/", () => Results.Redirect("/swagger"));
+    app.UseSwaggerUI();
 }
 
-app.UseCors("AllowAll");
-
 app.UseHttpsRedirection();
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();
