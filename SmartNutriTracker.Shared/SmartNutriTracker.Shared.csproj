@@ -9,5 +9,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+	<!-- AGREGAR esta referencia -->
+	<ItemGroup>
+		<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+	</ItemGroup>
 
+	<ItemGroup>
+		<ProjectReference Include="..\SmartNutriTracker.Domain\SmartNutriTracker.Domain.csproj" />
+	</ItemGroup>
 </Project>

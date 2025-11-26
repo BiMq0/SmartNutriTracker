@@ -1,0 +1,103 @@
+﻿@page "/registro-estudiante"
+@using SmartNutriTracker.Shared.DTOs.Estudiantes
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<div class="container mt-4">
+    <h3>Registro de Estudiante</h3>
+    
+    <EditForm Model="@nuevoEstudiante" OnValidSubmit="@RegistrarEstudiante" class="card p-4" FormName="registroEstudiante">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label class="form-label">Nombre Completo:</label>
+            <InputText @bind-Value="@nuevoEstudiante.NombreCompleto" class="form-control" />
+            <ValidationMessage For="@(() => nuevoEstudiante.NombreCompleto)" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Edad:</label>
+            <InputNumber @bind-Value="@nuevoEstudiante.Edad" class="form-control" />
+            <ValidationMessage For="@(() => nuevoEstudiante.Edad)" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Sexo:</label>
+            <InputSelect @bind-Value="@nuevoEstudiante.Sexo" class="form-control">
+                <option value="">Seleccionar sexo...</option>
+                <option value="Masculino">Masculino</option>
+                <option value="Femenino">Femenino</option>
+            </InputSelect>
+            <ValidationMessage For="@(() => nuevoEstudiante.Sexo)" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Peso (kg):</label>
+            <InputNumber @bind-Value="@nuevoEstudiante.Peso" class="form-control" step="0.1" />
+            <ValidationMessage For="@(() => nuevoEstudiante.Peso)" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Altura (m):</label>
+            <InputNumber @bind-Value="@nuevoEstudiante.Altura" class="form-control" step="0.01" />
+            <ValidationMessage For="@(() => nuevoEstudiante.Altura)" />
+        </div>
+
+        <button type="submit" class="btn btn-primary" disabled="@isLoading" @onclick:preventDefault>
+            @if (isLoading)
+            {
+                <span>Registrando...</span>
+            }
+            else
+            {
+                <span>Registrar Estudiante</span>
+            }
+        </button>
+
+        @if (!string.IsNullOrEmpty(mensaje))
+        {
+            <div class="alert alert-info mt-3">@mensaje</div>
+        }
+    </EditForm>
+</div>
+
+@code {
+    private EstudianteRegistroDTO nuevoEstudiante = new();
+    private bool isLoading = false;
+    private string mensaje = "";
+
+    private async Task RegistrarEstudiante()
+    {
+        isLoading = true;
+        mensaje = "";
+        StateHasChanged(); // Forzar actualización de UI
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/estudiantes", nuevoEstudiante);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                mensaje = "Estudiante registrado exitosamente!";
+                // Limpiar formulario después de 2 segundos
+                await Task.Delay(2000);
+                nuevoEstudiante = new EstudianteRegistroDTO();
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                mensaje = $"Error: {error}";
+            }
+        }
+        catch (Exception ex)
+        {
+            mensaje = $"Error de conexion: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged(); // Forzar actualización de UI
+        }
+    }
+}
