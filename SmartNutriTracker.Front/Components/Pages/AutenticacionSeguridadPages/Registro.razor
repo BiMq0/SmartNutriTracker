@@ -1,0 +1,141 @@
+﻿@page "/GestionUsuarios"
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
+
+    .contenedor {
+        width: 75%;
+        margin: 60px auto;
+        display: flex;
+        gap: 40px;
+        align-items: center;
+        background: #f1e9b8; 
+        padding: 20px; 
+        border-radius: 0;
+        box-shadow: none; 
+    }
+
+    .col-izq {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .titulo {
+        font-size: 34px;
+        font-weight: bold;
+        color: #C2854C;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    label {
+        display: block;
+        font-size: 16px;
+        margin-bottom: 6px;
+        color: #4a3c2f;
+        font-weight: bold;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 14px;
+        border-radius: 10px;
+        border: 2px solid #d1c7a2;
+        margin-bottom: 18px;
+        font-size: 16px;
+        background: #fffdf4;
+        transition: 0.25s;
+    }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #C2854C;
+            box-shadow: 0px 0px 6px rgba(194,133,76,0.5);
+        }
+
+    .btn-naranja {
+        background: #C2854C;
+        border: none;
+        padding: 14px;
+        width: 100%;
+        font-size: 17px;
+        border-radius: 10px;
+        cursor: pointer;
+        color: white;
+        font-weight: bold;
+        transition: 0.25s;
+    }
+
+        .btn-naranja:hover {
+            transform: scale(1.03);
+            background: #a3c284;
+        }
+
+    /* Columna derecha */
+    .col-der {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+        .col-der img {
+            width: 380px;
+            max-width: 100%;
+            filter: drop-shadow(0px 3px 6px rgba(0,0,0,0.2));
+        }
+
+    @@media (max-width: 900px) {
+        .contenedor
+
+    {
+        flex-direction: column;
+        width: 90%;
+        padding: 20px;
+    }
+
+    .col-der img {
+        width: 260px;
+    }
+
+    }
+</style>
+
+<div class="contenedor">
+
+    <!-- izquierda -->
+    <div class="col-izq">
+        <h2 class="titulo">Registrarse</h2>
+
+        <form>
+            <label>Nombre</label>
+            <input type="text" class="form-control" placeholder="Ingrese su nombre" />
+
+            <label>Usuario</label>
+            <input type="text" class="form-control" placeholder="Ingrese su usuario" />
+
+            <label>Contraseña</label>
+            <input type="password" class="form-control" placeholder="Ingrese contraseña" />
+
+            <label>Confirmar Contraseña</label>
+            <input type="password" class="form-control" placeholder="Confirme la contraseña" />
+
+            <button class="btn-naranja" type="submit">Registrarse</button>
+        </form>
+    </div>
+
+    <!-- derecha -->
+    <div class="col-der">
+        <img src="\Images\young-nutritionist-presenting-healthy-diet-plan-illustration_1308-183074-removebg-preview.png">
+    </div>
+
+</div>
