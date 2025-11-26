@@ -1,8 +1,8 @@
 using SmartNutriTracker.Back.Database;
 using SmartNutriTracker.Back.Handlers;
+using SmartNutriTracker.Back.Services.Estudiantes; 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,9 +12,11 @@ builder.Services.AddSwaggerGen(c => c.SwaggerDoc("v1", new OpenApiInfo { Title =
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnectionString"))
 );
+
 builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JWT"));
 
-builder.Services.AddAllScopes();
+builder.Services.AddScoped<IEstudianteService, EstudianteService>();
+
 builder.Services.AddControllers();
 builder.Services.AddCors(options =>
 {
@@ -39,9 +41,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowAll");
-
 app.UseHttpsRedirection();
+
 
 app.MapControllers();
 app.Run();
-
