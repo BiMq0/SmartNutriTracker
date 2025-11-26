@@ -2,11 +2,13 @@
 using SmartNutriTracker.Domain.Models.BaseModels;
 using SmartNutriTracker.Back.Database;
 using Microsoft.EntityFrameworkCore;
+
 namespace SmartNutriTracker.Back.Services.Users;
 
 public class UserService : IUserService
 {
     private readonly ApplicationDbContext _context;
+
     public UserService(ApplicationDbContext context)
     {
         _context = context;
@@ -15,7 +17,6 @@ public class UserService : IUserService
     public async Task<List<UsuarioRegistroDTO>> ObtenerUsuariosAsync()
     {
         var usuariosBase = await _context.Usuarios.Include(u => u.Rol).ToListAsync();
-
         var listaUsuarios = usuariosBase.Select(u => new UsuarioRegistroDTO(u)).ToList();
         return listaUsuarios;
     }
@@ -31,5 +32,26 @@ public class UserService : IUserService
 
         var resultado = await _context.SaveChangesAsync() > 0;
         return resultado;
+    }
+
+    public async Task<UsuarioRegistroDTO?> AutenticarUsuarioAsync(LoginDTO loginDTO)
+    {
+        // 1. Buscar el usuario por username
+        var usuario = await _context.Usuarios
+            .Include(u => u.Rol)
+            .FirstOrDefaultAsync(u => u.Username == loginDTO.Username);
+
+        // 2. Si no existe, retornar null
+        if (usuario == null)
+            return null;
+
+        // 3. Validar contraseña con BCrypt
+        bool esValida = BCrypt.Net.BCrypt.Verify(loginDTO.Password, usuario.PasswordHash);
+        
+        // 4. Si contraseña es válida, retornar datos del usuario
+        if (esValida)
+            return new UsuarioRegistroDTO(usuario);
+
+        return null;
     }
 }
