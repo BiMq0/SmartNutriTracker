@@ -2,7 +2,8 @@ using SmartNutriTracker.Front.Components;
 using SmartNutriTracker.Front.Handlers;
 using SmartNutriTracker.Front.Services;
 using Microsoft.AspNetCore.Components.Authorization;
-
+using Microsoft.AspNetCore.Components;
+using System.Net;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -10,19 +11,16 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
-builder.Services.AddScoped(sp =>
+builder.Services.AddHttpClient("ApiClient", client =>
 {
-    // HttpClient con soporte para cookies
-    var handler = new HttpClientHandler
+    client.BaseAddress = new Uri(ApiConfig.HttpsApiUrl);
+})
+.ConfigurePrimaryHttpMessageHandler(() =>
+{
+    return new HttpClientHandler
     {
         UseCookies = true,
-        CookieContainer = new System.Net.CookieContainer()
-    };
-
-    return new HttpClient(handler)
-    {
-        BaseAddress = new Uri(ApiConfig.HttpsApiUrl),
-   Timeout = TimeSpan.FromSeconds(30)
+        CookieContainer = new CookieContainer()
     };
 });
 

@@ -10,93 +10,79 @@ using System.Security.Claims;
 using SmartNutriTracker.Shared.DTOs.Usuarios;
 using SmartNutriTracker.Shared.Endpoints;
 using SmartNutriTracker.Back.Services.Users;
-using SmartNutriTracker.Back.Services.Audit;
+using SmartNutriTracker.Back.Services.Tokens;
 
 namespace SmartNutriTracker.Back.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/user")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-        private readonly IAuditService _auditService;
+        private readonly ITokenService _tokenService;
 
-        public UserController(IUserService userService, IAuditService auditService)
+        public UserController(IUserService userService, ITokenService tokenService)
         {
             _userService = userService;
-            _auditService = auditService;
+            _tokenService = tokenService;
         }
 
-        [HttpPost("Login")]
-        public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
+        [AllowAnonymous]
+        [HttpPost("autenticar-usuario")]
+        public async Task<IActionResult> AutenticarUsuario([FromBody] LoginDTO loginDTO)
         {
-            // 1. Autenticar usuario
-            var respuesta = await _userService.AutenticarUsuarioAsync(loginDTO);
-            
-            if (respuesta == null)
-                return Unauthorized(new { mensaje = "Credenciales inválidas" });
-
-            // 2. Generar token
-            var token = _tokenService.GenerarToken(respuesta.Usuario);
-
-            // 3. Guardar token en cookie HttpOnly + Secure
-            var cookieOptions = new CookieOptions
+            try
             {
-                HttpOnly = true,        // No accesible desde JavaScript (más seguro contra XSS)
-                Secure = true,          // Solo se envía por HTTPS
-                SameSite = SameSiteMode.None,  // Necesario si frontend en distinto origen
-                Expires = DateTime.UtcNow.AddHours(24)
-            };
+                var respuesta = await _userService.AutenticarUsuarioAsync(loginDTO);
+                if (respuesta == null)
+                    return Unauthorized(new { mensaje = "Usuario o contraseña incorrectos." });
 
-            Response.Cookies.Append("SmartNutriTrackerAuth", token, cookieOptions);
+                // Crear claims para la cookie
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.NameIdentifier, respuesta.Usuario.Id.ToString()),
+                    new Claim(ClaimTypes.Name, respuesta.Usuario.Nombre),
+                    new Claim(ClaimTypes.Role, respuesta.Usuario.Rol),
+                };
 
-            // 4. Retornar solo confirmación (sin datos sensibles en el cuerpo)
-            return Ok(new { mensaje = "Login exitoso" });
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var authProperties = new AuthenticationProperties
+                {
+                    IsPersistent = true,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddHours(24)
+                };
+
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(claimsIdentity),
+                    authProperties);
+
+                return Ok(new { mensaje = "Autenticación exitosa.", usuario = respuesta.Usuario });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = $"Error en la autenticación: {ex.Message}" });
+            }
         }
 
-        [HttpGet("ObtenerUsuarios")]
+        [HttpGet("obtener-usuarios")]
         [Authorize]
         public async Task<List<UsuarioRegistroDTO>> ObtenerUsuarios()
         {
             return await _userService.ObtenerUsuariosAsync();
         }
 
-        [HttpPost("RegistrarUsuario")]
+        [HttpPost("registrar-usuario")]
         public async Task<IActionResult> RegistrarUsuario([FromBody] UsuarioNuevoDTO nuevoUsuario)
         {
-            try
+            bool resultado = await _userService.RegistrarUsuarioAsync(nuevoUsuario);
+            if (resultado)
             {
-                bool resultado = await _userService.RegistrarUsuarioAsync(nuevoUsuario);
-
-                if (resultado)
-                {
-                    await _auditService.LogAsync(
-                        accion: "RegistrarUsuario",
-                        nivel: "INFO",
-                        detalle: $"Usuario registrado: {nuevoUsuario.Correo}"
-                    );
-
-                    return Ok(new { mensaje = "Usuario registrado exitosamente." });
-                }
-                else
-                {
-                    await _auditService.LogAsync(
-                        accion: "RegistrarUsuario",
-                        nivel: "WARNING",
-                        detalle: $"Error al registrar usuario: {nuevoUsuario.Correo}"
-                    );
-
-                    return BadRequest(new { mensaje = "Error al registrar el usuario." });
-                }
+                return Ok(new { mensaje = "Usuario registrado exitosamente." });
             }
-            catch (Exception ex)
+            else
             {
-                await _auditService.LogAsync(
-                    accion: "RegistrarUsuario",
-                    nivel: "ERROR",
-                    detalle: $"Excepción: {ex.Message}"
-                );
-                return StatusCode(500, new { mensaje = "Error interno al registrar usuario." });
+                return BadRequest(new { mensaje = "Error al registrar el usuario." });
             }
         }
 
@@ -112,38 +98,58 @@ namespace SmartNutriTracker.Back.Controllers
         [HttpPost("AutenticarUsuario")]
         public async Task<IActionResult> AutenticarUsuario([FromBody] LoginDTO loginDTO)
         {
-            try
+            var respuesta = await _userService.AutenticarUsuarioAsync(loginDTO);
+            if (respuesta == null)
+                return Unauthorized(new { mensaje = "Usuario o contraseña incorrectos." });
+
+            // Crear claims para la cookie
+            var claims = new List<Claim>
             {
-                var respuesta = await _userService.AutenticarUsuarioAsync(loginDTO);
+                new Claim(ClaimTypes.NameIdentifier, respuesta.Usuario.Id.ToString()),
+                new Claim(ClaimTypes.Name, respuesta.Usuario.Nombre),
+                new Claim(ClaimTypes.Role, respuesta.Usuario.Rol),
+            };
 
-                if (respuesta == null)
-                {
-                    await _auditService.LogAsync(
-                        accion: "AutenticarUsuario",
-                        nivel: "WARNING",
-                        detalle: $"Login fallido para: {loginDTO.Correo}"
-                    );
-
-                    return Unauthorized(new { mensaje = "Usuario o contraseña incorrectos." });
-                }
-
-                await _auditService.LogAsync(
-                    accion: "AutenticarUsuario",
-                    nivel: "INFO",
-                    detalle: $"Login exitoso para: {loginDTO.Correo}"
-                );
-
-                return Ok(respuesta);
-            }
-            catch (Exception ex)
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var authProperties = new AuthenticationProperties
             {
-                await _auditService.LogAsync(
-                    accion: "AutenticarUsuario",
-                    nivel: "ERROR",
-                    detalle: $"Excepción: {ex.Message}"
-                );
-                return StatusCode(500, new { mensaje = "Error interno al autenticar usuario." });
-            }
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddHours(24)
+            };
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity),
+                authProperties);
+
+            return Ok(new { mensaje = "Autenticación exitosa.", usuario = respuesta.Usuario });
+        }
+
+        [Authorize]
+        [HttpPost("CerrarSesion")]
+        public async Task<IActionResult> CerrarSesion()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return Ok(new { mensaje = "Sesión cerrada exitosamente." });
+        }
+
+        [Authorize]
+        [HttpGet("me")]
+        public IActionResult GetCurrentUser()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userName = User.FindFirst(ClaimTypes.Name)?.Value;
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            return Ok(new
+            {
+                Id = userId,
+                Nombre = userName,
+                Rol = userRole
+            });
         }
     }  
 }
