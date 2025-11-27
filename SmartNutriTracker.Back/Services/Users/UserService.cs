@@ -1,5 +1,4 @@
-﻿csharp SmartNutriTracker.Back\Services\Users\UserService.cs
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SmartNutriTracker.Shared.DTOs.Usuarios;
 using SmartNutriTracker.Back.Database;
 using SmartNutriTracker.Back.Services.Tokens;

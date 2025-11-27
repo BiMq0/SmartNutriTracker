@@ -10,21 +10,14 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JWT"));
-
 // DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnectionString")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnectionString"))
+);
+builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JWT"));
 
-// Servicios
-builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddAllScopes(); // registra servicios/mappers por convención
-
-// MVC, Swagger y CORS
+builder.Services.AddAllScopes();
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", p => p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
@@ -60,6 +53,8 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -68,9 +63,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Orden correcto: autenticación ? autorización
 app.UseAuthentication();
 app.UseAuthorization();
 
