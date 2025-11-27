@@ -10,7 +10,7 @@ using System.Security.Claims;
 using SmartNutriTracker.Shared.DTOs.Usuarios;
 using SmartNutriTracker.Shared.Endpoints;
 using SmartNutriTracker.Back.Services.Users;
-using SmartNutriTracker.Back.Services.Audit;
+using SmartNutriTracker.Back.Services.Tokens;
 
 namespace SmartNutriTracker.Back.Controllers
 {
@@ -19,12 +19,39 @@ namespace SmartNutriTracker.Back.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-        private readonly IAuditService _auditService;
+        private readonly ITokenService _tokenService;
 
-        public UserController(IUserService userService, IAuditService auditService)
+        public UserController(IUserService userService, ITokenService tokenService)
         {
             _userService = userService;
-            _auditService = auditService;
+            _tokenService = tokenService;
+        }
+
+        [HttpPost("Login")]
+        public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
+        {
+            // 1. Autenticar usuario
+            var respuesta = await _userService.AutenticarUsuarioAsync(loginDTO);
+            
+            if (respuesta == null)
+                return Unauthorized(new { mensaje = "Credenciales inv�lidas" });
+
+            // 2. Generar token
+            var token = _tokenService.GenerarToken(respuesta.Usuario);
+
+            // 3. Guardar token en cookie HttpOnly + Secure
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,        // No accesible desde JavaScript (m�s seguro contra XSS)
+                Secure = true,          // Solo se env�a por HTTPS
+                SameSite = SameSiteMode.None,  // Necesario si frontend en distinto origen
+                Expires = DateTime.UtcNow.AddHours(24)
+            };
+
+            Response.Cookies.Append("SmartNutriTrackerAuth", token, cookieOptions);
+
+            // 4. Retornar solo confirmaci�n (sin datos sensibles en el cuerpo)
+            return Ok(new { mensaje = "Login exitoso" });
         }
 
         [HttpGet("ObtenerUsuarios")]
@@ -37,40 +64,23 @@ namespace SmartNutriTracker.Back.Controllers
         [HttpPost("RegistrarUsuario")]
         public async Task<IActionResult> RegistrarUsuario([FromBody] UsuarioNuevoDTO nuevoUsuario)
         {
-            try
+            bool resultado = await _userService.RegistrarUsuarioAsync(nuevoUsuario);
+            if (resultado)
             {
-                bool resultado = await _userService.RegistrarUsuarioAsync(nuevoUsuario);
-
-                if (resultado)
-                {
-                    await _auditService.LogAsync(
-                        accion: "RegistrarUsuario",
-                        nivel: "INFO",
-                        detalle: $"Usuario registrado: {nuevoUsuario.Correo}"
-                    );
-
-                    return Ok(new { mensaje = "Usuario registrado exitosamente." });
-                }
-                else
-                {
-                    await _auditService.LogAsync(
-                        accion: "RegistrarUsuario",
-                        nivel: "WARNING",
-                        detalle: $"Error al registrar usuario: {nuevoUsuario.Correo}"
-                    );
-
-                    return BadRequest(new { mensaje = "Error al registrar el usuario." });
-                }
+                return Ok(new { mensaje = "Usuario registrado exitosamente." });
             }
-            catch (Exception ex)
+            else
             {
-                await _auditService.LogAsync(
-                    accion: "RegistrarUsuario",
-                    nivel: "ERROR",
-                    detalle: $"Excepci�n: {ex.Message}"
-                );
-                return StatusCode(500, new { mensaje = "Error interno al registrar usuario." });
+                return BadRequest(new { mensaje = "Error al registrar el usuario." });
             }
+        }
+
+        [HttpPost("Logout")]
+        public IActionResult Logout()
+        {
+            // Eliminar la cookie de autenticaci�n
+            Response.Cookies.Delete("SmartNutriTrackerAuth");
+            return Ok(new { mensaje = "Logout exitoso" });
         }
 
         [AllowAnonymous]
