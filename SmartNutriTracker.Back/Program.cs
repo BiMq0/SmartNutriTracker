@@ -19,7 +19,28 @@ builder.Services.AddAllScopes();
 builder.Services.AddControllers();
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
+    options.AddPolicy("AllowAll", p => p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+});
+
+// Auditor�a
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAuditService, AuditService>();
+
+
+// Configuraci�n JWT
+var jwtSettings = builder.Configuration.GetSection("JWT").Get<JWTSettings>()!;
+var key = Encoding.UTF8.GetBytes(jwtSettings.Key ?? string.Empty);
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false; // poner true en producci�n
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
     {
         builder.AllowAnyOrigin()
                .AllowAnyMethod()
@@ -30,6 +51,10 @@ builder.Services.AddCors(options =>
         ValidIssuer = jwtSettings.Issuer,
         ValidAudience = jwtSettings.Audience,
         IssuerSigningKey = new SymmetricSecurityKey(key)
+    };
+});
+    };
+});
     };
 });
 
@@ -48,9 +73,6 @@ app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Orden correcto: autenticaci�n ? autorizaci�n
-app.UseAuthentication();
-app.UseAuthorization();
 
 app.MapControllers();
 app.Run();

@@ -8,16 +8,16 @@ namespace SmartNutriTracker.Front.Services
 {
         private readonly HttpClient _httpClient;
 
-        public CookieAuthenticationStateProvider(HttpClient httpClient)
+        public CookieAuthenticationStateProvider(IHttpClientFactory httpClient)
      {
-            _httpClient = httpClient;
+            _httpClient = httpClient.CreateClient("ApiClient");
         }
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
      {
          try
         {
-         // Hacer una llamada al backend para verificar si el usuario está autenticado
+         // Hacer una llamada al backend para verificar si el usuario estï¿½ autenticado
              var response = await _httpClient.GetAsync("api/user/me");
 
       if (response.IsSuccessStatusCode)
@@ -39,7 +39,7 @@ namespace SmartNutriTracker.Front.Services
         }
           catch
     {
-                // Si hay error, el usuario no está autenticado
+                // Si hay error, el usuario no estï¿½ autenticado
             }
 
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));

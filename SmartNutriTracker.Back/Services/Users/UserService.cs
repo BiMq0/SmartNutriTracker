@@ -33,7 +33,10 @@ public class UserService : IUserService
             Username = nuevoUsuario.Username,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(nuevoUsuario.Password),
             RolId = nuevoUsuario.RolId
-        });
+        };
+
+        // usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(nuevoUsuario.Password);
+        usuario.PasswordHash = nuevoUsuario.Password;
 
         var resultado = await _context.SaveChangesAsync() > 0;
         return resultado;
@@ -41,8 +44,7 @@ public class UserService : IUserService
 
     public async Task<LoginResponseDTO?> AutenticarUsuarioAsync(LoginDTO loginDTO)
     {
-        // 1. Buscar el usuario por username
-        var usuario = await _context.Usuarios
+        var usuario = await _context.Usuarios 
             .Include(u => u.Rol)
             .FirstOrDefaultAsync(u => u.Username == loginDTO.Username);
 
@@ -50,10 +52,9 @@ public class UserService : IUserService
         if (usuario == null)
             return null;
 
-        // 3. Validar contraseña con BCrypt
-        bool esValida = BCrypt.Net.BCrypt.Verify(loginDTO.Password, usuario.PasswordHash);
-        
-        // 4. Si contraseña es válida, generar token y retornar respuesta
+        //bool esValida = BCrypt.Net.BCrypt.Verify(loginDTO.Password,usuario.PasswordHash);
+        bool esValida = loginDTO.Password.Equals(usuario.PasswordHash);
+
         if (esValida)
         {
             var token = _tokenService.GenerarToken(usuario);
