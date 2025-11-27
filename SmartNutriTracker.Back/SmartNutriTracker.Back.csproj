@@ -8,6 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="SmartNutriTracker.Domain\SmartNutriTracker.Domain.csproj" />
+    <None Include="SmartNutriTracker.Shared\SmartNutriTracker.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
   <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
 <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.11" />
 <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.12" />

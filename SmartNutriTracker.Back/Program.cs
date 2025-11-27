@@ -3,12 +3,13 @@ using SmartNutriTracker.Back.Handlers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using SmartNutriTracker.Back.Database;
 using SmartNutriTracker.Back.Handlers;
+using SmartNutriTracker.Back.Services.Audit;
 using SmartNutriTracker.Back.Services.Tokens;
 using SmartNutriTracker.Back.Services.Users;
-using SmartNutriTracker.Back.Database;
-using Microsoft.EntityFrameworkCore;
 using System.Text;
 using SmartNutriTracker.Domain.Models.BaseModels;
 using Microsoft.AspNetCore.Identity;
@@ -40,6 +41,11 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", p => p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 });
+
+// Auditor�a
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAuditService, AuditService>();
+
 
 // Configuraci�n JWT
 var jwtSettings = builder.Configuration.GetSection("JWT").Get<JWTSettings>()!;
