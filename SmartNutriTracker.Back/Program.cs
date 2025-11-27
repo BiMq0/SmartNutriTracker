@@ -1,5 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using SmartNutriTracker.Back.Handlers;
 using SmartNutriTracker.Back.Services.Tokens;
 using SmartNutriTracker.Back.Services.Users;
@@ -8,8 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JWT"));
 
 // DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -26,33 +23,29 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", p => p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+    options.AddPolicy("AllowAll", p => p
+      .WithOrigins("https://localhost:7236", "http://localhost:5000")
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials());
 });
 
-// Configuración JWT
-var jwtSettings = builder.Configuration.GetSection("JWT").Get<JWTSettings>()!;
-var key = Encoding.UTF8.GetBytes(jwtSettings.Key ?? string.Empty);
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.RequireHttpsMetadata = false; // poner true en producción
-    options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters
+// Configuración de autenticación con cookies
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings.Issuer,
-        ValidAudience = jwtSettings.Audience,
-        IssuerSigningKey = new SymmetricSecurityKey(key)
-    };
-});
+        options.LoginPath = "/api/user/login";
+        options.LogoutPath = "/api/user/logout";
+   options.AccessDeniedPath = "/";
+        options.Cookie.Name = "SmartNutriTrackerAuth";
+     options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.ExpireTimeSpan = TimeSpan.FromHours(24);
+        options.SlidingExpiration = true;
+    });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 

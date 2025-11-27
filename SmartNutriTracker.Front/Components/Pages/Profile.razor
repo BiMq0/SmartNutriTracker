@@ -1,0 +1,41 @@
+@page "/profile"
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+
+<PageTitle>Perfil de Usuario</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+  <div class="profile-container">
+        <h1>Mi Perfil</h1>
+  <p>Bienvenido, <strong>@context?.User?.FindFirst(ClaimTypes.Name)?.Value</strong></p>
+
+ <div class="profile-info">
+      <p><strong>ID Usuario:</strong> @context?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value</p>
+<p><strong>Rol:</strong> @context?.User?.FindFirst(ClaimTypes.Role)?.Value</p>
+    </div>
+        </div>
+    </Authorized>
+  <NotAuthorized>
+        <p>Debes iniciar sesión para acceder a esta página.</p>
+        <a href="/login" class="btn btn-primary">Ir a Login</a>
+    </NotAuthorized>
+</AuthorizeView>
+
+<style>
+    .profile-container {
+max-width: 600px;
+        margin: 40px auto;
+  padding: 30px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+    .profile-info {
+     margin-top: 20px;
+        padding: 15px;
+  background: white;
+   border-left: 4px solid #C2854C;
+    }
+</style>
