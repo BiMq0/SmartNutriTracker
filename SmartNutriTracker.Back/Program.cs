@@ -10,40 +10,27 @@ var builder = WebApplication.CreateBuilder(args);
 
 // DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnectionString")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnectionString"))
+);
+builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JWT"));
 
-// Servicios
-builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddAllScopes(); // registra servicios/mappers por convención
-
-// MVC, Swagger y CORS
+builder.Services.AddAllScopes();
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", p => p
-      .WithOrigins("https://localhost:7236", "http://localhost:5000")
-        .AllowAnyHeader()
-        .AllowAnyMethod()
-        .AllowCredentials());
-});
-
-// Configuración de autenticación con cookies
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    options.AddPolicy("AllowAll", builder =>
     {
-        options.LoginPath = "/api/user/login";
-        options.LogoutPath = "/api/user/logout";
-   options.AccessDeniedPath = "/";
-        options.Cookie.Name = "SmartNutriTrackerAuth";
-     options.Cookie.HttpOnly = true;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-        options.Cookie.SameSite = SameSiteMode.Strict;
-        options.ExpireTimeSpan = TimeSpan.FromHours(24);
-        options.SlidingExpiration = true;
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
     });
+});
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings.Issuer,
+        ValidAudience = jwtSettings.Audience,
+        IssuerSigningKey = new SymmetricSecurityKey(key)
+    };
+});
 
 builder.Services.AddAuthorization();
 
@@ -55,9 +42,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Orden correcto: autenticación ? autorización
 app.UseAuthentication();
 app.UseAuthorization();
 

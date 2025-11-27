@@ -10,6 +10,7 @@ using System.Security.Claims;
 using SmartNutriTracker.Shared.DTOs.Usuarios;
 using SmartNutriTracker.Shared.Endpoints;
 using SmartNutriTracker.Back.Services.Users;
+using SmartNutriTracker.Back.Services.Tokens;
 
 namespace SmartNutriTracker.Back.Controllers
 {
@@ -18,9 +19,39 @@ namespace SmartNutriTracker.Back.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-        public UserController(IUserService userService)
+        private readonly ITokenService _tokenService;
+
+        public UserController(IUserService userService, ITokenService tokenService)
         {
             _userService = userService;
+            _tokenService = tokenService;
+        }
+
+        [HttpPost("Login")]
+        public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
+        {
+            // 1. Autenticar usuario
+            var respuesta = await _userService.AutenticarUsuarioAsync(loginDTO);
+            
+            if (respuesta == null)
+                return Unauthorized(new { mensaje = "Credenciales inválidas" });
+
+            // 2. Generar token
+            var token = _tokenService.GenerarToken(respuesta.Usuario);
+
+            // 3. Guardar token en cookie HttpOnly + Secure
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,        // No accesible desde JavaScript (más seguro contra XSS)
+                Secure = true,          // Solo se envía por HTTPS
+                SameSite = SameSiteMode.None,  // Necesario si frontend en distinto origen
+                Expires = DateTime.UtcNow.AddHours(24)
+            };
+
+            Response.Cookies.Append("SmartNutriTrackerAuth", token, cookieOptions);
+
+            // 4. Retornar solo confirmación (sin datos sensibles en el cuerpo)
+            return Ok(new { mensaje = "Login exitoso" });
         }
 
         [HttpGet("ObtenerUsuarios")]
@@ -42,6 +73,14 @@ namespace SmartNutriTracker.Back.Controllers
             {
                 return BadRequest(new { mensaje = "Error al registrar el usuario." });
             }
+        }
+
+        [HttpPost("Logout")]
+        public IActionResult Logout()
+        {
+            // Eliminar la cookie de autenticación
+            Response.Cookies.Delete("SmartNutriTrackerAuth");
+            return Ok(new { mensaje = "Logout exitoso" });
         }
 
         [AllowAnonymous]
