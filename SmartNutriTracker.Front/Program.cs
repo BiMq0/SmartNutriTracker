@@ -1,5 +1,7 @@
 using SmartNutriTracker.Front.Components;
 using SmartNutriTracker.Front.Handlers;
+using SmartNutriTracker.Front.Services;
+using Microsoft.AspNetCore.Components.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,13 +12,26 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddScoped(sp =>
 {
-    // HttpClient para WASM - navegador maneja cookies automáticamente
-    return new HttpClient
+    // HttpClient con soporte para cookies
+    var handler = new HttpClientHandler
+    {
+        UseCookies = true,
+        CookieContainer = new System.Net.CookieContainer()
+    };
+
+    return new HttpClient(handler)
     {
         BaseAddress = new Uri(ApiConfig.HttpsApiUrl),
-        Timeout = TimeSpan.FromSeconds(30)
+   Timeout = TimeSpan.FromSeconds(30)
     };
 });
+
+// Registrar AuthService
+builder.Services.AddScoped<AuthService>();
+
+// Registrar AuthenticationStateProvider
+builder.Services.AddScoped<AuthenticationStateProvider, CookieAuthenticationStateProvider>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -32,7 +47,7 @@ app.UseStaticFiles();
 app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode()
+  .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode();
 
 app.MapBlazorHub();

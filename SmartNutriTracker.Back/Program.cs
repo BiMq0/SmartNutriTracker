@@ -1,11 +1,4 @@
-using SmartNutriTracker.Back.Database;
-using SmartNutriTracker.Back.Handlers;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using SmartNutriTracker.Back.Database;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using SmartNutriTracker.Back.Handlers;
 using SmartNutriTracker.Back.Services.Audit;
 using SmartNutriTracker.Back.Services.Tokens;
@@ -15,14 +8,6 @@ using SmartNutriTracker.Domain.Models.BaseModels;
 using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c => c.SwaggerDoc("v1", new OpenApiInfo { Title = "SmartNutriTracker", Version = "v1" }));
-
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DatabaseConnectionString"))
-);
-builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JWT"));
 
 // DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -39,7 +24,11 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", p => p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+    options.AddPolicy("AllowAll", p => p
+      .WithOrigins("https://localhost:7236", "http://localhost:5000")
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials());
 });
 
 // Auditor�a
@@ -47,46 +36,22 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuditService, AuditService>();
 
 
-// Configuraci�n JWT
-var jwtSettings = builder.Configuration.GetSection("JWT").Get<JWTSettings>()!;
-var key = Encoding.UTF8.GetBytes(jwtSettings.Key ?? string.Empty);
-
-// Configurar autenticaci�n JWT
-var jwtSection = builder.Configuration.GetSection("JWT");
-var key = Encoding.UTF8.GetBytes(jwtSection.GetValue<string>("Key") ?? "");
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
-{
-    options.RequireHttpsMetadata = false; // poner true en producci�n
-    options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters
+// Configuraci�n de autenticaci�n con cookies
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateIssuerSigningKey = true,
-        ValidateLifetime = true,
-        ValidIssuer = jwtSection.GetValue<string>("Issuer"),
-        ValidAudience = jwtSection.GetValue<string>("Audience"),
-        IssuerSigningKey = new SymmetricSecurityKey(key)
-    };
-});
+        options.LoginPath = "/api/user/login";
+        options.LogoutPath = "/api/user/logout";
+   options.AccessDeniedPath = "/";
+        options.Cookie.Name = "SmartNutriTrackerAuth";
+     options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.ExpireTimeSpan = TimeSpan.FromHours(24);
+        options.SlidingExpiration = true;
+    });
 
 builder.Services.AddAuthorization();
-
-builder.Services.AddAllScopes();
-builder.Services.AddControllers();
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", builder =>
-    {
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader();
-    });
-});
 
 var app = builder.Build();
 

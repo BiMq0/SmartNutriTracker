@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Security.Claims;
 using SmartNutriTracker.Shared.DTOs.Usuarios;
 using SmartNutriTracker.Shared.Endpoints;
 using SmartNutriTracker.Back.Services.Users;
@@ -24,6 +28,7 @@ namespace SmartNutriTracker.Back.Controllers
         }
 
         [HttpGet("ObtenerUsuarios")]
+        [Authorize]
         public async Task<List<UsuarioRegistroDTO>> ObtenerUsuarios()
         {
             return await _userService.ObtenerUsuariosAsync();
@@ -72,38 +77,58 @@ namespace SmartNutriTracker.Back.Controllers
         [HttpPost("AutenticarUsuario")]
         public async Task<IActionResult> AutenticarUsuario([FromBody] LoginDTO loginDTO)
         {
-            try
+            var respuesta = await _userService.AutenticarUsuarioAsync(loginDTO);
+            if (respuesta == null)
+                return Unauthorized(new { mensaje = "Usuario o contrase�a incorrectos." });
+
+            // Crear claims para la cookie
+            var claims = new List<Claim>
             {
-                var respuesta = await _userService.AutenticarUsuarioAsync(loginDTO);
+                new Claim(ClaimTypes.NameIdentifier, respuesta.Usuario.Id.ToString()),
+                new Claim(ClaimTypes.Name, respuesta.Usuario.Nombre),
+                new Claim(ClaimTypes.Role, respuesta.Usuario.Rol),
+            };
 
-                if (respuesta == null)
-                {
-                    await _auditService.LogAsync(
-                        accion: "AutenticarUsuario",
-                        nivel: "WARNING",
-                        detalle: $"Login fallido para: {loginDTO.Correo}"
-                    );
-
-                    return Unauthorized(new { mensaje = "Usuario o contrase�a incorrectos." });
-                }
-
-                await _auditService.LogAsync(
-                    accion: "AutenticarUsuario",
-                    nivel: "INFO",
-                    detalle: $"Login exitoso para: {loginDTO.Correo}"
-                );
-
-                return Ok(respuesta);
-            }
-            catch (Exception ex)
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var authProperties = new AuthenticationProperties
             {
-                await _auditService.LogAsync(
-                    accion: "AutenticarUsuario",
-                    nivel: "ERROR",
-                    detalle: $"Excepci�n: {ex.Message}"
-                );
-                return StatusCode(500, new { mensaje = "Error interno al autenticar usuario." });
-            }
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddHours(24)
+            };
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity),
+                authProperties);
+
+            return Ok(new { mensaje = "Autenticaci�n exitosa.", usuario = respuesta.Usuario });
+        }
+
+        [Authorize]
+        [HttpPost("CerrarSesion")]
+        public async Task<IActionResult> CerrarSesion()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return Ok(new { mensaje = "Sesi�n cerrada exitosamente." });
+        }
+
+        [Authorize]
+        [HttpGet("me")]
+        public IActionResult GetCurrentUser()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userName = User.FindFirst(ClaimTypes.Name)?.Value;
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            return Ok(new
+            {
+                Id = userId,
+                Nombre = userName,
+                Rol = userRole
+            });
         }
     }  
 }
