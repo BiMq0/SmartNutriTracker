@@ -26,6 +26,9 @@ namespace SmartNutriTracker.Back.Database
         public DbSet<TipoAccion> TiposAccion => Set<TipoAccion>();
         public DbSet<TipoResultado> TiposResultado => Set<TipoResultado>();
 
+        //logger
+        public DbSet<AuditLog> AuditLogs { set; get; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
