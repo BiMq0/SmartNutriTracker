@@ -37,6 +37,9 @@ namespace SmartNutriTracker.Back.Controllers
         [HttpPost]
         public async Task<ActionResult<int>> Create([FromBody] CreateMenuDTO dto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState); // Validaciones
+
             var menuId = await _menuService.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = menuId }, menuId);
         }
@@ -45,6 +48,9 @@ namespace SmartNutriTracker.Back.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> Update(int id, [FromBody] UpdateMenuDTO dto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState); // Validaciones
+
             var success = await _menuService.UpdateAsync(id, dto);
             if (!success)
                 return NotFound();
