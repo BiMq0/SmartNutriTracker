@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authentication;
 using SmartNutriTracker.Back.Services.Alimentos;
 using SmartNutriTracker.Shared.DTOs.Alimentos;
 using SmartNutriTracker.Shared.DTOs.MenuAlimentos;
+using SmartNutriTracker.Back.Services.Menus;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +22,7 @@ builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JWT"))
 builder.Services.AddAllScopes();
 builder.Services.AddScoped<IAlimentoService, AlimentoService>();
 builder.Services.AddScoped<IAlimentoService, AlimentoService>();
+builder.Services.AddScoped<IMenuService, MenuService>();
 
 builder.Services.AddControllers();
 builder.Services.AddCors(options =>
