@@ -37,8 +37,8 @@ public class UserService : IUserService
             RolId = nuevoUsuario.RolId
         };
 
-        // usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(nuevoUsuario.Password);
-        usuario.PasswordHash = nuevoUsuario.Password;
+        // Hash the password before storing
+        usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(nuevoUsuario.Password);
 
         _context.Usuarios.Add(usuario);
         var resultado = await _context.SaveChangesAsync() > 0;
@@ -54,8 +54,8 @@ public class UserService : IUserService
         if (usuario == null)
             return null;
 
-        //bool esValida = BCrypt.Net.BCrypt.Verify(loginDTO.Password,usuario.PasswordHash);
-        bool esValida = loginDTO.Password.Equals(usuario.PasswordHash);
+        // Verify the password using BCrypt
+        bool esValida = BCrypt.Net.BCrypt.Verify(loginDTO.Password, usuario.PasswordHash);
 
         if (esValida)
         {

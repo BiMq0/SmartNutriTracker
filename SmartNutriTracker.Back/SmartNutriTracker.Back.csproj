@@ -5,12 +5,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>SmartNutriTracker.Back</RootNamespace>
+    <!-- Prevent auto-generation of assembly attributes to avoid duplicates -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Include="SmartNutriTracker.Domain\SmartNutriTracker.Domain.csproj" />
-    <None Include="SmartNutriTracker.Shared\SmartNutriTracker.Shared.csproj" />
-  </ItemGroup>
 
   <ItemGroup>
   <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SmartNutriTracker.Domain.Models.BaseModels;
+using SmartNutriTracker.Back.Models;
 
 namespace SmartNutriTracker.Back.Database
 {
@@ -26,8 +27,11 @@ namespace SmartNutriTracker.Back.Database
         public DbSet<TipoAccion> TiposAccion => Set<TipoAccion>();
         public DbSet<TipoResultado> TiposResultado => Set<TipoResultado>();
 
+        // Audit logs
+        public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
         //logger
-        public DbSet<AuditLog> AuditLogs { set; get; }
+        //public DbSet<AuditLog> AuditLogs { set; get; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

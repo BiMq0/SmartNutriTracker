@@ -89,40 +89,8 @@ namespace SmartNutriTracker.Back.Controllers
         [HttpPost("Logout")]
         public IActionResult Logout()
         {
-            // Eliminar la cookie de autenticación
             Response.Cookies.Delete("SmartNutriTrackerAuth");
             return Ok(new { mensaje = "Logout exitoso" });
-        }
-
-        [AllowAnonymous]
-        [HttpPost("AutenticarUsuario")]
-        public async Task<IActionResult> AutenticarUsuario([FromBody] LoginDTO loginDTO)
-        {
-            var respuesta = await _userService.AutenticarUsuarioAsync(loginDTO);
-            if (respuesta == null)
-                return Unauthorized(new { mensaje = "Usuario o contraseña incorrectos." });
-
-            // Crear claims para la cookie
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, respuesta.Usuario.Id.ToString()),
-                new Claim(ClaimTypes.Name, respuesta.Usuario.Nombre),
-                new Claim(ClaimTypes.Role, respuesta.Usuario.Rol),
-            };
-
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var authProperties = new AuthenticationProperties
-            {
-                IsPersistent = true,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddHours(24)
-            };
-
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                new ClaimsPrincipal(claimsIdentity),
-                authProperties);
-
-            return Ok(new { mensaje = "Autenticación exitosa.", usuario = respuesta.Usuario });
         }
 
         [Authorize]
@@ -151,5 +119,5 @@ namespace SmartNutriTracker.Back.Controllers
                 Rol = userRole
             });
         }
-    }  
+    }
 }
