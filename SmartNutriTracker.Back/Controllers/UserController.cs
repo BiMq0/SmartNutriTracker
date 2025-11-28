@@ -103,94 +103,10 @@ namespace SmartNutriTracker.Back.Controllers
         [HttpPost("Logout")]
         public IActionResult Logout()
         {
-            // Eliminar la cookie de autenticaci�n
             Response.Cookies.Delete("SmartNutriTrackerAuth");
             return Ok(new { mensaje = "Logout exitoso" });
         }
 
-        [AllowAnonymous]
-        [HttpPost("AutenticarUsuario")]
-        public async Task<IActionResult> AutenticarUsuario([FromBody] LoginDTO loginDTO)
-        {
-            var respuesta = await _userService.AutenticarUsuarioAsync(loginDTO);
-            if (respuesta == null)
-                return Unauthorized(new { mensaje = "Usuario o contrase�a incorrectos." });
-
-            // Crear claims para la cookie
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, respuesta.Usuario.Id.ToString()),
-                new Claim(ClaimTypes.Name, respuesta.Usuario.Nombre),
-                new Claim(ClaimTypes.Role, respuesta.Usuario.Rol),
-            };
-
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var authProperties = new AuthenticationProperties
-            {
-                IsPersistent = true,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddHours(24)
-            };
-
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                new ClaimsPrincipal(claimsIdentity),
-                authProperties);
-
-            return Ok(new { mensaje = "Autenticaci�n exitosa.", usuario = respuesta.Usuario });
-        }
-
-        [Authorize]
-        [HttpPost("CerrarSesion")]
-        public async Task<IActionResult> CerrarSesion()
-        {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return Ok(new { mensaje = "Sesi�n cerrada exitosamente." });
-        }
-
-        [Authorize]
-        [HttpGet("me")]
-        public IActionResult GetCurrentUser()
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var userName = User.FindFirst(ClaimTypes.Name)?.Value;
-            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
-
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized();
-
-            return Ok(new
-            {
-                Id = userId,
-                Nombre = userName,
-                Rol = userRole
-            });
-            var respuesta = await _userService.AutenticarUsuarioAsync(loginDTO);
-            if (respuesta == null)
-                return Unauthorized(new { mensaje = "Usuario o contrase�a incorrectos." });
-
-            // Crear claims para la cookie
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, respuesta.Usuario.Id.ToString()),
-                new Claim(ClaimTypes.Name, respuesta.Usuario.Nombre),
-                new Claim(ClaimTypes.Role, respuesta.Usuario.Rol),
-            };
-
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var authProperties = new AuthenticationProperties
-            {
-                IsPersistent = true,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddHours(24)
-            };
-
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                new ClaimsPrincipal(claimsIdentity),
-                authProperties);
-
-            return Ok(new { mensaje = "Autenticaci�n exitosa.", usuario = respuesta.Usuario });
-        }
-
         [Authorize]
         [HttpPost("CerrarSesion")]
         public async Task<IActionResult> CerrarSesion()
@@ -217,5 +133,5 @@ namespace SmartNutriTracker.Back.Controllers
                 Rol = userRole
             });
         }
-    }  
+    }
 }
