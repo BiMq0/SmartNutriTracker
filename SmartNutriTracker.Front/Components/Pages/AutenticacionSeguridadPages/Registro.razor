@@ -120,23 +120,20 @@
         <h2 class="titulo">Registrarse</h2>
 
         <form @onsubmit="OnSubmit" @onsubmit:preventDefault>
-            <label>Nombre</label>
-            <input @bind="Nombre" type="text" class="form-control" placeholder="Ingrese su nombre" />
+            <label>UserName</label>
+            <input @bind="UserName" type="text" class="form-control" placeholder="Ingrese su nombre de usuario" />
 
-            <label>Usuario</label>
-            <input @bind="Username" type="text" class="form-control" placeholder="Ingrese su usuario" />
-
-            <label>Contraseña</label>
-            <input @bind="Password" type="password" class="form-control" placeholder="Ingrese contraseña" />
-
-            <label>Confirmar Contraseña</label>
-            <input @bind="ConfirmPassword" type="password" class="form-control" placeholder="Confirme la contraseña" />
+            <label>PasswordHash</label>
+            <input @bind="Passwordhash" type="password" class="form-control" placeholder="Ingrese Contrasena" />
 
             <div style="width:100%; margin-bottom:12px;">
                 <label>Rol</label>
                 <select class="form-control" @bind="SelectedRolId">
                     <option value="1">Administrador</option>
-                    <option value="2">Usuario</option>
+                    <option value="2">Docente</option>
+                    <option value="3">Nutricionista</option>
+                    <option value="4">Estudiante</option>
+
                 </select>
             </div>
 
