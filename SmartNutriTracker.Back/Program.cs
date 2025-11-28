@@ -3,6 +3,9 @@ using SmartNutriTracker.Back.Handlers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication;
+using SmartNutriTracker.Back.Services.Alimentos;
+using SmartNutriTracker.Shared.DTOs.Alimentos;
+using SmartNutriTracker.Shared.DTOs.MenuAlimentos;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +18,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JWT"));
 
 builder.Services.AddAllScopes();
+builder.Services.AddScoped<IAlimentoService, AlimentoService>();
+builder.Services.AddScoped<IAlimentoService, AlimentoService>();
+
 builder.Services.AddControllers();
 builder.Services.AddCors(options =>
 {

@@ -1,12 +1,13 @@
 using SmartNutriTracker.Shared.DTOs.Alimentos;
 
-namespace SmartNutriTracker.Back.Services.Alimentos;
-
-public interface IAlimentoService
+namespace SmartNutriTracker.Back.Services.Alimentos
 {
-    Task<List<AlimentoDTO>> GetAllAsync();
-    Task<AlimentoDTO?> GetByIdAsync(int id);
-    Task<int> CreateAsync(CreateAlimentoDTO dto);
-    Task<bool> UpdateAsync(int id, UpdateAlimentoDTO dto);
-    Task<bool> DeleteAsync(int id);
+    public interface IAlimentoService
+    {
+        Task<IEnumerable<AlimentoDTO>> GetAllAsync();
+        Task<AlimentoDTO?> GetByIdAsync(int id);
+        Task<AlimentoDTO> CreateAsync(CreateAlimentoDTO dto);
+        Task<AlimentoDTO?> UpdateAsync(UpdateAlimentoDTO dto);
+        Task<bool> DeleteAsync(int id);
+    }
 }

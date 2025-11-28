@@ -1,22 +1,75 @@
 using Microsoft.EntityFrameworkCore;
 using SmartNutriTracker.Back.Database;
 using SmartNutriTracker.Shared.DTOs.Alimentos;
+using SmartNutriTracker.Domain.Models.BaseModels;
 
-namespace SmartNutriTracker.Back.Services.Alimentos;
-
-public class AlimentoService : IAlimentoService
+namespace SmartNutriTracker.Back.Services.Alimentos
 {
-    private readonly ApplicationDbContext _context;
-
-    public AlimentoService(ApplicationDbContext context)
+    public class AlimentoService : IAlimentoService
     {
-        _context = context;
-    }
+        private readonly ApplicationDbContext _db;
 
-    public async Task<List<AlimentoDTO>> GetAllAsync()
-    {
-        return await _context.Alimentos
-            .Select(a => new AlimentoDTO
+        public AlimentoService(ApplicationDbContext db)
+        {
+            _db = db;
+        }
+
+        public async Task<AlimentoDTO> CreateAsync(CreateAlimentoDTO dto)
+        {
+            var entity = new Alimento
+            {
+                Nombre = dto.Nombre,
+                Calorias = dto.Calorias,
+                Proteinas = dto.Proteinas,
+                Carbohidratos = dto.Carbohidratos,
+                Grasas = dto.Grasas
+            };
+
+            _db.Alimentos.Add(entity);
+            await _db.SaveChangesAsync();
+
+            return new AlimentoDTO
+            {
+                AlimentoId = entity.AlimentoId,
+                Nombre = entity.Nombre,
+                Calorias = entity.Calorias,
+                Proteinas = entity.Proteinas,
+                Carbohidratos = entity.Carbohidratos,
+                Grasas = entity.Grasas
+            };
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var entity = await _db.Alimentos.FindAsync(id);
+            if (entity == null) return false;
+
+            _db.Alimentos.Remove(entity);
+            await _db.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<IEnumerable<AlimentoDTO>> GetAllAsync()
+        {
+            return await _db.Alimentos
+                .Select(a => new AlimentoDTO
+                {
+                    AlimentoId = a.AlimentoId,
+                    Nombre = a.Nombre,
+                    Calorias = a.Calorias,
+                    Proteinas = a.Proteinas,
+                    Carbohidratos = a.Carbohidratos,
+                    Grasas = a.Grasas
+                })
+                .ToListAsync();
+        }
+
+        public async Task<AlimentoDTO?> GetByIdAsync(int id)
+        {
+            var a = await _db.Alimentos.FindAsync(id);
+            if (a == null) return null;
+
+            return new AlimentoDTO
             {
                 AlimentoId = a.AlimentoId,
                 Nombre = a.Nombre,
@@ -24,62 +77,31 @@ public class AlimentoService : IAlimentoService
                 Proteinas = a.Proteinas,
                 Carbohidratos = a.Carbohidratos,
                 Grasas = a.Grasas
-            }).ToListAsync();
-    }
+            };
+        }
 
-    public async Task<AlimentoDTO?> GetByIdAsync(int id)
-    {
-        var alimento = await _context.Alimentos.FindAsync(id);
-        if (alimento == null) return null;
-
-        return new AlimentoDTO
+        public async Task<AlimentoDTO?> UpdateAsync(UpdateAlimentoDTO dto)
         {
-            AlimentoId = alimento.AlimentoId,
-            Nombre = alimento.Nombre,
-            Calorias = alimento.Calorias,
-            Proteinas = alimento.Proteinas,
-            Carbohidratos = alimento.Carbohidratos,
-            Grasas = alimento.Grasas
-        };
-    }
+            var entity = await _db.Alimentos.FindAsync(dto.AlimentoId);
+            if (entity == null) return null;
 
-    public async Task<int> CreateAsync(CreateAlimentoDTO dto)
-    {
-        var entity = new Domain.Models.BaseModels.Alimento
-        {
-            Nombre = dto.Nombre,
-            Calorias = dto.Calorias,
-            Proteinas = dto.Proteinas,
-            Carbohidratos = dto.Carbohidratos,
-            Grasas = dto.Grasas
-        };
+            entity.Nombre = dto.Nombre;
+            entity.Calorias = dto.Calorias;
+            entity.Proteinas = dto.Proteinas;
+            entity.Carbohidratos = dto.Carbohidratos;
+            entity.Grasas = dto.Grasas;
 
-        _context.Alimentos.Add(entity);
-        await _context.SaveChangesAsync();
-        return entity.AlimentoId;
-    }
+            await _db.SaveChangesAsync();
 
-    public async Task<bool> UpdateAsync(int id, UpdateAlimentoDTO dto)
-    {
-        var alimento = await _context.Alimentos.FindAsync(id);
-        if (alimento == null) return false;
-
-        alimento.Nombre = dto.Nombre;
-        alimento.Calorias = dto.Calorias;
-        alimento.Proteinas = dto.Proteinas;
-        alimento.Carbohidratos = dto.Carbohidratos;
-        alimento.Grasas = dto.Grasas;
-
-        _context.Alimentos.Update(alimento);
-        return await _context.SaveChangesAsync() > 0;
-    }
-
-    public async Task<bool> DeleteAsync(int id)
-    {
-        var alimento = await _context.Alimentos.FindAsync(id);
-        if (alimento == null) return false;
-
-        _context.Alimentos.Remove(alimento);
-        return await _context.SaveChangesAsync() > 0;
+            return new AlimentoDTO
+            {
+                AlimentoId = entity.AlimentoId,
+                Nombre = entity.Nombre,
+                Calorias = entity.Calorias,
+                Proteinas = entity.Proteinas,
+                Carbohidratos = entity.Carbohidratos,
+                Grasas = entity.Grasas
+            };
+        }
     }
 }
