@@ -37,6 +37,40 @@ namespace SmartNutriTracker.Front.Services
             }
         }
 
+        public async Task<AuthResponse?> RegisterAsync(UsuarioNuevoDTO nuevoUsuario)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync("api/user/registrar-usuario", nuevoUsuario);
+
+                var contentString = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Try to read the expected JSON (mensaje + usuario)
+                    try
+                    {
+                        var result = await response.Content.ReadFromJsonAsync<AuthResponse>();
+                        return result ?? new AuthResponse { Mensaje = "Usuario registrado (sin contenido devuelto)." };
+                    }
+                    catch
+                    {
+                        return new AuthResponse { Mensaje = "Usuario registrado." };
+                    }
+                }
+                else
+                {
+                    // Return error message from server (if any)
+                    return new AuthResponse { Mensaje = contentString };
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en RegisterAsync: {ex.Message}");
+                return new AuthResponse { Mensaje = ex.Message };
+            }
+        }
+
         public async Task<bool> LogoutAsync()
         {
             try

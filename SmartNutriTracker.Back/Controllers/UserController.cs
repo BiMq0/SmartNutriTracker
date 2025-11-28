@@ -72,17 +72,23 @@ namespace SmartNutriTracker.Back.Controllers
             return await _userService.ObtenerUsuariosAsync();
         }
 
+        [AllowAnonymous]
         [HttpPost("registrar-usuario")]
         public async Task<IActionResult> RegistrarUsuario([FromBody] UsuarioNuevoDTO nuevoUsuario)
         {
-            bool resultado = await _userService.RegistrarUsuarioAsync(nuevoUsuario);
-            if (resultado)
+            try
             {
-                return Ok(new { mensaje = "Usuario registrado exitosamente." });
+                var creado = await _userService.RegistrarUsuarioAsync(nuevoUsuario);
+                if (creado != null)
+                {
+                    return Ok(new { mensaje = "Usuario registrado exitosamente.", usuario = creado });
+                }
+
+                return BadRequest(new { mensaje = "Error al registrar el usuario. Verifique que el usuario no exista y los datos sean válidos." });
             }
-            else
+            catch (Exception ex)
             {
-                return BadRequest(new { mensaje = "Error al registrar el usuario." });
+                return StatusCode(500, new { mensaje = $"Error al registrar el usuario: {ex.Message}" });
             }
         }
 

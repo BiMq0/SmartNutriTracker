@@ -1,4 +1,7 @@
 ﻿@page "/gestion-usuarios"
+@using SmartNutriTracker.Shared.DTOs.Usuarios
+@inject SmartNutriTracker.Front.Services.AuthService AuthService
+@inject NavigationManager NavigationManager
 
 <style>
     body {
@@ -116,20 +119,33 @@
     <div class="col-izq">
         <h2 class="titulo">Registrarse</h2>
 
-        <form>
+        <form @onsubmit="OnSubmit" @onsubmit:preventDefault>
             <label>Nombre</label>
-            <input type="text" class="form-control" placeholder="Ingrese su nombre" />
+            <input @bind="Nombre" type="text" class="form-control" placeholder="Ingrese su nombre" />
 
             <label>Usuario</label>
-            <input type="text" class="form-control" placeholder="Ingrese su usuario" />
+            <input @bind="Username" type="text" class="form-control" placeholder="Ingrese su usuario" />
 
             <label>Contraseña</label>
-            <input type="password" class="form-control" placeholder="Ingrese contraseña" />
+            <input @bind="Password" type="password" class="form-control" placeholder="Ingrese contraseña" />
 
             <label>Confirmar Contraseña</label>
-            <input type="password" class="form-control" placeholder="Confirme la contraseña" />
+            <input @bind="ConfirmPassword" type="password" class="form-control" placeholder="Confirme la contraseña" />
+
+            <div style="width:100%; margin-bottom:12px;">
+                <label>Rol</label>
+                <select class="form-control" @bind="SelectedRolId">
+                    <option value="1">Administrador</option>
+                    <option value="2">Usuario</option>
+                </select>
+            </div>
 
             <button class="btn-naranja" type="submit">Registrarse</button>
+
+            @if (!string.IsNullOrEmpty(Message))
+            {
+                <div style="margin-top:12px;color:@(Success ? "green" : "red")">@Message</div>
+            }
         </form>
     </div>
 
@@ -139,3 +155,55 @@
     </div>
 
 </div>
+
+@code {
+    private string Nombre { get; set; } = string.Empty;
+    private string Username { get; set; } = string.Empty;
+    private string Password { get; set; } = string.Empty;
+    private string ConfirmPassword { get; set; } = string.Empty;
+    private int SelectedRolId { get; set; } = 2; // default role
+
+    private string Message { get; set; } = string.Empty;
+    private bool Success { get; set; } = false;
+
+    private async Task OnSubmit()
+    {
+        Message = string.Empty;
+        Success = false;
+
+        if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Password))
+        {
+            Message = "Usuario y contraseña son obligatorios.";
+            return;
+        }
+
+        if (Password != ConfirmPassword)
+        {
+            Message = "Las contraseñas no coinciden.";
+            return;
+        }
+
+        var nuevo = new UsuarioNuevoDTO
+        {
+            Username = Username.Trim(),
+            Password = Password,
+            RolId = SelectedRolId
+        };
+
+        var response = await AuthService.RegisterAsync(nuevo);
+
+        if (response != null && response.Usuario != null)
+        {
+            Success = true;
+            Message = response.Mensaje ?? "Usuario registrado correctamente.";
+            // opcional: redirigir al login
+            await Task.Delay(900);
+            NavigationManager.NavigateTo("/login");
+        }
+        else
+        {
+            Success = false;
+            Message = response?.Mensaje ?? "Error al registrar el usuario. Verifique la consola o el backend.";
+        }
+    }
+}
