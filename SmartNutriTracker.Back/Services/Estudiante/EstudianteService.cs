@@ -43,6 +43,25 @@ public class EstudianteService : IEstudianteService
         return estudiante;
     }
 
+    public async Task<PerfilEstudianteDTO?> ObtenerPerfilAsync(int id)
+    {
+        return await _context.Estudiantes
+            .Where(x => x.EstudianteId == id)
+            .Select(x => new PerfilEstudianteDTO
+            {
+                EstudianteId = x.EstudianteId,
+                NombreCompleto = x.NombreCompleto,
+                Edad = x.Edad,
+                Sexo = x.Sexo,
+                Peso = x.Peso,
+                Altura = x.Altura,
+                IMC = x.IMC,
+                TMB = x.TMB
+            })
+            .FirstOrDefaultAsync();
+    }
+
+
     public decimal CalcularIMC(decimal peso, decimal altura)
     {
         return peso / (altura * altura);

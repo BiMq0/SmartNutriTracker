@@ -1,13 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SmartNutriTracker.Back.Database;
-using SmartNutriTracker.Back.Services.Estudiantes;
-using SmartNutriTracker.Domain.Models.BaseModels;
-using SmartNutriTracker.Shared.DTOs.Estudiantes;
-using System;
-using System.Threading.Tasks;
-// ELIMINAR este using: using SmartNutriTracker.Shared.Endpoints;
-
+﻿
 namespace SmartNutriTracker.Back.Controllers;
 
 [ApiController]
@@ -57,6 +48,7 @@ public class EstudiantesController : ControllerBase
         return estudiante != null ? Ok(estudiante) : NotFound();
     }
 
+    // Tu método para actualizar el perfil
     [HttpPut("{id}/perfil")] 
     public async Task<IActionResult> ActualizarPerfilEstudiante(int id, [FromBody] EstudianteUpdateDTO dto)
     {
@@ -87,5 +79,25 @@ public class EstudiantesController : ControllerBase
             }
             return StatusCode(500, $"Error interno del servidor al actualizar el perfil del estudiante: {errorMessage}");
         }
+    }
+
+    // El método del remoto para obtener perfil (fake/simulado)
+    [HttpGet("perfil/{id}")]
+    public IActionResult ObtenerPerfilEstudianteFake(int id)
+    {
+        // Nota: PerfilEstudianteDTO necesita ser definido en SmartNutriTracker.Shared/DTOs/Estudiantes/
+        var perfilFake = new PerfilEstudianteDTO
+        {
+            EstudianteId = id,
+            NombreCompleto = "Prueba Estudiante",
+            Edad = 16,
+            Sexo = "Masculino",
+            Peso = 60,
+            Altura = 1.70m,
+            IMC = 20.76m,
+            TMB = 1500
+        };
+
+        return Ok(perfilFake);
     }
 }
