@@ -1,0 +1,198 @@
+@page "/estudiantes/editar/{EstudianteId:int}"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+
+
+@using SmartNutriTracker.Shared.DTOs.Estudiantes
+@using SmartNutriTracker.Shared.Endpoints
+@using SmartNutriTracker.Domain.Models.BaseModels
+
+<style>
+    /* Estilos personalizados con tu paleta de colores */
+    .btn-primary-custom {
+        background-color: #576E40; /* Verde oscuro */
+        border-color: #576E40;
+        color: #F1EAC0; /* Beige claro */
+    }
+    .btn-primary-custom:hover {
+        background-color: #BCD09F; /* Verde más claro */
+        border-color: #BCD09F;
+    }
+    .card-custom {
+        border-color: #BCD09F;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .card-header-custom {
+        background-color: #576E40;
+        color: #F1EAC0;
+    }
+    .text-custom-secondary {
+        color: #C2854C; /* Naranja/Marrón */
+    }
+</style>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card card-custom">
+                <div class="card-header card-header-custom">
+                    <h3 class="mb-0">Editar Perfil del Estudiante</h3>
+                </div>
+                <div class="card-body">
+                    @if (isLoading)
+                    {
+                        <div class="text-center">
+                            <p><em>Cargando perfil...</em></p>
+                            <div class="spinner-border text-custom-secondary" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                        </div>
+                    }
+                    else if (errorMessage != null)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            <strong>Error:</strong> @errorMessage
+                        </div>
+                    }
+                    else if (estudiante != null)
+                    {
+                        <EditForm Model="@estudianteUpdateDTO" OnValidSubmit="@HandleValidSubmit">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary class="alert alert-warning" />
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="nombreCompleto" class="form-label">Nombre Completo:</label>
+                                    <InputText id="nombreCompleto" class="form-control" @bind-Value="estudianteUpdateDTO.NombreCompleto" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="edad" class="form-label">Edad:</label>
+                                    <InputNumber id="edad" class="form-control" @bind-Value="estudianteUpdateDTO.Edad" />
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="sexo" class="form-label">Sexo:</label>
+                                    <InputText id="sexo" class="form-control" @bind-Value="estudianteUpdateDTO.Sexo" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="peso" class="form-label">Peso (kg):</label>
+                                    <InputNumber id="peso" class="form-control" @bind-Value="estudianteUpdateDTO.Peso" />
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="altura" class="form-label">Altura (m):</label>
+                                    <InputNumber id="altura" class="form-control" @bind-Value="estudianteUpdateDTO.Altura" />
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                                <button type="button" class="btn btn-secondary" @onclick="Volver">Cancelar</button>
+                                <button type="submit" class="btn btn-primary-custom" disabled="@isSaving">Guardar Cambios</button>
+                            </div>
+                        </EditForm>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int EstudianteId { get; set; }
+
+    private Estudiante? estudiante;
+    private EstudianteUpdateDTO estudianteUpdateDTO = new EstudianteUpdateDTO();
+    private string? errorMessage;
+    private bool isLoading = true;
+    private bool isSaving = false; // Para deshabilitar el botón mientras se guarda
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEstudianteData();
+    }
+
+    private async Task LoadEstudianteData()
+    {
+        isLoading = true;
+        errorMessage = null; // Limpiar cualquier error previo
+        try
+        {
+            // Obtener el estudiante existente para poblar el formulario
+            var url = $"{EstudiantesEndpoints.OBTENER_ESTUDIANTE_POR_ID.Replace("{id}", EstudianteId.ToString())}";
+            estudiante = await Http.GetFromJsonAsync<Estudiante>(url);
+
+            if (estudiante != null)
+            {
+                // Mapear los datos del estudiante existente al DTO de actualización
+                // Usamos null-coalescing para que si un campo es nulo en el DTO, no sobreescriba un valor existente
+                estudianteUpdateDTO.NombreCompleto = estudiante.NombreCompleto;
+                estudianteUpdateDTO.Edad = estudiante.Edad;
+                estudianteUpdateDTO.Sexo = estudiante.Sexo;
+                estudianteUpdateDTO.Peso = estudiante.Peso;
+                estudianteUpdateDTO.Altura = estudiante.Altura;
+            }
+            else
+            {
+                errorMessage = "No se encontró el estudiante.";
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            errorMessage = $"Error de conexión al cargar el estudiante: {ex.Message}";
+            Console.WriteLine($"HttpRequestException: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Ocurrió un error inesperado al cargar el estudiante: {ex.Message}";
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        isSaving = true;
+        errorMessage = null; // Limpiar cualquier error previo
+        try
+        {
+            // Enviar los datos actualizados al backend
+            var url = $"{EstudiantesEndpoints.ACTUALIZAR_PERFIL_ESTUDIANTE.Replace("{id}", EstudianteId.ToString())}";
+            var response = await Http.PutAsJsonAsync(url, estudianteUpdateDTO);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Éxito: Navegar a la página de visualización del estudiante o un mensaje de éxito
+                Navigation.NavigateTo($"/estudiantes/{EstudianteId}");
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                errorMessage = $"Error al actualizar el perfil: {response.StatusCode} - {errorContent}";
+                Console.WriteLine($"Error al actualizar: {errorMessage}");
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error de conexión al enviar los datos: {ex.Message}";
+            Console.WriteLine($"Exception al guardar: {ex.Message}");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void Volver()
+    {
+        Navigation.NavigateTo($"/estudiantes/{EstudianteId}"); // Volver a la página de visualización del estudiante
+    }
+}

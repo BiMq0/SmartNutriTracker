@@ -55,4 +55,52 @@ public class EstudianteService : IEstudianteService
         else
             return 10 * peso + 6.25m * (altura * 100) - 5 * edad - 161;
     }
+
+    public async Task<bool> ActualizarPerfilEstudianteAsync(int id, EstudianteUpdateDTO dto)
+    {
+        var estudiante = await _context.Estudiantes.FindAsync(id);
+
+        if (estudiante == null)
+        {
+            return false; // El estudiante no fue encontrado
+        }
+
+        // Aplicar actualizaciones solo si el DTO proporciona un valor (actualización parcial)
+        if (dto.NombreCompleto != null)
+        {
+            estudiante.NombreCompleto = dto.NombreCompleto;
+        }
+        if (dto.Edad.HasValue)
+        {
+            estudiante.Edad = dto.Edad.Value;
+        }
+        if (dto.Sexo != null)
+        {
+            estudiante.Sexo = dto.Sexo;
+        }
+        if (dto.Peso.HasValue)
+        {
+            estudiante.Peso = dto.Peso.Value;
+        }
+        if (dto.Altura.HasValue)
+        {
+            estudiante.Altura = dto.Altura.Value;
+        }
+
+        // Recalcular IMC y TMB si los datos físicos relevantes han cambiado
+        if (dto.Peso.HasValue || dto.Altura.HasValue || dto.Edad.HasValue || dto.Sexo != null)
+        {
+            // Usa los valores actualizados o los existentes si no se actualizaron
+            var pesoActual = dto.Peso ?? estudiante.Peso;
+            var alturaActual = dto.Altura ?? estudiante.Altura;
+            var edadActual = dto.Edad ?? estudiante.Edad;
+            var sexoActual = dto.Sexo ?? estudiante.Sexo;
+
+            estudiante.IMC = CalcularIMC(pesoActual, alturaActual);
+            estudiante.TMB = CalcularTMB(pesoActual, alturaActual, edadActual, sexoActual);
+        }
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
 }

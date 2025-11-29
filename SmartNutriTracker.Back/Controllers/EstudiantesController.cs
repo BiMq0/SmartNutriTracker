@@ -56,4 +56,36 @@ public class EstudiantesController : ControllerBase
         var estudiante = await _context.Estudiantes.FindAsync(id);
         return estudiante != null ? Ok(estudiante) : NotFound();
     }
+
+    [HttpPut("{id}/perfil")] 
+    public async Task<IActionResult> ActualizarPerfilEstudiante(int id, [FromBody] EstudianteUpdateDTO dto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState); // Si el DTO no es válido
+        }
+
+        try
+        {
+            var actualizado = await _estudianteService.ActualizarPerfilEstudianteAsync(id, dto);
+
+            if (actualizado)
+            {
+                return NoContent(); 
+            }
+            else
+            {
+                return NotFound($"Estudiante con ID {id} no encontrado.");
+            }
+        }
+        catch (Exception ex)
+        {
+            var errorMessage = ex.Message;
+            if (ex.InnerException != null)
+            {
+                errorMessage += $" | Inner: {ex.InnerException.Message}";
+            }
+            return StatusCode(500, $"Error interno del servidor al actualizar el perfil del estudiante: {errorMessage}");
+        }
+    }
 }
