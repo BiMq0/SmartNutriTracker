@@ -4,8 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using SmartNutriTracker.Shared.DTOs.Usuarios;
-using SmartNutriTracker.Shared.Endpoints;
 using SmartNutriTracker.Back.Services.Users;
+using SmartNutriTracker.Shared.Endpoints;
 
 namespace SmartNutriTracker.Back.Controllers
 {
@@ -19,13 +19,13 @@ namespace SmartNutriTracker.Back.Controllers
             _userService = userService;
         }
 
-        [HttpGet("ObtenerUsuarios")]
+        [HttpGet(UsuariosEndpoints.OBTENER_TODOS_USUARIOS)]
         public async Task<List<UsuarioRegistroDTO>> ObtenerUsuarios()
         {
             return await _userService.ObtenerUsuariosAsync();
         }
 
-        [HttpPost("RegistrarUsuario")]
+        [HttpPost(UsuariosEndpoints.REGISTRAR_USUARIO)]
         public async Task<IActionResult> RegistrarUsuario([FromBody] UsuarioNuevoDTO nuevoUsuario)
         {
             bool resultado = await _userService.RegistrarUsuarioAsync(nuevoUsuario);
