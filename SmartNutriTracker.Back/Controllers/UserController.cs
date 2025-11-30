@@ -40,7 +40,7 @@ namespace SmartNutriTracker.Back.Controllers
             {
                 var respuesta = await _userService.AutenticarUsuarioAsync(loginDTO);
                 if (respuesta == null)
-                    return Unauthorized(new { mensaje = "Usuario o contrase�a incorrectos." });
+                    return Unauthorized(new { mensaje = "Usuario o contraseña incorrectos." });
 
                 // Crear claims para la cookie
                 var claims = new List<Claim>
@@ -62,11 +62,11 @@ namespace SmartNutriTracker.Back.Controllers
                     new ClaimsPrincipal(claimsIdentity),
                     authProperties);
 
-                return Ok(new { mensaje = "Autenticaci�n exitosa.", usuario = respuesta.Usuario });
+                return Ok(new { mensaje = "Autenticación exitosa.", usuario = respuesta.Usuario });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { mensaje = $"Error en la autenticaci�n: {ex.Message}" });
+                return StatusCode(500, new { mensaje = $"Error en la autenticación: {ex.Message}" });
             }
         }
 
@@ -89,7 +89,7 @@ namespace SmartNutriTracker.Back.Controllers
                     return Ok(new { mensaje = "Usuario registrado exitosamente.", usuario = creado });
                 }
 
-                return BadRequest(new { mensaje = "Error al registrar el usuario. Verifique que el usuario no exista y los datos sean v�lidos." });
+                return BadRequest(new { mensaje = "Error al registrar el usuario. Verifique que el usuario no exista y los datos sean válidos." });
             }
             catch (Exception ex)
             {
@@ -109,7 +109,7 @@ namespace SmartNutriTracker.Back.Controllers
         public async Task<IActionResult> CerrarSesion()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return Ok(new { mensaje = "Sesi�n cerrada exitosamente." });
+            return Ok(new { mensaje = "Sesión cerrada exitosamente." });
         }
 
         [Authorize]
