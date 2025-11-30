@@ -1,5 +1,12 @@
-﻿
-namespace SmartNutriTracker.Back.Controllers;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using SmartNutriTracker.Back.Database; // ← CORREGIR este using
+using SmartNutriTracker.Back.Services.Estudiantes; // ← AGREGAR este using
+using SmartNutriTracker.Domain.Models.BaseModels;
+using SmartNutriTracker.Domain.Statics;
+using SmartNutriTracker.Shared.DTOs.Estudiantes;
+using System;
+using System.Threading.Tasks;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -91,7 +98,7 @@ public class EstudiantesController : ControllerBase
             EstudianteId = id,
             NombreCompleto = "Prueba Estudiante",
             Edad = 16,
-            Sexo = "Masculino",
+            Sexo = Sexo.Varon,
             Peso = 60,
             Altura = 1.70m,
             IMC = 20.76m,
@@ -99,5 +106,30 @@ public class EstudiantesController : ControllerBase
         };
 
         return Ok(perfilFake);
+    }
+    [HttpGet("dashboard")]
+    public async Task<IActionResult> ObtenerDashboardEstudiantes()
+    {
+        try
+        {
+            var estudiantes = await _context.Estudiantes
+                .Select(e => new
+                {
+                    e.EstudianteId,
+                    e.NombreCompleto,
+                    e.IMC,
+                    CategoriaIMC = e.IMC < 18.5m ? "Bajo peso" :        // ← Agregar 'm' para decimal
+                                  e.IMC < 25m ? "Normal" :              // ← Agregar 'm' para decimal
+                                  e.IMC < 30m ? "Sobrepeso" : "Obesidad", // ← Agregar 'm' para decimal
+                    TieneAlerta = e.IMC < 18.5m || e.IMC >= 25m         // ← Agregar 'm' para decimal
+                })
+                .ToListAsync();
+
+            return Ok(estudiantes);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error al obtener dashboard: {ex.Message}");
+        }
     }
 }

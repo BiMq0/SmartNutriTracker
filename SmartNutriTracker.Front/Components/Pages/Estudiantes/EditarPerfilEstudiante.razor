@@ -2,11 +2,10 @@
 @inject HttpClient Http
 @inject NavigationManager Navigation
 
-
-
 @using SmartNutriTracker.Shared.DTOs.Estudiantes
 @using SmartNutriTracker.Shared.Endpoints
 @using SmartNutriTracker.Domain.Models.BaseModels
+@using SmartNutriTracker.Domain.Statics  @* ← AGREGAR este using *@
 
 <style>
     /* Estilos personalizados con tu paleta de colores */
@@ -67,15 +66,19 @@
                                     <InputText id="nombreCompleto" class="form-control" @bind-Value="estudianteUpdateDTO.NombreCompleto" />
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="edad" class="form-label">Edad:</label>
-                                    <InputNumber id="edad" class="form-control" @bind-Value="estudianteUpdateDTO.Edad" />
+                                    <label for="fechaNacimiento" class="form-label">Fecha de Nacimiento:</label>
+                                    <InputDate id="fechaNacimiento" class="form-control" @bind-Value="estudianteUpdateDTO.FechaNacimiento" />
                                 </div>
                             </div>
 
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <label for="sexo" class="form-label">Sexo:</label>
-                                    <InputText id="sexo" class="form-control" @bind-Value="estudianteUpdateDTO.Sexo" />
+                                    <InputSelect id="sexo" class="form-control" @bind-Value="estudianteUpdateDTO.Sexo">
+                                        <option value="@((Sexo?)null)">Seleccionar sexo...</option>
+                                        <option value="@Sexo.Varon">Varón</option>
+                                        <option value="@Sexo.Mujer">Mujer</option>
+                                    </InputSelect>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="peso" class="form-label">Peso (kg):</label>
@@ -110,7 +113,7 @@
     private EstudianteUpdateDTO estudianteUpdateDTO = new EstudianteUpdateDTO();
     private string? errorMessage;
     private bool isLoading = true;
-    private bool isSaving = false; // Para deshabilitar el botón mientras se guarda
+    private bool isSaving = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -120,7 +123,7 @@
     private async Task LoadEstudianteData()
     {
         isLoading = true;
-        errorMessage = null; // Limpiar cualquier error previo
+        errorMessage = null;
         try
         {
             // Obtener el estudiante existente para poblar el formulario
@@ -130,10 +133,9 @@
             if (estudiante != null)
             {
                 // Mapear los datos del estudiante existente al DTO de actualización
-                // Usamos null-coalescing para que si un campo es nulo en el DTO, no sobreescriba un valor existente
                 estudianteUpdateDTO.NombreCompleto = estudiante.NombreCompleto;
-                estudianteUpdateDTO.Edad = estudiante.Edad;
-                estudianteUpdateDTO.Sexo = estudiante.Sexo;
+                estudianteUpdateDTO.FechaNacimiento = estudiante.FechaNacimiento;  @* ← CAMBIADO: FechaNacimiento en lugar de Edad *@
+                estudianteUpdateDTO.Sexo = estudiante.Sexo;  @* ← AHORA: Sexo enum *@
                 estudianteUpdateDTO.Peso = estudiante.Peso;
                 estudianteUpdateDTO.Altura = estudiante.Altura;
             }
@@ -161,7 +163,7 @@
     private async Task HandleValidSubmit()
     {
         isSaving = true;
-        errorMessage = null; // Limpiar cualquier error previo
+        errorMessage = null;
         try
         {
             // Enviar los datos actualizados al backend
@@ -193,6 +195,6 @@
 
     private void Volver()
     {
-        Navigation.NavigateTo($"/estudiantes/{EstudianteId}"); // Volver a la página de visualización del estudiante
+        Navigation.NavigateTo($"/estudiantes/{EstudianteId}");
     }
 }

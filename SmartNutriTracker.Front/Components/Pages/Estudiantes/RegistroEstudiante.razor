@@ -1,65 +1,102 @@
 ﻿@page "/registro-estudiante"
 @using SmartNutriTracker.Shared.DTOs.Estudiantes
+@using SmartNutriTracker.Domain.Statics
 @inject HttpClient Http
 @inject NavigationManager Navigation
 
 <div class="container mt-4">
-    <h3>Registro de Estudiante</h3>
-    
-    <EditForm Model="@nuevoEstudiante" OnValidSubmit="@RegistrarEstudiante" class="card p-4" FormName="registroEstudiante">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Registro de Estudiante</h4>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="@nuevoEstudiante" OnValidSubmit="@RegistrarEstudiante" FormName="registroEstudiante">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
 
-        <div class="mb-3">
-            <label class="form-label">Nombre Completo:</label>
-            <InputText @bind-Value="@nuevoEstudiante.NombreCompleto" class="form-control" />
-            <ValidationMessage For="@(() => nuevoEstudiante.NombreCompleto)" />
+                        <!-- Nombre Completo -->
+                        <div class="mb-3">
+                            <label class="form-label">Nombre Completo:</label>
+                            <InputText @bind-Value="@nuevoEstudiante.NombreCompleto" class="form-control" placeholder="Ingrese el nombre completo" />
+                            <ValidationMessage For="@(() => nuevoEstudiante.NombreCompleto)" />
+                        </div>
+
+                        <!-- Fecha de Nacimiento -->
+                        <div class="mb-3">
+                            <label class="form-label">Fecha de Nacimiento:</label>
+                            <InputDate @bind-Value="@nuevoEstudiante.FechaNacimiento" class="form-control" />
+                            <ValidationMessage For="@(() => nuevoEstudiante.FechaNacimiento)" />
+                            <small class="form-text text-muted">Edad calculada: @EdadCalculada años</small>
+                        </div>
+
+                        <!-- Sexo -->
+                        <div class="mb-3">
+                            <label class="form-label">Sexo:</label>
+                            <InputSelect @bind-Value="@nuevoEstudiante.Sexo" class="form-control">
+                                <option value="">Seleccionar sexo...</option>
+                                <option value="@Sexo.Varon">Varón</option>
+                                <option value="@Sexo.Mujer">Mujer</option>
+                            </InputSelect>
+                            <ValidationMessage For="@(() => nuevoEstudiante.Sexo)" />
+                        </div>
+
+                        <!-- Peso -->
+                        <div class="mb-3">
+                            <label class="form-label">Peso (kg):</label>
+                            <InputNumber @bind-Value="@nuevoEstudiante.Peso" class="form-control" step="0.1" placeholder="Ej: 65.5" />
+                            <ValidationMessage For="@(() => nuevoEstudiante.Peso)" />
+                        </div>
+
+                        <!-- Altura -->
+                        <div class="mb-3">
+                            <label class="form-label">Altura (m):</label>
+                            <InputNumber @bind-Value="@nuevoEstudiante.Altura" class="form-control" step="0.01" placeholder="Ej: 1.65" />
+                            <ValidationMessage For="@(() => nuevoEstudiante.Altura)" />
+                        </div>
+
+                        <!-- Cálculos automáticos -->
+                        @if (nuevoEstudiante.Peso > 0 && nuevoEstudiante.Altura > 0)
+                        {
+                            <div class="mb-3 p-3 bg-light rounded">
+                                <h6 class="mb-2">Cálculos Automáticos:</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>IMC:</strong> @IMCCalculado.ToString("F2")
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>TMB:</strong> @TMBCalculado.ToString("F2") calorías/día
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Botón de registro -->
+                        <button type="submit" class="btn btn-primary w-100 py-2" disabled="@isLoading">
+                            @if (isLoading)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                <span>Registrando...</span>
+                            }
+                            else
+                            {
+                                <span>Registrar Estudiante</span>
+                            }
+                        </button>
+
+                        <!-- Mensaje de resultado -->
+                        @if (!string.IsNullOrEmpty(mensaje))
+                        {
+                            <div class="alert @(mensaje.Contains("exito") ? "alert-success" : "alert-danger") mt-3">
+                                @mensaje
+                            </div>
+                        }
+                    </EditForm>
+                </div>
+            </div>
         </div>
-
-        <div class="mb-3">
-            <label class="form-label">Edad:</label>
-            <InputNumber @bind-Value="@nuevoEstudiante.Edad" class="form-control" />
-            <ValidationMessage For="@(() => nuevoEstudiante.Edad)" />
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Sexo:</label>
-            <InputSelect @bind-Value="@nuevoEstudiante.Sexo" class="form-control">
-                <option value="">Seleccionar sexo...</option>
-                <option value="Masculino">Masculino</option>
-                <option value="Femenino">Femenino</option>
-            </InputSelect>
-            <ValidationMessage For="@(() => nuevoEstudiante.Sexo)" />
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Peso (kg):</label>
-            <InputNumber @bind-Value="@nuevoEstudiante.Peso" class="form-control" step="0.1" />
-            <ValidationMessage For="@(() => nuevoEstudiante.Peso)" />
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Altura (m):</label>
-            <InputNumber @bind-Value="@nuevoEstudiante.Altura" class="form-control" step="0.01" />
-            <ValidationMessage For="@(() => nuevoEstudiante.Altura)" />
-        </div>
-
-        <button type="submit" class="btn btn-primary" disabled="@isLoading" @onclick:preventDefault>
-            @if (isLoading)
-            {
-                <span>Registrando...</span>
-            }
-            else
-            {
-                <span>Registrar Estudiante</span>
-            }
-        </button>
-
-        @if (!string.IsNullOrEmpty(mensaje))
-        {
-            <div class="alert alert-info mt-3">@mensaje</div>
-        }
-    </EditForm>
+    </div>
 </div>
 
 @code {
@@ -67,11 +104,35 @@
     private bool isLoading = false;
     private string mensaje = "";
 
+    // Propiedades calculadas para mostrar en tiempo real
+    private int EdadCalculada => nuevoEstudiante.FechaNacimiento != DateTime.MinValue ? 
+        DateTime.Now.Year - nuevoEstudiante.FechaNacimiento.Year - 
+        (DateTime.Now.DayOfYear < nuevoEstudiante.FechaNacimiento.DayOfYear ? 1 : 0) : 0;
+
+    private decimal IMCCalculado => nuevoEstudiante.Peso > 0 && nuevoEstudiante.Altura > 0 ? 
+        nuevoEstudiante.Peso / (nuevoEstudiante.Altura * nuevoEstudiante.Altura) : 0;
+
+    private decimal TMBCalculado {
+        get {
+            if (nuevoEstudiante.Peso <= 0 || nuevoEstudiante.Altura <= 0) return 0;
+            
+            var tmbBase = 10 * nuevoEstudiante.Peso + 6.25m * (nuevoEstudiante.Altura * 100) - 5 * EdadCalculada;
+            return nuevoEstudiante.Sexo == Sexo.Varon ? tmbBase + 5 : tmbBase - 161;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        // Valores por defecto
+        nuevoEstudiante.FechaNacimiento = DateTime.Now.AddYears(-20);
+        nuevoEstudiante.Sexo = Sexo.Varon;
+    }
+
     private async Task RegistrarEstudiante()
     {
         isLoading = true;
         mensaje = "";
-        StateHasChanged(); // Forzar actualización de UI
+        StateHasChanged();
 
         try
         {
@@ -80,9 +141,14 @@
             if (response.IsSuccessStatusCode)
             {
                 mensaje = "Estudiante registrado exitosamente!";
-                // Limpiar formulario después de 2 segundos
                 await Task.Delay(2000);
-                nuevoEstudiante = new EstudianteRegistroDTO();
+                
+                // Limpiar formulario
+                nuevoEstudiante = new EstudianteRegistroDTO 
+                { 
+                    FechaNacimiento = DateTime.Now.AddYears(-20),
+                    Sexo = Sexo.Varon
+                };
             }
             else
             {
@@ -97,7 +163,7 @@
         finally
         {
             isLoading = false;
-            StateHasChanged(); // Forzar actualización de UI
+            StateHasChanged();
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using SmartNutriTracker.Domain.Statics;
 
 namespace SmartNutriTracker.Shared.DTOs.Estudiantes;
 
@@ -8,12 +10,11 @@ public class EstudianteRegistroDTO
     [StringLength(100, ErrorMessage = "El nombre no puede exceder 100 caracteres")]
     public string NombreCompleto { get; set; } = null!;
 
-    [Required(ErrorMessage = "La edad es requerida")]
-    [Range(1, 120, ErrorMessage = "La edad debe estar entre 1 y 120 años")]
-    public int Edad { get; set; }
+    [Required(ErrorMessage = "La fecha de nacimiento es requerida")]
+    public DateTime FechaNacimiento { get; set; }
 
     [Required(ErrorMessage = "El sexo es requerido")]
-    public string Sexo { get; set; } = null!;
+    public Sexo Sexo { get; set; }
 
     [Required(ErrorMessage = "El peso es requerido")]
     [Range(1, 500, ErrorMessage = "El peso debe estar entre 1 y 500 kg")]

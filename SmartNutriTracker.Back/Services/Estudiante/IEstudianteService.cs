@@ -7,8 +7,6 @@ namespace SmartNutriTracker.Back.Services.Estudiantes;
 public interface IEstudianteService
 {
     Task<Estudiante> RegistrarEstudianteAsync(EstudianteRegistroDTO dto);
-    decimal CalcularIMC(decimal peso, decimal altura);
-    decimal CalcularTMB(decimal peso, decimal altura, int edad, string sexo);
-    Task<bool> ActualizarPerfilEstudianteAsync(int id, EstudianteUpdateDTO dto); 
-    Task<PerfilEstudianteDTO?> ObtenerPerfilAsync(int id); 
+    Task<bool> ActualizarPerfilEstudianteAsync(int id, EstudianteUpdateDTO dto);
+    Task<PerfilEstudianteDTO?> ObtenerPerfilAsync(int id);
 }
