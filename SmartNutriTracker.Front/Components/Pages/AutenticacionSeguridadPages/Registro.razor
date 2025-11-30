@@ -4,203 +4,211 @@
 @inject NavigationManager NavigationManager
 
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #f5f5f5;
-        margin: 0;
-        padding: 0;
-        overflow-x: hidden;
-    }
+    body {
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
 
-    .contenedor {
-        width: 75%;
-        margin: 60px auto;
-        display: flex;
-        gap: 40px;
-        align-items: center;
-        background: #f1e9b8; 
-        padding: 20px; 
-        border-radius: 0;
-        box-shadow: none; 
-    }
+    .contenedor {
+        width: 75%;
+        margin: 60px auto;
+        display: flex;
+        gap: 40px;
+        align-items: center;
+        background: #f1e9b8; 
+        padding: 20px; 
+        border-radius: 0;
+        box-shadow: none; 
+    }
 
-    .col-izq {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
+    .col-izq {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
 
-    .titulo {
-        font-size: 34px;
-        font-weight: bold;
-        color: #C2854C;
-        margin-bottom: 25px;
-        text-align: center;
-    }
+    .titulo {
+        font-size: 34px;
+        font-weight: bold;
+        color: #C2854C;
+        margin-bottom: 25px;
+        text-align: center;
+    }
 
-    label {
-        display: block;
-        font-size: 16px;
-        margin-bottom: 6px;
-        color: #4a3c2f;
-        font-weight: bold;
-    }
+    label {
+        display: block;
+        font-size: 16px;
+        margin-bottom: 6px;
+        color: #4a3c2f;
+        font-weight: bold;
+    }
 
-    .form-control {
-        width: 100%;
-        padding: 14px;
-        border-radius: 10px;
-        border: 2px solid #d1c7a2;
-        margin-bottom: 18px;
-        font-size: 16px;
-        background: #fffdf4;
-        transition: 0.25s;
-    }
+    .form-control {
+        width: 100%;
+        padding: 14px;
+        border-radius: 10px;
+        border: 2px solid #d1c7a2;
+        margin-bottom: 18px;
+        font-size: 16px;
+        background: #fffdf4;
+        transition: 0.25s;
+    }
 
-        .form-control:focus {
-            outline: none;
-            border-color: #C2854C;
-            box-shadow: 0px 0px 6px rgba(194,133,76,0.5);
-        }
+        .form-control:focus {
+            outline: none;
+            border-color: #C2854C;
+            box-shadow: 0px 0px 6px rgba(194,133,76,0.5);
+        }
 
-    .btn-naranja {
-        background: #C2854C;
-        border: none;
-        padding: 14px;
-        width: 100%;
-        font-size: 17px;
-        border-radius: 10px;
-        cursor: pointer;
-        color: white;
-        font-weight: bold;
-        transition: 0.25s;
-    }
+    .btn-naranja {
+        background: #C2854C;
+        border: none;
+        padding: 14px;
+        width: 100%;
+        font-size: 17px;
+        border-radius: 10px;
+        cursor: pointer;
+        color: white;
+        font-weight: bold;
+        transition: 0.25s;
+    }
 
-        .btn-naranja:hover {
-            transform: scale(1.03);
-            background: #a3c284;
-        }
+        .btn-naranja:hover {
+            transform: scale(1.03);
+            background: #a3c284;
+        }
 
-    /* Columna derecha */
-    .col-der {
-        flex: 1;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
+    /* Columna derecha */
+    .col-der {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 
-        .col-der img {
-            width: 380px;
-            max-width: 100%;
-            filter: drop-shadow(0px 3px 6px rgba(0,0,0,0.2));
-        }
+        .col-der img {
+            width: 380px;
+            max-width: 100%;
+            filter: drop-shadow(0px 3px 6px rgba(0,0,0,0.2));
+        }
 
-    @@media (max-width: 900px) {
-        .contenedor
+    @@media (max-width: 900px) {
+        .contenedor
 
-    {
-        flex-direction: column;
-        width: 90%;
-        padding: 20px;
-    }
+    {
+        flex-direction: column;
+        width: 90%;
+        padding: 20px;
+    }
 
-    .col-der img {
-        width: 260px;
-    }
+    .col-der img {
+        width: 260px;
+    }
 
-    }
+}
 </style>
 
 <div class="contenedor">
 
-    <!-- izquierda -->
-    <div class="col-izq">
-        <h2 class="titulo">Registrarse</h2>
+    <!-- izquierda -->
+    <div class="col-izq">
+        <h2 class="titulo">Registrarse</h2>
 
-        <form @onsubmit="OnSubmit" @onsubmit:preventDefault>
-            <label>UserName</label>
-            <input @bind="UserName" type="text" class="form-control" placeholder="Ingrese su nombre de usuario" />
+        <form @onsubmit="OnSubmit" @onsubmit:preventDefault>
+            <label>Nombre de Usuario</label>
+            <!-- CORRECCIÓN 1: Se cambió @bind="UserName" por @bind="Username" -->
+            <input @bind="Username" type="text" class="form-control" placeholder="Ingrese su nombre de usuario" />
 
-            <label>PasswordHash</label>
-            <input @bind="Passwordhash" type="password" class="form-control" placeholder="Ingrese Contrasena" />
+            <label>Contraseña</label>
+            <!-- CORRECCIÓN 2: Se cambió @bind="Passwordhash" por @bind="Password" -->
+            <input @bind="Password" type="password" class="form-control" placeholder="Ingrese Contrasena" />
 
-            <div style="width:100%; margin-bottom:12px;">
-                <label>Rol</label>
-                <select class="form-control" @bind="SelectedRolId">
-                    <option value="1">Administrador</option>
-                    <option value="2">Docente</option>
-                    <option value="3">Nutricionista</option>
-                    <option value="4">Estudiante</option>
 
-                </select>
-            </div>
+        <label>Confirmar Contraseña</label>
 
-            <button class="btn-naranja" type="submit">Registrarse</button>
 
-            @if (!string.IsNullOrEmpty(Message))
-            {
-                <div style="margin-top:12px;color:@(Success ? "green" : "red")">@Message</div>
-            }
-        </form>
-    </div>
+            <input @bind="ConfirmPassword" type="password" class="form-control" placeholder="Confirme Contrasena" />
 
-    <!-- derecha -->
-    <div class="col-der">
-        <img src="\Images\young-nutritionist-presenting-healthy-diet-plan-illustration_1308-183074-removebg-preview.png">
-    </div>
+            <div style="width:100%; margin-bottom:12px;">
+                <label>Rol</label>
+                <select class="form-control" @bind="SelectedRolId">
+                    <option value="1">Administrador</option>
+                    <option value="2">Docente</option>
+                    <option value="3">Nutricionista</option>
+                    <option value="4">Estudiante</option>
+
+                </select>
+            </div>
+
+            <button class="btn-naranja" type="submit">Registrarse</button>
+
+            @if (!string.IsNullOrEmpty(Message))
+            {
+                <div style="margin-top:12px;color:@(Success ? "green" : "red")">@Message</div>
+            }
+        </form>
+    </div>
+
+    <!-- derecha -->
+    <div class="col-der">
+        <img src="\Images\young-nutritionist-presenting-healthy-diet-plan-illustration_1308-183074-removebg-preview.png">
+    </div>
 
 </div>
 
 @code {
-    private string Nombre { get; set; } = string.Empty;
-    private string Username { get; set; } = string.Empty;
-    private string Password { get; set; } = string.Empty;
-    private string ConfirmPassword { get; set; } = string.Empty;
-    private int SelectedRolId { get; set; } = 2; // default role
+    private string Nombre { get; set; } = string.Empty;
+    private string Username { get; set; } = string.Empty;
+    private string Password { get; set; } = string.Empty;
+    private string ConfirmPassword { get; set; } = string.Empty;
+    private int SelectedRolId { get; set; } = 2; // default role
 
-    private string Message { get; set; } = string.Empty;
-    private bool Success { get; set; } = false;
+    private string Message { get; set; } = string.Empty;
+    private bool Success { get; set; } = false;
 
-    private async Task OnSubmit()
-    {
-        Message = string.Empty;
-        Success = false;
+    private async Task OnSubmit()
+    {
+        Message = string.Empty;
+        Success = false;
 
-        if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Password))
-        {
-            Message = "Usuario y contraseña son obligatorios.";
-            return;
-        }
+        if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Password))
+        {
+            Message = "Usuario y contraseña son obligatorios.";
+            return;
+        }
 
-        if (Password != ConfirmPassword)
-        {
-            Message = "Las contraseñas no coinciden.";
-            return;
-        }
+        if (Password != ConfirmPassword)
+        {
+            Message = "Las contraseñas no coinciden.";
+            return;
+        }
 
-        var nuevo = new UsuarioNuevoDTO
-        {
-            Username = Username.Trim(),
-            Password = Password,
-            RolId = SelectedRolId
-        };
+        var nuevo = new UsuarioNuevoDTO
+        {
+            Username = Username.Trim(),
+            Password = Password,
+            RolId = SelectedRolId
+        };
 
-        var response = await AuthService.RegisterAsync(nuevo);
+        var response = await AuthService.RegisterAsync(nuevo);
 
-        if (response != null && response.Usuario != null)
-        {
-            Success = true;
-            Message = response.Mensaje ?? "Usuario registrado correctamente.";
-            // opcional: redirigir al login
-            await Task.Delay(900);
-            NavigationManager.NavigateTo("/login");
-        }
-        else
-        {
-            Success = false;
-            Message = response?.Mensaje ?? "Error al registrar el usuario. Verifique la consola o el backend.";
-        }
-    }
+        if (response != null && response.Usuario != null)
+        {
+            Success = true;
+            Message = response.Mensaje ?? "Usuario registrado correctamente.";
+            // opcional: redirigir al login
+            await Task.Delay(900);
+            NavigationManager.NavigateTo("/login");
+        }
+        else
+        {
+            Success = false;
+            Message = response?.Mensaje ?? "Error al registrar el usuario. Verifique la consola o el backend.";
+        }
+    }
 }
