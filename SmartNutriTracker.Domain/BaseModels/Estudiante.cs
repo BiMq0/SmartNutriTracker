@@ -21,14 +21,13 @@ public class Estudiante
     [NotMapped]
     public decimal TMB =>
         10 * Peso + 6.25m * Altura - 5 * Edad + (Sexo == Sexo.Varon ? 5 : -161);
+
     [NotMapped]
     public int Edad =>
         DateTime.Now.Year - FechaNacimiento.Year -
         (DateTime.Now.DayOfYear < FechaNacimiento.DayOfYear ? 1 : 0);
+
     public Sexo Sexo { get; set; }
-
-    public ICollection<RegistroHabito>? RegistroHabitos { get; set; }
-
     public string SexoString =>
         Sexo switch
         {
@@ -36,5 +35,8 @@ public class Estudiante
             Sexo.Mujer => "Mujer",
             _ => "Desconocido"
         };
+
+    public ICollection<RegistroHabito>? RegistroHabitos { get; set; }
+
 
 }
