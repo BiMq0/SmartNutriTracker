@@ -73,6 +73,12 @@ namespace SmartNutriTracker.Back.Database
                     .HasColumnType("decimal(5,2)");
                 entity.Property(e => e.Altura)
                     .HasColumnType("decimal(4,2)");
+                entity.Property(e => e.FechaNacimiento)
+.HasColumnType("timestamp with time zone");
+
+                entity.Property(e => e.IMC)
+                    .HasColumnType("decimal(5,2)")
+                    .HasComputedColumnSql("\"Peso\" / (\"Altura\" * \"Altura\")", true);
 
                 // Relación con RegistroHabito (One to Many)
                 entity.HasMany(e => e.RegistroHabitos)
