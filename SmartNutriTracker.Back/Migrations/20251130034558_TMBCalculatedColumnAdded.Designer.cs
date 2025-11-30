@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SmartNutriTracker.Back.Database;
@@ -11,9 +12,11 @@ using SmartNutriTracker.Back.Database;
 namespace SmartNutriTracker.Back.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251130034558_TMBCalculatedColumnAdded")]
+    partial class TMBCalculatedColumnAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -63,8 +66,8 @@ namespace SmartNutriTracker.Back.Migrations
                     b.Property<decimal>("Altura")
                         .HasColumnType("decimal(4,2)");
 
-                    b.Property<DateTime>("FechaNacimiento")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<int>("Edad")
+                        .HasColumnType("integer");
 
                     b.Property<decimal>("IMC")
                         .ValueGeneratedOnAddOrUpdate()
@@ -81,6 +84,11 @@ namespace SmartNutriTracker.Back.Migrations
 
                     b.Property<int>("Sexo")
                         .HasColumnType("integer");
+
+                    b.Property<decimal>("TMB")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("decimal(5,2)")
+                        .HasComputedColumnSql("CASE WHEN \"Sexo\" = 0 THEN (10 * \"Peso\") + (6.25 * (\"Altura\" * 100)) - (5 * EXTRACT(YEAR FROM AGE(CURRENT_DATE, \"FechaNacimiento\"))) + 5 WHEN \"Sexo\" = 1 THEN (10 * \"Peso\") + (6.25 * (\"Altura\" * 100)) - (5 * EXTRACT(YEAR FROM AGE(CURRENT_DATE, \"FechaNacimiento\"))) - 161 ELSE 0 END", true);
 
                     b.HasKey("EstudianteId");
 

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SmartNutriTracker.Back.Database;
@@ -11,9 +12,11 @@ using SmartNutriTracker.Back.Database;
 namespace SmartNutriTracker.Back.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251130021338_ColumnsAddedToRegistroHabitoHorasSuenoHorasActividadFisicaIMCTMBInStudents")]
+    partial class ColumnsAddedToRegistroHabitoHorasSuenoHorasActividadFisicaIMCTMBInStudents
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -63,13 +66,13 @@ namespace SmartNutriTracker.Back.Migrations
                     b.Property<decimal>("Altura")
                         .HasColumnType("decimal(4,2)");
 
-                    b.Property<DateTime>("FechaNacimiento")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<int>("Edad")
+                        .HasColumnType("integer");
 
                     b.Property<decimal>("IMC")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("decimal(5,2)")
-                        .HasComputedColumnSql("\"Peso\" / (\"Altura\" * \"Altura\")", true);
+                        .HasComputedColumnSql("Peso / (Altura * Altura)", true);
 
                     b.Property<string>("NombreCompleto")
                         .IsRequired()
@@ -81,6 +84,9 @@ namespace SmartNutriTracker.Back.Migrations
 
                     b.Property<int>("Sexo")
                         .HasColumnType("integer");
+
+                    b.Property<decimal>("TMB")
+                        .HasColumnType("decimal(5,2)");
 
                     b.HasKey("EstudianteId");
 
