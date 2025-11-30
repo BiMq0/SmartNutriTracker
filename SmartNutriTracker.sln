@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartNutriTracker.Back", "S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartNutriTracker.Test", "SmartNutriTracker.Test\SmartNutriTracker.Test.csproj", "{D368EE9B-E99E-4BCE-BD28-EEEDB5AD8E26}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartNutriTracker.Shared", "SmartNutriTracker.Shared\SmartNutriTracker.Shared.csproj", "{76D84423-0F9F-4A98-B401-4EC46934B9BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartNutriTracker.Domain", "SmartNutriTracker.Domain\SmartNutriTracker.Domain.csproj", "{CED334A3-5215-4F30-9B9C-3038215C71E7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +59,30 @@ Global
 		{D368EE9B-E99E-4BCE-BD28-EEEDB5AD8E26}.Release|x64.Build.0 = Release|Any CPU
 		{D368EE9B-E99E-4BCE-BD28-EEEDB5AD8E26}.Release|x86.ActiveCfg = Release|Any CPU
 		{D368EE9B-E99E-4BCE-BD28-EEEDB5AD8E26}.Release|x86.Build.0 = Release|Any CPU
+		{76D84423-0F9F-4A98-B401-4EC46934B9BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76D84423-0F9F-4A98-B401-4EC46934B9BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76D84423-0F9F-4A98-B401-4EC46934B9BA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{76D84423-0F9F-4A98-B401-4EC46934B9BA}.Debug|x64.Build.0 = Debug|Any CPU
+		{76D84423-0F9F-4A98-B401-4EC46934B9BA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{76D84423-0F9F-4A98-B401-4EC46934B9BA}.Debug|x86.Build.0 = Debug|Any CPU
+		{76D84423-0F9F-4A98-B401-4EC46934B9BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76D84423-0F9F-4A98-B401-4EC46934B9BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76D84423-0F9F-4A98-B401-4EC46934B9BA}.Release|x64.ActiveCfg = Release|Any CPU
+		{76D84423-0F9F-4A98-B401-4EC46934B9BA}.Release|x64.Build.0 = Release|Any CPU
+		{76D84423-0F9F-4A98-B401-4EC46934B9BA}.Release|x86.ActiveCfg = Release|Any CPU
+		{76D84423-0F9F-4A98-B401-4EC46934B9BA}.Release|x86.Build.0 = Release|Any CPU
+		{CED334A3-5215-4F30-9B9C-3038215C71E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CED334A3-5215-4F30-9B9C-3038215C71E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CED334A3-5215-4F30-9B9C-3038215C71E7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CED334A3-5215-4F30-9B9C-3038215C71E7}.Debug|x64.Build.0 = Debug|Any CPU
+		{CED334A3-5215-4F30-9B9C-3038215C71E7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CED334A3-5215-4F30-9B9C-3038215C71E7}.Debug|x86.Build.0 = Debug|Any CPU
+		{CED334A3-5215-4F30-9B9C-3038215C71E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CED334A3-5215-4F30-9B9C-3038215C71E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CED334A3-5215-4F30-9B9C-3038215C71E7}.Release|x64.ActiveCfg = Release|Any CPU
+		{CED334A3-5215-4F30-9B9C-3038215C71E7}.Release|x64.Build.0 = Release|Any CPU
+		{CED334A3-5215-4F30-9B9C-3038215C71E7}.Release|x86.ActiveCfg = Release|Any CPU
+		{CED334A3-5215-4F30-9B9C-3038215C71E7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
