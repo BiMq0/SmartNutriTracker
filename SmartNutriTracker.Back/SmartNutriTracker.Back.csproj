@@ -29,4 +29,8 @@
     <ProjectReference Include="..\SmartNutriTracker.Shared\SmartNutriTracker.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="SmartNutriTracker.Shared\" />
+  </ItemGroup>
+
 </Project>
