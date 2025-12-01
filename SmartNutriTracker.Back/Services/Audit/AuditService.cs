@@ -1,6 +1,4 @@
 ﻿using SmartNutriTracker.Back.Database;
-using SmartNutriTracker.Back.Models;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
@@ -9,32 +7,51 @@ namespace SmartNutriTracker.Back.Services.Audit
     public class AuditService : IAuditService
     {
         private readonly ApplicationDbContext _context;
-        private readonly IHttpContextAccessor _httpContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AuditService(ApplicationDbContext context, IHttpContextAccessor httpContext)
+        public AuditService(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
-            _httpContext = httpContext;
+            _httpContextAccessor = httpContextAccessor;
         }
 
+        /// <summary>
+        /// Registra un evento en la tabla AuditLogs
+        /// </summary>
+        /// <param name="accion">Nombre de la acción ejecutada</param>
+        /// <param name="nivel">Nivel de auditoría (INFO, WARNING, ERROR)</param>
+        /// <param name="detalle">Información adicional opcional</param>
         public async Task LogAsync(string accion, string nivel, string detalle = "")
         {
-            var usuario = _httpContext?
-                .HttpContext?
-                .User?
-                .FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "anonimo";
-
-            var log = new AuditLog
+            try
             {
-                Usuario = usuario,
-                Accion = accion,
-                Nivel = nivel.ToUpper(), // INFO, WARNING, ERROR
-                Detalle = detalle,
-                Fecha = DateTime.UtcNow
-            };
+                string usuario = _httpContextAccessor?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                                 ?? "anonimo";
 
-            _context.AuditLogs.Add(log);
-            await _context.SaveChangesAsync();
+                nivel = nivel?.ToUpper() switch
+                {
+                    "INFO" => "INFO",
+                    "WARNING" => "WARNING",
+                    "ERROR" => "ERROR",
+                    _ => "INFO"
+                };
+
+                var log = new AuditLog
+                {
+                    NombreUsuario = usuario,
+                    Accion = accion ?? "Acción no especificada",
+                    Nivel = nivel,
+                    Detalle = detalle ?? string.Empty,
+                    Fecha = DateTime.UtcNow
+                };
+
+                _context.AuditLogs.Add(log);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error registrando auditoría: {ex.Message}");
+            }
         }
     }
 }

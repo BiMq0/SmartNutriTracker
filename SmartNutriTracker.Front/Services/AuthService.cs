@@ -1,115 +1,93 @@
+using System.Net.Http;
 using System.Net.Http.Json;
+using System.Threading.Tasks;
+using Microsoft.JSInterop;
 using SmartNutriTracker.Shared.DTOs.Usuarios;
 
 namespace SmartNutriTracker.Front.Services
 {
     public class AuthService
     {
-        private readonly HttpClient _httpClient;
+        private readonly HttpClient _http;
+        private readonly IJSRuntime _js;
 
-        public AuthService(IHttpClientFactory httpClient)
+        public AuthService(HttpClient http, IJSRuntime js)
         {
-            _httpClient = httpClient.CreateClient("ApiClient");
+            _http = http;
+            _js = js;
         }
 
-        public async Task<AuthResponse?> LoginAsync(LoginDTO loginDTO)
+        // Registro de usuario
+        public async Task<UsuarioRegistroResponseDTO?> RegisterAsync(UsuarioNuevoDTO nuevoUsuario)
         {
             try
             {
-                var response = await _httpClient.PostAsJsonAsync("api/user/autenticar-usuario", loginDTO);
-                
+                var response = await _http.PostAsJsonAsync("api/user/RegistrarUsuario", nuevoUsuario);
+
                 if (response.IsSuccessStatusCode)
                 {
-                    var result = await response.Content.ReadFromJsonAsync<AuthResponse>();
-                    return result;
+                    // Retorna la respuesta deserializada
+                    var resultado = await response.Content.ReadFromJsonAsync<UsuarioRegistroResponseDTO>();
+                    return resultado;
                 }
-                else
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"Error en login: {response.StatusCode} - {errorContent}");
-                    return null;
-                }
+
+                // En caso de error, intentar leer el mensaje
+                var error = await response.Content.ReadFromJsonAsync<UsuarioRegistroResponseDTO>();
+                return error;
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"Excepción en LoginAsync: {ex.Message}");
                 return null;
             }
         }
 
-        public async Task<AuthResponse?> RegisterAsync(UsuarioNuevoDTO nuevoUsuario)
+        // Login de usuario
+        public async Task<LoginResponseDTO?> LoginAsync(LoginDTO login)
         {
             try
             {
-                var response = await _httpClient.PostAsJsonAsync("api/user/registrar-usuario", nuevoUsuario);
+                var response = await _http.PostAsJsonAsync("api/user/Login", login);
 
-                var contentString = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode) return null;
 
-                if (response.IsSuccessStatusCode)
+                var resultado = await response.Content.ReadFromJsonAsync<LoginResponseDTO>();
+
+                if (resultado != null && !string.IsNullOrEmpty(resultado.Token))
                 {
-                    // Try to read the expected JSON (mensaje + usuario)
-                    try
-                    {
-                        var result = await response.Content.ReadFromJsonAsync<AuthResponse>();
-                        return result ?? new AuthResponse { Mensaje = "Usuario registrado (sin contenido devuelto)." };
-                    }
-                    catch
-                    {
-                        return new AuthResponse { Mensaje = "Usuario registrado." };
-                    }
+                    // Guardar token en localStorage
+                    await GuardarTokenAsync(resultado.Token);
                 }
-                else
-                {
-                    // Return error message from server (if any)
-                    return new AuthResponse { Mensaje = contentString };
-                }
+
+                return resultado;
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"Error en RegisterAsync: {ex.Message}");
-                return new AuthResponse { Mensaje = ex.Message };
+                return null;
             }
         }
 
-        public async Task<bool> LogoutAsync()
+        // Guardar token en localStorage
+        public async Task GuardarTokenAsync(string token)
         {
-            try
-            {
-                var response = await _httpClient.PostAsync("api/user/cerrar-sesion", null);
-                return response.IsSuccessStatusCode;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error al cerrar sesión: {ex.Message}");
-                return false;
-            }
+            await _js.InvokeVoidAsync("localStorage.setItem", "authToken", token);
         }
 
-        public async Task<List<UsuarioRegistroDTO>> GetUsuariosAsync()
+        // Obtener token desde localStorage
+        public async Task<string?> ObtenerTokenAsync()
         {
-            try
-            {
-                var response = await _httpClient.GetAsync("api/user/obtener-usuarios");
-                
-                if (response.IsSuccessStatusCode)
-                {
-                    var usuarios = await response.Content.ReadFromJsonAsync<List<UsuarioRegistroDTO>>();
-                    return usuarios ?? new List<UsuarioRegistroDTO>();
-                }
+            return await _js.InvokeAsync<string>("localStorage.getItem", "authToken");
+        }
 
-                return new List<UsuarioRegistroDTO>();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error al obtener usuarios: {ex.Message}");
-                return new List<UsuarioRegistroDTO>();
-            }
+        
+        public async Task LogoutAsync()
+        {
+            await _js.InvokeVoidAsync("localStorage.removeItem", "authToken");
         }
     }
 
-    public class AuthResponse
+    public class UsuarioRegistroResponseDTO
     {
-        public string Mensaje { get; set; } = string.Empty;
+        public string? Mensaje { get; set; }
         public UsuarioRegistroDTO? Usuario { get; set; }
     }
 }
