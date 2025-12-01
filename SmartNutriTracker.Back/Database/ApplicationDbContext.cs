@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SmartNutriTracker.Domain.Models.BaseModels;
-using SmartNutriTracker.Back.Models;
 
 namespace SmartNutriTracker.Back.Database
 {

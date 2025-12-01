@@ -1,12 +1,9 @@
-﻿@page "/login"
+﻿@page "/login" 
 @using SmartNutriTracker.Shared.DTOs.Usuarios
-@using SmartNutriTracker.Front.Services
-@inject AuthService AuthService
+@using SmartNutriTracker.Front.Services 
+@inject AuthService AuthService 
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
-
-
-<PageTitle>Iniciar Sesión</PageTitle>
 
 <div class="login-container">
 
@@ -31,200 +28,20 @@
             </div>
         }
 
-        <EditForm OnValidSubmit="IniciarSesion" Model="@loginModel" FormName="loginForm">
-            <InputText class="form-control" @bind-Value="loginModel.Username" placeholder="Correo Electrónico" />
-            <div class="input-group">
-                <InputText type='@(passVisible ? "text" : "password")' class="input-group-text" @bind-Value="loginModel.Password" placeholder="Contraseña" />
-                <button type="button" class="btn-toggle-pass" @onclick="MostrarContrasenia">
-                    <i class="bi bi-eye"></i>
-                </button>
-            </div>
+<EditForm Model="@loginModel" OnValidSubmit="IniciarSesion">
+            <InputText class="form-control" @bind-Value="loginModel.Username" placeholder="Usuario" />
+            <InputText type="password" class="form-control" @bind-Value="loginModel.Password" placeholder="Contraseña" />
             <button type="submit" class="btn-login" disabled="@enviando">
                 @(enviando ? "Iniciando..." : "Iniciar Sesión")
-            </button>
-        </EditForm>
+    </button>
+</EditForm>
     </div>
 
 </div>
 
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #f5f5f5;
-        margin: 0;
-        padding: 0;
-        overflow-x: hidden;
-    }
-
-    .login-container {
-        width: 75%;
-        margin: 60px auto;
-        background: #f1e9b8;
-        padding: 40px;
-        display: flex;
-        gap: 40px;
-        align-items: center;
-        box-shadow: 0px 6px 18px rgba(0,0,0,0.15);
-        border-radius: 0;
-    }
-
-    .login-image img {
-        width: 380px;
-        max-width: 100%;
-        filter: drop-shadow(0px 3px 6px rgba(0,0,0,0.2));
-    }
-
-    .login-form {
-        flex: 1;
-    }
-
-    .login-title {
-        font-size: 34px;
-        font-weight: bold;
-        color: #C2854C;
-        margin-bottom: 25px;
-        text-align: center;
-    }
-
-    label {
-        display: block;
-        font-size: 16px;
-        margin-bottom: 6px;
-        color: #4a3c2f;
-        font-weight: bold;
-    }
-
-    .form-control {
-        width: 100%;
-        padding: 14px;
-        border-radius: 10px;
-        border: 2px solid #d1c7a2;
-        margin-bottom: 18px;
-        font-size: 16px;
-        background: #fffdf4;
-        transition: 0.25s;
-    }
-
-    .form-control:focus {
-        outline: none;
-        border-color: #C2854C;
-        box-shadow: 0px 0px 6px rgba(194,133,76,0.5);
-    }
-
-    .input-group {
-        display: flex;
-        gap: 0;
-        align-items: center;
-        margin-bottom: 18px;
-    }
-
-    .input-group-text {
-        width: 100%;
-        padding: 14px;
-        border-radius: 10px 0 0 10px;
-        border: 2px solid #d1c7a2;
-        font-size: 16px;
-        background: #fffdf4;
-        transition: 0.25s;
-    }
-
-    .input-group-text:focus {
-        outline: none;
-        border-color: #C2854C;
-        box-shadow: 0px 0px 6px rgba(194,133,76,0.5);
-    }
-
-    .btn-toggle-pass {
-        padding: 12px 16px;
-        background: #d1c7a2;
-        border: 2px solid #d1c7a2;
-        border-radius: 0 10px 10px 0;
-        cursor: pointer;
-        font-size: 18px;
-        color: #4a3c2f;
-        transition: 0.25s;
-        height: 100%;
-    }
-
-    .btn-toggle-pass:hover {
-        background: #C2854C;
-        color: white;
-    }
-
-    .advertencia-message {
-        background-color: #fff3cd;
-        color: #856404;
-        padding: 12px;
-        margin-bottom: 18px;
-        border-radius: 5px;
-        border: 1px solid #ffeaa7;
-        font-size: 14px;
-        animation: slideIn 0.3s ease-out;
-    }
-
-    .exito-message {
-        background-color: #d4edda;
-        color: #155724;
-        padding: 12px;
-        margin-bottom: 18px;
-        border-radius: 5px;
-        border: 1px solid #c3e6cb;
-        font-size: 14px;
-        animation: slideIn 0.3s ease-out;
-    }
-
-    @@keyframes slideIn {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .btn-login {
-        background: #C2854C;
-        border: none;
-        padding: 14px;
-        width: 100%;
-        font-size: 17px;
-        border-radius: 10px;
-        cursor: pointer;
-        color: white;
-        font-weight: bold;
-        transition: 0.25s;
-        box-shadow: 0px 4px 8px rgba(0,0,0,0.15);
-    }
-
-    .btn-login:hover:not(:disabled) {
-        transform: scale(1.03);
-        background: #a3c284;
-    }
-
-    .btn-login:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-
-    @@media(max-width: 900px) {
-        .login-container {
-            flex-direction: column;
-            text-align: center;
-            width: 90%;
-        }
-
-        .login-image img {
-            width: 260px;
-        }
-    }
-</style>
-
 @code {
     private LoginDTO loginModel = new LoginDTO();
     private bool enviando = false;
-    private bool passVisible = false;
     private string mensajeError = string.Empty;
     private string mensajeExito = string.Empty;
 
@@ -234,57 +51,25 @@
         mensajeError = string.Empty;
         mensajeExito = string.Empty;
 
-        try
+        if (string.IsNullOrWhiteSpace(loginModel.Username) || string.IsNullOrWhiteSpace(loginModel.Password))
         {
-            // Validar que los campos no estén vacíos
-            if (string.IsNullOrWhiteSpace(loginModel.Username) || string.IsNullOrWhiteSpace(loginModel.Password))
-            {
-                mensajeError = "Por favor ingresa tu usuario y contraseña.";
-                return;
-            }
-
-            var resultado = await AuthService.LoginAsync(loginModel);
-
-            if (resultado == null)
-            {
-                mensajeError = "Error en la autenticación. Verifica tus credenciales.";
-                Console.WriteLine("LoginAsync retornó null");
-                return;
-            }
-
-            if (string.IsNullOrEmpty(resultado.Mensaje))
-            {
-                mensajeError = "Error inesperado en la respuesta del servidor.";
-                return;
-            }
-
-            mensajeExito = resultado.Mensaje;
-            Console.WriteLine($"Autenticación exitosa: {resultado.Mensaje}");
-            
-            // Esperar un momento para que se vea el mensaje de éxito
-            await Task.Delay(1500);
-            
-            NavigationManager.NavigateTo("/pagina-prueba");
-        }
-        catch (HttpRequestException ex)
-        {
-            mensajeError = $"Error de conexión: {ex.Message}. Verifica que el servidor esté ejecutándose.";
-            Console.WriteLine($"HttpRequestException: {ex.Message}");
-        }
-        catch (Exception ex)
-        {
-            mensajeError = $"Error inesperado: {ex.Message}";
-            Console.WriteLine($"Excepción: {ex.GetType().Name} - {ex.Message}");
-        }
-        finally
-        {
+            mensajeError = "Usuario y contraseña son obligatorios.";
             enviando = false;
+            return;
         }
-    }
 
-    private void MostrarContrasenia()
-    {
-        passVisible = !passVisible;
-        StateHasChanged();
+        var resultado = await AuthService.LoginAsync(loginModel);
+
+        if (resultado == null)
+        {
+            mensajeError = "Credenciales incorrectas o error en el servidor.";
+            enviando = false;
+            return;
+        }
+
+        mensajeExito = resultado.Mensaje ?? "Inicio de sesión exitoso.";
+        await Task.Delay(1000);
+        NavigationManager.NavigateTo("/"); // redirige al home/dashboard
+        enviando = false;
     }
 }

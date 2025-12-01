@@ -1,12 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
-using SmartNutriTracker.Shared.DTOs.Usuarios;
+using Microsoft.Extensions.Logging;
 using SmartNutriTracker.Back.Database;
+using SmartNutriTracker.Back.Services.Tokens;
+using SmartNutriTracker.Back.Services.Users;
 using SmartNutriTracker.Domain.Models.BaseModels;
-using SmartNutriTracker.Back.Database;
-using Microsoft.EntityFrameworkCore;
-
-namespace SmartNutriTracker.Back.Services.Users;
+using SmartNutriTracker.Shared.DTOs.Usuarios;
 
 public class UserService : IUserService
 {
@@ -19,44 +17,72 @@ public class UserService : IUserService
         _logger = logger;
     }
 
-    public async Task<List<UsuarioRegistroDTO>> ObtenerUsuariosAsync()
-    {
-        var usuariosBase = await _context.Usuarios.Include(u => u.Rol).ToListAsync();
-        var listaUsuarios = usuariosBase.Select(u => new UsuarioRegistroDTO(u)).ToList();
-        return listaUsuarios;
-    }
-
+    // Registro de usuario
     public async Task<UsuarioRegistroDTO?> RegistrarUsuarioAsync(UsuarioNuevoDTO nuevoUsuario)
     {
-        _context.Usuarios.Add(new Usuario
-        {
-            Username = nuevoUsuario.Username,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(nuevoUsuario.Password),
-            RolId = nuevoUsuario.RolId
-        });
+        if (string.IsNullOrWhiteSpace(nuevoUsuario.Username) || string.IsNullOrWhiteSpace(nuevoUsuario.Password))
+            return null;
 
-        var resultado = await _context.SaveChangesAsync() > 0;
-        return resultado;
+        // Verificar si el usuario ya existe
+        var existe = await _context.Usuarios.AnyAsync(u => u.Username == nuevoUsuario.Username);
+        if (existe) return null;
+
+        // Crear usuario con contraseña hasheada
+        var usuario = new Usuario
+        {
+            Username = nuevoUsuario.Username.Trim(),
+            RolId = nuevoUsuario.RolId,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(nuevoUsuario.Password)
+        };
+
+        _context.Usuarios.Add(usuario);
+        await _context.SaveChangesAsync();
+
+        // Cargar referencia al rol
+        await _context.Entry(usuario).Reference(u => u.Rol).LoadAsync();
+
+        _logger.LogInformation("Usuario registrado: {Username}", usuario.Username);
+
+        return new UsuarioRegistroDTO(usuario);
     }
 
-    public async Task<UsuarioRegistroDTO?> AutenticarUsuarioAsync(LoginDTO loginDTO)
+    // Autenticación de usuario
+    public async Task<LoginResponseDTO?> AutenticarUsuarioAsync(LoginDTO loginDTO)
     {
-        // 1. Buscar el usuario por username
         var usuario = await _context.Usuarios
             .Include(u => u.Rol)
             .FirstOrDefaultAsync(u => u.Username == loginDTO.Username);
 
-        // 2. Si no existe, retornar null
-        if (usuario == null)
-            return null;
+        if (usuario == null) return null;
 
-        // 3. Validar contraseña con BCrypt
+        // Verificar contraseña
         bool esValida = BCrypt.Net.BCrypt.Verify(loginDTO.Password, usuario.PasswordHash);
-        
-        // 4. Si contraseña es válida, retornar datos del usuario
-        if (esValida)
-            return new UsuarioRegistroDTO(usuario);
+        if (!esValida) return null;
 
-        return null;
+        // Generar token JWT
+        var token = _tokenService.GenerarToken(usuario);
+
+        return new LoginResponseDTO
+        {
+            Usuario = new UsuarioRegistroDTO(usuario),
+            Token = token
+        };
+    }
+
+    // Obtener todos los usuarios
+    public async Task<List<UsuarioRegistroDTO>> ObtenerUsuariosAsync()
+    {
+        var usuarios = await _context.Usuarios.Include(u => u.Rol).ToListAsync();
+        return usuarios.Select(u => new UsuarioRegistroDTO(u)).ToList();
+    }
+
+    // Validación de credenciales (para otros usos)
+    public async Task<Usuario?> ValidarCredencialesAsync(string nombreUsuario, string contrasena)
+    {
+        var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Username == nombreUsuario);
+        if (usuario == null) return null;
+
+        bool esValida = BCrypt.Net.BCrypt.Verify(contrasena, usuario.PasswordHash);
+        return esValida ? usuario : null;
     }
 }
