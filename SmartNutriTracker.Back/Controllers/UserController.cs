@@ -8,9 +8,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
 using SmartNutriTracker.Shared.DTOs.Usuarios;
-using SmartNutriTracker.Shared.Endpoints;
 using SmartNutriTracker.Back.Services.Users;
-using SmartNutriTracker.Back.Services.Tokens;
 
 namespace SmartNutriTracker.Back.Controllers
 {
@@ -27,53 +25,13 @@ namespace SmartNutriTracker.Back.Controllers
             _tokenService = tokenService;
         }
 
-        [AllowAnonymous]
-        [HttpPost("autenticar-usuario")]
-        public async Task<IActionResult> AutenticarUsuario([FromBody] LoginDTO loginDTO)
-        {
-            try
-            {
-                var respuesta = await _userService.AutenticarUsuarioAsync(loginDTO);
-                if (respuesta == null)
-                    return Unauthorized(new { mensaje = "Usuario o contraseña incorrectos." });
-
-                // Crear claims para la cookie
-                var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.NameIdentifier, respuesta.Usuario.Id.ToString()),
-                    new Claim(ClaimTypes.Name, respuesta.Usuario.Nombre),
-                    new Claim(ClaimTypes.Role, respuesta.Usuario.Rol),
-                };
-
-                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var authProperties = new AuthenticationProperties
-                {
-                    IsPersistent = true,
-                    ExpiresUtc = DateTimeOffset.UtcNow.AddHours(24)
-                };
-
-                await HttpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    new ClaimsPrincipal(claimsIdentity),
-                    authProperties);
-
-                return Ok(new { mensaje = "Autenticación exitosa.", usuario = respuesta.Usuario });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { mensaje = $"Error en la autenticación: {ex.Message}" });
-            }
-        }
-
-        [HttpGet("obtener-usuarios")]
-        [Authorize]
+        [HttpGet("ObtenerUsuarios")]
         public async Task<List<UsuarioRegistroDTO>> ObtenerUsuarios()
         {
             return await _userService.ObtenerUsuariosAsync();
         }
 
-        [AllowAnonymous]
-        [HttpPost("registrar-usuario")]
+        [HttpPost("RegistrarUsuario")]
         public async Task<IActionResult> RegistrarUsuario([FromBody] UsuarioNuevoDTO nuevoUsuario)
         {
             try
@@ -84,7 +42,7 @@ namespace SmartNutriTracker.Back.Controllers
                     return Ok(new { mensaje = "Usuario registrado exitosamente.", usuario = creado });
                 }
 
-                return BadRequest(new { mensaje = "Error al registrar el usuario. Verifique que el usuario no exista y los datos sean válidos." });
+                return BadRequest(new { mensaje = "Error al registrar el usuario. Verifique que el usuario no exista y los datos sean v�lidos." });
             }
             catch (Exception ex)
             {
@@ -104,7 +62,7 @@ namespace SmartNutriTracker.Back.Controllers
         public async Task<IActionResult> CerrarSesion()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return Ok(new { mensaje = "Sesión cerrada exitosamente." });
+            return Ok(new { mensaje = "Sesi�n cerrada exitosamente." });
         }
 
         [Authorize]
