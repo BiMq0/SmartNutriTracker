@@ -23,14 +23,15 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
+
 
         <AuthorizeView>
             <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                        <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                    </NavLink>
+                </div>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="counter">
                         <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
@@ -60,32 +61,39 @@
     }
 
     .btn-logout {
-        background: #dc3545;
-        color: white;
+        background: #C2854C;
+        color: #F1EAC0;
         border: none;
         padding: 8px 16px;
-        border-radius: 5px;
+        border-radius: 8px;
         cursor: pointer;
         font-size: 14px;
-        transition: 0.25s;
+        transition: all 0.3s ease;
+        font-weight: 600;
     }
 
     .btn-logout:hover {
-        background: #c82333;
+        background: #221C04;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(34, 28, 4, 0.3);
     }
 
     .btn-login-nav {
-        color: white;
+        color: #F1EAC0;
         text-decoration: none;
         padding: 8px 16px;
-        border-radius: 5px;
-        background: #28a745;
-        transition: 0.25s;
+        border-radius: 8px;
+        background: #576E40;
+        transition: all 0.3s ease;
         display: inline-block;
+        font-weight: 600;
     }
 
     .btn-login-nav:hover {
-        background: #218838;
+        background: #BCD09F;
+        color: #221C04;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(188, 208, 159, 0.3);
     }
 </style>
 
@@ -96,4 +104,3 @@
         NavigationManager.NavigateTo("/login");
     }
 }
-
