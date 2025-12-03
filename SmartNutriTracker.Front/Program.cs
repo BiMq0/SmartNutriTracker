@@ -25,10 +25,8 @@ builder.Services.AddHttpClient("ApiClient", client =>
 });
 
 // Registrar AuthService
+builder.Services.AddScoped<AuthenticationStateProvider, AuthService>();
 builder.Services.AddScoped<AuthService>();
-
-// Registrar AuthenticationStateProvider
-builder.Services.AddScoped<AuthenticationStateProvider, CookieAuthenticationStateProvider>();
 
 var app = builder.Build();
 

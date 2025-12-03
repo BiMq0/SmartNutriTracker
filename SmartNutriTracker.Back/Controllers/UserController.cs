@@ -43,10 +43,11 @@ namespace SmartNutriTracker.Back.Controllers
                     return Ok(new { mensaje = "Usuario registrado exitosamente.", usuario = creado });
                 }
 
-                return BadRequest(new { mensaje = "Error al registrar el usuario. Verifique que el usuario no exista y los datos sean v�lidos." });
+                return BadRequest(new { mensaje = "Error al registrar el usuario. Verifique que el usuario no exista y los datos sean válidos." });
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error en RegistrarUsuario: {ex.Message}");
                 return StatusCode(500, new { mensaje = $"Error al registrar el usuario: {ex.Message}" });
             }
         }

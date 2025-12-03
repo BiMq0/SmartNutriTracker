@@ -2,12 +2,13 @@
 @using SmartNutriTracker.Shared.DTOs.Usuarios
 @inject SmartNutriTracker.Front.Services.AuthService AuthService
 @inject NavigationManager NavigationManager
+@rendermode InteractiveServer
 
 <div class="contenedor">
     <div class="col-izq">
         <h2 class="titulo">Registrarse</h2>
 
-        <EditForm Model="@NuevoUsuario" OnValidSubmit="OnSubmit">
+        <EditForm Model="@NuevoUsuario" OnSubmit="OnSubmit" FormName="RegistroForm">
             <DataAnnotationsValidator />
             <ValidationSummary />
 
@@ -38,8 +39,18 @@
                     @Message
                 </div>
             }
+
+            @if (!string.IsNullOrEmpty(NuevoUsuario.Username))
+            {
+                <div>
+                    <p>Username: @NuevoUsuario.Username</p>
+                    <p>Password: @Password</p>
+                    <p>ConfirmPassword: @ConfirmPassword</p>
+                    <p>RolId: @NuevoUsuario.RolId</p>
+                </div>
+            }
         </EditForm>
-</div>
+    </div>
 </div>
 @code {
     private UsuarioNuevoDTO NuevoUsuario = new UsuarioNuevoDTO();
@@ -52,11 +63,16 @@
 
     private async Task OnSubmit()
     {
+        Console.WriteLine("Datos recibidos en el formulario:");
+        Console.WriteLine($"Username: {NuevoUsuario.Username}");
+        Console.WriteLine($"Password: {Password}");
+        Console.WriteLine($"ConfirmPassword: {ConfirmPassword}");
+        Console.WriteLine($"RolId: {NuevoUsuario.RolId}");
+
         Enviando = true;
         Message = "";
         Success = false;
 
-        // Limpiar espacios
         string pass = Password.Trim();
         string confirm = ConfirmPassword.Trim();
 
@@ -74,7 +90,6 @@
             return;
         }
 
-        // Asignar la contraseña ya limpia al DTO
         NuevoUsuario.Password = pass;
 
         var response = await AuthService.RegisterAsync(NuevoUsuario);
