@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 using SmartNutriTracker.Shared.DTOs.Usuarios;
+using SmartNutriTracker.Shared.Endpoints;
 
 
 namespace SmartNutriTracker.Front.Services
@@ -15,10 +16,11 @@ namespace SmartNutriTracker.Front.Services
         private readonly HttpClient _http;
         private readonly IJSRuntime _js;
         private string? _token;
+        private const string BASE = UsuariosEndpoints.BASE;
 
-        public AuthService(HttpClient http, IJSRuntime js)
+        public AuthService(IHttpClientFactory http, IJSRuntime js)
         {
-            _http = http;
+            _http = http.CreateClient("ApiClient");
             _js = js;
         }
 
@@ -27,7 +29,8 @@ namespace SmartNutriTracker.Front.Services
         {
             try
             {
-                var response = await _http.PostAsJsonAsync("api/user/RegistrarUsuario", nuevoUsuario);
+                var url = BASE + UsuariosEndpoints.REGISTRAR_USUARIO;
+                var response = await _http.PostAsJsonAsync(url, nuevoUsuario);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -51,7 +54,8 @@ namespace SmartNutriTracker.Front.Services
         {
             try
             {
-                var response = await _http.PostAsJsonAsync("api/user/Login", login);
+                var url = BASE + UsuariosEndpoints.INICIAR_SESION;
+                var response = await _http.PostAsJsonAsync(url, login);
 
                 if (!response.IsSuccessStatusCode) return null;
 
@@ -84,7 +88,7 @@ namespace SmartNutriTracker.Front.Services
         {
             if (_token == null)
             {
-                // Verificar si el prerenderizado está habilitado
+                // Verificar si el prerenderizado estï¿½ habilitado
                 if (_js is null)
                 {
                     return null; // Evitar llamadas durante el prerenderizado
@@ -126,6 +130,13 @@ namespace SmartNutriTracker.Front.Services
             var user = new ClaimsPrincipal(identity);
 
             return new AuthenticationState(user);
+        }
+
+        // MÃ©todo para verificar si existe token (hardcodeado por ahora)
+        public bool ExistsToken()
+        {
+            return false; // Hardcodeado temporalmente para simular que no hay token
+                          // return true; // Hardcodeado temporalmente para simular que hay token
         }
     }
 
