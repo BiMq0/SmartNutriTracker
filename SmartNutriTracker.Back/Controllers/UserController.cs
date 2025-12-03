@@ -75,6 +75,7 @@ namespace SmartNutriTracker.Back.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error en RegistrarUsuario: {ex.Message}");
                 return StatusCode(500, new { mensaje = $"Error al registrar el usuario: {ex.Message}" });
             }
         }

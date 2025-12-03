@@ -5,6 +5,7 @@
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
+
 <div class="login-container">
 
     <div class="login-image">
@@ -28,7 +29,7 @@
             </div>
         }
 
-<EditForm Model="@loginModel" OnValidSubmit="IniciarSesion">
+<EditForm Model="@loginModel" OnSubmit="IniciarSesion" FormName="InicioSesion">
             <InputText class="form-control" @bind-Value="loginModel.Username" placeholder="Usuario" />
             <InputText type="password" class="form-control" @bind-Value="loginModel.Password" placeholder="Contraseña" />
             <button type="submit" class="btn-login" disabled="@enviando">

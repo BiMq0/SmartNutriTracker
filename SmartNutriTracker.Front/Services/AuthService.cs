@@ -1,15 +1,20 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
 using SmartNutriTracker.Shared.DTOs.Usuarios;
 
+
 namespace SmartNutriTracker.Front.Services
 {
-    public class AuthService
+    public class AuthService : AuthenticationStateProvider
     {
         private readonly HttpClient _http;
         private readonly IJSRuntime _js;
+        private string? _token;
 
         public AuthService(HttpClient http, IJSRuntime js)
         {
@@ -35,9 +40,9 @@ namespace SmartNutriTracker.Front.Services
                 var error = await response.Content.ReadFromJsonAsync<UsuarioRegistroResponseDTO>();
                 return error;
             }
-            catch
+            catch (Exception ex)
             {
-                return null;
+                return new UsuarioRegistroResponseDTO { Mensaje = $"Error: {ex.Message}" };
             }
         }
 
@@ -56,6 +61,7 @@ namespace SmartNutriTracker.Front.Services
                 {
                     // Guardar token en localStorage
                     await GuardarTokenAsync(resultado.Token);
+                    NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
                 }
 
                 return resultado;
@@ -69,19 +75,57 @@ namespace SmartNutriTracker.Front.Services
         // Guardar token en localStorage
         public async Task GuardarTokenAsync(string token)
         {
+            _token = token;
             await _js.InvokeVoidAsync("localStorage.setItem", "authToken", token);
         }
 
         // Obtener token desde localStorage
         public async Task<string?> ObtenerTokenAsync()
         {
-            return await _js.InvokeAsync<string>("localStorage.getItem", "authToken");
+            if (_token == null)
+            {
+                // Verificar si el prerenderizado está habilitado
+                if (_js is null)
+                {
+                    return null; // Evitar llamadas durante el prerenderizado
+                }
+
+                try
+                {
+                    _token = await _js.InvokeAsync<string>("localStorage.getItem", "authToken");
+                }
+                catch (InvalidOperationException)
+                {
+                    // Manejar el caso en que la llamada se realiza durante el prerenderizado
+                    return null;
+                }
+            }
+
+            return _token;
         }
 
-        
         public async Task LogoutAsync()
         {
+            _token = null;
             await _js.InvokeVoidAsync("localStorage.removeItem", "authToken");
+            NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+        }
+
+        public override async Task<AuthenticationState> GetAuthenticationStateAsync()
+        {
+            var token = await ObtenerTokenAsync();
+
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+            }
+
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+            var identity = new ClaimsIdentity(jwtToken.Claims, "jwt");
+            var user = new ClaimsPrincipal(identity);
+
+            return new AuthenticationState(user);
         }
     }
 
