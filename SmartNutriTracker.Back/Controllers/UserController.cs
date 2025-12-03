@@ -11,11 +11,12 @@ using System.Security.Claims;
 using SmartNutriTracker.Shared.DTOs.Usuarios;
 using SmartNutriTracker.Back.Services.Users;
 using SmartNutriTracker.Back.Services.Tokens;
+using SmartNutriTracker.Shared.Endpoints;
 
 namespace SmartNutriTracker.Back.Controllers
 {
     [ApiController]
-    [Route("api/usuarios")]
+    [Route(UsuariosEndpoints.BASE)]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -27,39 +28,14 @@ namespace SmartNutriTracker.Back.Controllers
             _tokenService = tokenService;
         }
 
-        [HttpPost("Login")]
-        public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
-        {
-            // 1. Autenticar usuario
-            var usuarioAutenticado = await _userService.AutenticarUsuarioAsync(loginDTO);
-            
-            if (usuarioAutenticado == null)
-                return Unauthorized(new { mensaje = "Credenciales inv�lidas" });
-
-            // 2. Obtener datos del usuario para generar token
-            var usuario = await _userService.ObtenerUsuariosAsync();
-            var usuarioCompleto = usuario.FirstOrDefault(u => u.Nombre == usuarioAutenticado.Nombre);
-
-            // 3. Generar token
-            // NOTA: Aqu� necesitamos el usuario completo con el Rol cargado
-            var usuarioConRol = _userService.ObtenerUsuariosAsync().Result
-                .FirstOrDefault(u => u.Nombre == usuarioAutenticado.Nombre);
-
-            // Mejor soluci�n: modificar el m�todo para retornar el Usuario completo
-            // Por ahora, hacemos una consulta directa
-            var usuarioParaToken = await _userService.ObtenerUsuariosAsync();
-            
-            // Retornar respuesta con token
-            return Ok(new { mensaje = "Login exitoso", token = usuarioAutenticado.Rol });
-        }
-
+        [Authorize]
         [HttpGet(UsuariosEndpoints.OBTENER_TODOS_USUARIOS)]
         public async Task<List<UsuarioRegistroDTO>> ObtenerUsuarios()
         {
             return await _userService.ObtenerUsuariosAsync();
         }
 
-        [HttpPost(UsuariosEndpoints.REGISTRAR_USUARIO)]
+
         [HttpPost(UsuariosEndpoints.REGISTRAR_USUARIO)]
         public async Task<IActionResult> RegistrarUsuario([FromBody] UsuarioNuevoDTO nuevoUsuario)
         {
@@ -80,38 +56,35 @@ namespace SmartNutriTracker.Back.Controllers
             }
         }
 
-        [HttpPost("Logout")]
-        public IActionResult Logout()
+        [HttpPost(UsuariosEndpoints.INICIAR_SESION)]
+        public async Task<IActionResult> IniciarSesion([FromBody] LoginDTO loginDTO)
         {
-            Response.Cookies.Delete("SmartNutriTrackerAuth");
-            return Ok(new { mensaje = "Logout exitoso" });
+            var usuario = await _userService.ValidarCredencialesAsync(loginDTO.Username, loginDTO.Password);
+            if (usuario == null)
+            {
+                return Unauthorized(new { mensaje = "Credenciales inválidas." });
+            }
+
+            var token = _tokenService.GenerarToken(usuario);
+
+            Response.Cookies.Append("SmartNutriTrackerAuth", token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddHours(1)
+            });
+
+            return Ok(new { mensaje = "Inicio de sesión exitoso.", token });
         }
 
         [Authorize]
-        [HttpPost("CerrarSesion")]
+        [HttpPost(UsuariosEndpoints.CERRAR_SESION)]
         public async Task<IActionResult> CerrarSesion()
         {
+            Response.Cookies.Delete("SmartNutriTrackerAuth");
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return Ok(new { mensaje = "Sesión cerrada exitosamente." });
-        }
-
-        [Authorize]
-        [HttpGet("me")]
-        public IActionResult GetCurrentUser()
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var userName = User.FindFirst(ClaimTypes.Name)?.Value;
-            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
-
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized();
-
-            return Ok(new
-            {
-                Id = userId,
-                Nombre = userName,
-                Rol = userRole
-            });
         }
     }
 }

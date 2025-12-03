@@ -36,12 +36,12 @@ builder.Services.AddControllers();
 // CORS: permitir solo tu frontend para mayor seguridad
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("https://localhost:5001") // Cambia al URL de tu frontend Blazor
-              .AllowAnyHeader()
+        policy.AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials();
+              .AllowAnyOrigin();
+        //.WithOrigins("urlDeFrontendEnProduccion");
     });
 });
 
@@ -54,27 +54,33 @@ var key = Encoding.UTF8.GetBytes(jwtSettings.Key ?? string.Empty);
 
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
-{
-    options.Cookie.Name = "SmartNutriTrackerAuth";
-    options.Cookie.HttpOnly = true;
-    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
-    options.ExpireTimeSpan = TimeSpan.FromHours(24);
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false; // poner true en producci�n
+    options.RequireHttpsMetadata = false;
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
+        // Ponerle true en prod
         ValidateIssuer = false,
         ValidateAudience = false,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key)
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var token = context.Request.Cookies["SmartNutriTrackerAuth"];
+            if (!string.IsNullOrEmpty(token))
+            {
+                context.Token = token;
+            }
+            return Task.CompletedTask;
+        }
     };
 });
 
@@ -87,6 +93,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.MapGet("/", () => Results.Redirect("/swagger"));
 }
 
 // Usar CORS antes de Authentication/Authorization
