@@ -11,6 +11,8 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
+builder.Services.RegisterServices();
+
 builder.Services.AddHttpClient("ApiClient", client =>
 {
     client.BaseAddress = new Uri(ApiConfig.HttpsApiUrl);
@@ -26,7 +28,8 @@ builder.Services.AddHttpClient("ApiClient", client =>
 
 // Registrar AuthService
 builder.Services.AddScoped<AuthenticationStateProvider, AuthService>();
-builder.Services.AddScoped<AuthService>();
+
+// Registrar UserStateService
 
 var app = builder.Build();
 
@@ -45,7 +48,5 @@ app.UseAntiforgery();
 app.MapRazorComponents<App>()
   .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode();
-
-app.MapBlazorHub();
 
 app.Run();
