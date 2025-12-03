@@ -1,0 +1,290 @@
+﻿@page "/gestion-usuarios"
+@using SmartNutriTracker.Shared.DTOs.Usuarios
+@inject SmartNutriTracker.Front.Services.AuthService AuthService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<div class="registro-page">
+    <div class="registro-container">
+        <div class="registro-card">
+            <div class="registro-header">
+                <h1 class="registro-title">🥗 Crear Cuenta</h1>
+                <p class="registro-subtitle">Únete a SmartNutriTracker</p>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Message))
+            {
+                <div class="alert @(Success ? "alert-success" : "alert-error")">
+                    <span class="alert-icon">@(Success ? "✓" : "⚠️")</span>
+                    <span>@Message</span>
+                </div>
+            }
+
+            <EditForm Model="@NuevoUsuario" OnSubmit="OnSubmit" FormName="RegistroForm" class="registro-form">
+                <DataAnnotationsValidator />
+
+                <div class="form-group">
+                    <label class="form-label">Nombre de Usuario</label>
+                    <InputText @bind-Value="NuevoUsuario.Username" class="form-input" placeholder="Elige tu usuario" />
+                    <ValidationMessage For="@(() => NuevoUsuario.Username)" class="validation-text" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Contraseña</label>
+                    <InputText type="password" @bind-Value="Password" class="form-input"
+                        placeholder="Crea una contraseña segura" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Confirmar Contraseña</label>
+                    <InputText type="password" @bind-Value="ConfirmPassword" class="form-input"
+                        placeholder="Repite tu contraseña" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Tipo de Usuario</label>
+                    <InputSelect @bind-Value="NuevoUsuario.RolId" class="form-select">
+                        <option value="1">👨‍💼 Administrador</option>
+                        <option value="2">👨‍🏫 Docente</option>
+                        <option value="3">🥼 Nutricionista</option>
+                        <option value="4">🎓 Estudiante</option>
+                    </InputSelect>
+                </div>
+
+                <button type="submit" class="btn-submit" disabled="@Enviando">
+                    @(Enviando ? "Creando cuenta..." : "Registrarse")
+                </button>
+
+                <div class="form-footer">
+                    <p>¿Ya tienes cuenta? <a href="/login" class="link-login">Inicia sesión aquí</a></p>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+<style>
+    .registro-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #576E40 0%, #BCD09F 100%);
+        padding: 20px;
+    }
+
+    .registro-container {
+        width: 100%;
+        max-width: 500px;
+    }
+
+    .registro-card {
+        background: #F1EAC0;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 10px 40px rgba(34, 28, 4, 0.2);
+    }
+
+    .registro-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .registro-title {
+        color: #221C04;
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .registro-subtitle {
+        color: #576E40;
+        font-size: 16px;
+        margin: 0;
+    }
+
+    .alert {
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .alert-error {
+        background-color: #ffe5e5;
+        color: #d32f2f;
+        border: 1px solid #ffcdd2;
+    }
+
+    .alert-success {
+        background-color: #e8f5e9;
+        color: #388e3c;
+        border: 1px solid #c8e6c9;
+    }
+
+    .alert-icon {
+        font-size: 18px;
+    }
+
+    .registro-form {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-label {
+        color: #221C04;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .form-input,
+    .form-select {
+        padding: 12px 16px;
+        border: 2px solid #BCD09F;
+        border-radius: 10px;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        background: white;
+        color: #221C04;
+    }
+
+    .form-input:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: #576E40;
+        box-shadow: 0 0 0 3px rgba(87, 110, 64, 0.1);
+    }
+
+    .form-input::placeholder {
+        color: #999;
+    }
+
+    .form-select {
+        cursor: pointer;
+    }
+
+    .validation-text {
+        color: #d32f2f;
+        font-size: 12px;
+        margin-top: 4px;
+    }
+
+    .btn-submit {
+        background: #576E40;
+        color: #F1EAC0;
+        border: none;
+        padding: 14px;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+        background: #C2854C;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(194, 133, 76, 0.3);
+    }
+
+    .btn-submit:disabled {
+        background: #999;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .form-footer {
+        text-align: center;
+        margin-top: 10px;
+    }
+
+    .form-footer p {
+        color: #576E40;
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .link-login {
+        color: #C2854C;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s ease;
+    }
+
+    .link-login:hover {
+        color: #221C04;
+        text-decoration: underline;
+    }
+
+    @@media (max-width: 500px) {
+        .registro-card {
+            padding: 30px 20px;
+        }
+
+        .registro-title {
+            font-size: 24px;
+        }
+    }
+</style>
+@code {
+    private UsuarioNuevoDTO NuevoUsuario = new UsuarioNuevoDTO();
+    private string Password { get; set; } = string.Empty;
+    private string ConfirmPassword { get; set; } = string.Empty;
+
+    private string Message { get; set; } = string.Empty;
+    private bool Success { get; set; } = false;
+    private bool Enviando = false;
+
+    private async Task OnSubmit()
+    {
+
+        Enviando = true;
+        Message = "";
+        Success = false;
+
+        string pass = Password.Trim();
+        string confirm = ConfirmPassword.Trim();
+
+        if (pass != confirm)
+        {
+            Message = "Las contraseñas no coinciden.";
+            Enviando = false;
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(NuevoUsuario.Username) || string.IsNullOrWhiteSpace(pass))
+        {
+            Message = "Usuario y contraseña son obligatorios.";
+            Enviando = false;
+            return;
+        }
+
+        NuevoUsuario.Password = pass;
+
+        var response = await AuthService.RegisterAsync(NuevoUsuario);
+
+        if (response != null && response.Usuario != null)
+        {
+            Success = true;
+            Message = "Usuario registrado correctamente.";
+            await Task.Delay(1000);
+            NavigationManager.NavigateTo("/login");
+        }
+        else
+        {
+            Message = response?.Mensaje ?? "Error al registrar el usuario.";
+        }
+
+        Enviando = false;
+    }
+}
