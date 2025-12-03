@@ -10,14 +10,14 @@ namespace SmartNutriTracker.Shared.DTOs.Usuarios
     {
         public int Id { get; set; }
         public string Nombre { get; set; }
-        public string Rol { get; set; }
+        public int RolId { get; set; }
 
         public UsuarioRegistroDTO() { }
         public UsuarioRegistroDTO(Usuario usuario)
         {
             Id = usuario.UsuarioId;
             Nombre = usuario.Username;
-            Rol = usuario.Rol != null ? usuario.Rol.Nombre : string.Empty;
+            RolId = usuario.RolId;
         }
     }
 }
