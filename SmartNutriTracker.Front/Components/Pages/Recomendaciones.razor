@@ -1,0 +1,329 @@
+@page "/recomendaciones"
+@inject HttpClient Http
+
+<style>
+    .contenedor-recomendaciones {
+        background: linear-gradient(135deg, #BCD09F 0%, #F1EAC0 100%);
+        min-height: 100vh;
+        padding: 40px 20px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .tarjeta-principal {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 8px 32px rgba(87, 110, 64, 0.15);
+        padding: 40px;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    
+    .titulo {
+        color: #576E40;
+        text-align: center;
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 30px;
+        border-bottom: 3px solid #C2854C;
+        padding-bottom: 15px;
+    }
+    
+    .grupo-formulario {
+        margin-bottom: 18px;
+    }
+    
+    .grupo-formulario label {
+        display: block;
+        color: #576E40;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+    
+    .grupo-formulario input,
+    .grupo-formulario select {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #BCD09F;
+        border-radius: 8px;
+        font-size: 14px;
+        background-color: #F1EAC0;
+        color: #221C04;
+        transition: all 0.3s ease;
+    }
+    
+    .grupo-formulario input:focus,
+    .grupo-formulario select:focus {
+        outline: none;
+        border-color: #C2854C;
+        box-shadow: 0 0 0 3px rgba(194, 133, 76, 0.1);
+        background-color: white;
+    }
+    
+    .boton-pedir {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #576E40 0%, #C2854C 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+        box-shadow: 0 4px 15px rgba(87, 110, 64, 0.2);
+    }
+    
+    .boton-pedir:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(87, 110, 64, 0.3);
+    }
+    
+    .boton-pedir:active {
+        transform: translateY(0);
+    }
+    
+    .cargando {
+        text-align: center;
+        color: #576E40;
+        font-style: italic;
+        margin-top: 20px;
+    }
+    
+    .contenedor-resultado {
+        background: #F1EAC0;
+        border-left: 5px solid #C2854C;
+        padding: 25px;
+        border-radius: 10px;
+        margin-top: 30px;
+    }
+    
+    .titulo-resultado {
+        color: #576E40;
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+    
+    .texto-recomendacion {
+        color: #221C04;
+        line-height: 1.8;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+    
+    .lista-comidas {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .item-comida {
+        background: white;
+        padding: 15px;
+        margin-bottom: 12px;
+        border-radius: 8px;
+        border-left: 4px solid #BCD09F;
+        box-shadow: 0 2px 8px rgba(87, 110, 64, 0.1);
+    }
+    
+    .nombre-comida {
+        color: #576E40;
+        font-weight: 700;
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+    
+    .stats-comida {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        font-size: 13px;
+        color: #221C04;
+    }
+    
+    .stat-item {
+        background: #BCD09F;
+        padding: 8px;
+        border-radius: 5px;
+        font-weight: 600;
+    }
+    
+    .descripcion-comida {
+        margin-top: 10px;
+        font-size: 13px;
+        color: #576E40;
+        font-style: italic;
+    }
+</style>
+
+<div class="contenedor-recomendaciones">
+    <div class="tarjeta-principal">
+        <h1 class="titulo">Recomendaciones Nutricionales</h1>
+
+        <div class="grupo-formulario">
+            <label>Peso (kg):</label>
+            <input @bind="pesoKg" type="number" step="0.1" />
+        </div>
+        <div class="grupo-formulario">
+            <label>Altura (m):</label>
+            <input @bind="alturaM" type="number" step="0.01" />
+        </div>
+        <div class="grupo-formulario">
+            <label>Fecha Nacimiento:</label>
+            <input @bind="fechaNacimiento" type="date" />
+        </div>
+        <div class="grupo-formulario">
+            <label>Sexo:</label>
+            <select @bind="sexo">
+                <option value="Varon">Varón</option>
+                <option value="Mujer">Mujer</option>
+            </select>
+        </div>
+        <div class="grupo-formulario">
+            <label>Nivel Actividad:</label>
+            <select @bind="nivelActividad">
+                <option value="Sedentario">Sedentario</option>
+                <option value="Ligero">Ligero</option>
+                <option value="Moderado">Moderado</option>
+                <option value="Alto">Alto</option>
+                <option value="MuyAlto">Muy Alto</option>
+            </select>
+        </div>
+        <div class="grupo-formulario">
+            <label>Objetivo:</label>
+            <select @bind="objetivo">
+                <option value="Mantener">Mantener</option>
+                <option value="Perder">Perder peso</option>
+                <option value="Ganar">Ganar peso</option>
+            </select>
+        </div>
+        
+        <button class="boton-pedir" id="btnPedir" onclick="pedirRecomendacion()">
+            <span id="btnText">Pedir recomendación</span>
+        </button>
+        
+        <div id="contenedor-resultado" style="display: none;">
+            <div class="contenedor-resultado">
+                <h2 class="titulo-resultado">Tu Plan Personalizado</h2>
+                <p class="texto-recomendacion" id="textoRecomendacion"></p>
+                <div id="listComidas"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private decimal pesoKg = 70m;
+    private decimal alturaM = 1.75m;
+    private DateTime fechaNacimiento = DateTime.Parse("1995-06-15");
+    private string sexo = "Varon";
+    private string nivelActividad = "Moderado";
+    private string objetivo = "Mantener";
+
+    // [SupplyParameterFromForm]
+    // EstudianteDatosRecomendacion datosEstudiante 
+}
+
+<script>
+async function pedirRecomendacion() {
+    console.log("Iniciando petición...");
+    
+    const btnPedir = document.getElementById('btnPedir');
+    const btnText = document.getElementById('btnText');
+    const contenedorResultado = document.getElementById('contenedor-resultado');
+    
+    btnPedir.disabled = true;
+    btnText.textContent = "Generando recomendación…";
+    
+    try {
+        const pesoKg = parseFloat(document.querySelector('input[type="number"]').value);
+        const alturaM = parseFloat(document.querySelectorAll('input[type="number"]')[1].value);
+        const fechaNacimiento = document.querySelector('input[type="date"]').value;
+        const sexo = document.querySelectorAll('select')[0].value;
+        const nivelActividad = document.querySelectorAll('select')[1].value;
+        const objetivo = document.querySelectorAll('select')[2].value;
+        
+        console.log("Datos del formulario:", { pesoKg, alturaM, fechaNacimiento, sexo, nivelActividad, objetivo });
+        
+        const response = await fetch('https://localhost:7187/api/Nutrition/recommendations', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                pesoKg,
+                alturaM,
+                fechaNacimiento,
+                sexo,
+                nivelActividad,
+                objetivo
+            })
+        });
+        
+        console.log("Status:", response.status);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log("Respuesta recibida:", data);
+            
+            // Asegurarse de que textoRecomendacion es string
+            let textoRecomendacion = data.textoRecomendacion;
+            if (typeof textoRecomendacion === 'object') {
+                textoRecomendacion = JSON.stringify(textoRecomendacion, null, 2);
+            }
+            
+            // Mostrar el texto de recomendación
+            document.getElementById('textoRecomendacion').textContent = textoRecomendacion;
+            
+            // Construir la lista de comidas si existen
+            const listComidas = document.getElementById('listComidas');
+            listComidas.innerHTML = '';
+            
+            let comidas = data.comidas;
+            if (comidas && comidas.length > 0) {
+                const titulo = document.createElement('h3');
+                titulo.style.color = '#576E40';
+                titulo.style.marginTop = '20px';
+                titulo.style.marginBottom = '15px';
+                titulo.textContent = 'Plan de Comidas';
+                listComidas.appendChild(titulo);
+                
+                const ul = document.createElement('ul');
+                ul.className = 'lista-comidas';
+                
+                comidas.forEach(comida => {
+                    const li = document.createElement('li');
+                    li.className = 'item-comida';
+                    li.innerHTML = `
+                        <div class="nombre-comida">${comida.nombre}</div>
+                        <div class="stats-comida">
+                            <div class="stat-item">${comida.calorias} kcal</div>
+                            <div class="stat-item">P: ${comida.proteinas_g} g</div>
+                            <div class="stat-item">G: ${comida.grasas_g} g</div>
+                            <div class="stat-item">C: ${comida.carbohidratos_g} g</div>
+                        </div>
+                        <div class="descripcion-comida">${comida.descripcion}</div>
+                    `;
+                    ul.appendChild(li);
+                });
+                
+                listComidas.appendChild(ul);
+            }
+            
+            // Mostrar el contenedor de resultado
+            contenedorResultado.style.display = 'block';
+        } else {
+            const error = await response.text();
+            console.error("Error:", error);
+            alert("Error: " + response.status + "\n" + error);
+        }
+    } catch (error) {
+        console.error("Excepción:", error);
+        alert("Error de conexión: " + error.message);
+    } finally {
+        btnPedir.disabled = false;
+        btnText.textContent = "Pedir recomendación";
+    }
+}
+</script>
