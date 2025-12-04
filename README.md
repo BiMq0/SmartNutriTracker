@@ -100,6 +100,161 @@ dotnet dev-certs https --trust
 dotnet test
 ```
 
+### Configuracion de Servicios en Front
+
+Para poder crear servicios y que las peticiones al backend se hagan correctamente, se debe seguir el siguiente ejemplo.
+
+``` csharp
+public class [Nombre]Service
+{
+  private readonly HttpClient _http
+
+  public [Nombre]Service(IHttpClientFactory http)
+  {
+    _http = http.CreateClient("ApiClient")
+  }
+}
+```
+
+### Flujo de trabajo recomendado
+
+Para el desarrollo de features se recomienda el siguiente flujo, ejemplo para obtener una lista de usuarios desde base de datos
+
+1. Analizar los datos requeridos y si serán de creación o recuperación de datos.
+
+``` csharp
+// Para este ejemplo
+
+int Id
+string Nombre 
+string Rol
+```
+2. Crear DTO en .Shared con datos requeridos, y constructor sin parametros, esto es importante para la deserialización de datos al pasar por las peticiones.
+
+``` csharp
+public class UsuarioRegistroDTO
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; }
+        public string Rol { get; set; }
+
+        public UsuarioRegistroDTO() { }
+    }
+```
+
+si se deben recuperar datos, usar entidad base en un segundo constructor y enlazar datos
+
+``` csharp
+public class UsuarioRegistroDTO
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; }
+        public string Rol { get; set; }
+
+        public UsuarioRegistroDTO() { }
+        public UsuarioRegistroDTO(Usuario usuario)
+        {
+            Id = usuario.UsuarioId;
+            Nombre = usuario.Username;
+            Rol = usuario.Rol != null ? usuario.Rol.Nombre : string.Empty;
+        }
+    }
+```
+
+3. Crear ruta para endpoint y peticion en Shared, si es nuevo, también colocar ruta BASE para el Controller
+
+``` csharp
+ public static class UsuariosEndpoints
+    {
+        public const string BASE = "api/user/";
+        public const string OBTENER_TODOS_USUARIOS = "ObtenerUsuarios";
+    }
+```
+
+4. Crear endpoint desde backend para funcionalidad, usando la ruta declarada en .Shared, si es nuevo, siempre enlazar Interfaz de servicio y en [Route()] colocar ruta BASE
+``` csharp
+[ApiController]
+[Route(UsuariosEndpoints.BASE)]
+public class UserController : ControllerBase
+    {
+        private readonly IUserService _userService;
+
+        public UserController(IUserService userService)
+        {
+            _userService = userService;
+        }
+
+        [HttpGet(UsuariosEndpoints.OBTENER_TODOS_USUARIOS)]
+        public async Task<List<UsuarioRegistroDTO>> ObtenerUsuarios()
+        {
+            return await _userService.ObtenerUsuariosAsync();
+        }
+    }
+```
+
+5. Declarar método en Interfaz de servicio
+``` csharp
+public interface IUserService
+{
+    Task<List<UsuarioRegistroDTO>> ObtenerUsuariosAsync();
+}
+```
+
+6. Implementar método de Interfaz en su respectiva clase, siempre heredar la interfaz, y en el constructor aplicar el DbContext para el uso de la base de datos con EF Core, y retornar todos los registros necesarios usando el DTO, esto mapea automaticamente los campos y datos requeridos
+``` csharp
+public class UserService : IUserService
+{
+    private readonly ApplicationDbContext _context;
+
+    public UserService(ApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<List<UsuarioRegistroDTO>> ObtenerUsuariosAsync()
+    {
+        var usuarios = await _context.Usuarios.Include(u => u.Rol).ToListAsync();
+        // Mapeo automatico con Select
+        return usuarios.Select(u => new UsuarioRegistroDTO(u)).ToList();
+    }
+}
+```
+
+7. Implementar servicio desde Front, si es nuevo, inicializar HttpClient con IHttpClientFactory en constructor, usar rutas y DTO de .Shared
+``` csharp
+public class UserService
+    {
+        private readonly HttpClient _http;
+        private const string BASE = UsuariosEndpoints.BASE;
+
+        public UserService(IHttpClientFactory http)
+        {
+            // Usar siempre esta configuracion puesto que ya se definio en Program.cs
+            _http = http.CreateClient("ApiClient");
+        }
+
+        public async Task<List<UsuarioRegistroDTO>>  ObtenerUsuarios()
+        {
+            try
+            {
+                var url = BASE + UsuariosEndpoints.OBTENER_TODOS_USUARIOS;
+                var response = await _http.GetFromJsonAsync<List<UsuarioRegistroDTO>>(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Retorna la respuesta 
+                    return response;
+                }
+            }
+            catch (Exception ex)
+            {
+                return new UsuarioRegistroResponseDTO { Mensaje = $"Error: {ex.Message}" };
+            }
+        }
+  }
+```
+8. Inyectar servicio en páginas donde se requiera y usar métodos.
+
 ## Contribución Externa
 
 1. Haz un fork del repositorio

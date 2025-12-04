@@ -26,6 +26,12 @@ namespace SmartNutriTracker.Back.Database
         public DbSet<TipoAccion> TiposAccion => Set<TipoAccion>();
         public DbSet<TipoResultado> TiposResultado => Set<TipoResultado>();
 
+        // Audit logs
+        public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
+        //logger
+        //public DbSet<AuditLog> AuditLogs { set; get; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -73,6 +79,12 @@ namespace SmartNutriTracker.Back.Database
                     .HasColumnType("decimal(5,2)");
                 entity.Property(e => e.Altura)
                     .HasColumnType("decimal(4,2)");
+                entity.Property(e => e.FechaNacimiento)
+.HasColumnType("timestamp with time zone");
+
+                entity.Property(e => e.IMC)
+                    .HasColumnType("decimal(5,2)")
+                    .HasComputedColumnSql("\"Peso\" / (\"Altura\" * \"Altura\")", true);
 
                 // Relación con RegistroHabito (One to Many)
                 entity.HasMany(e => e.RegistroHabitos)
