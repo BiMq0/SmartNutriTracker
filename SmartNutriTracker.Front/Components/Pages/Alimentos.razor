@@ -1,0 +1,47 @@
+@page "/alimentos"
+@using SmartNutriTracker.Shared.DTOs.Alimentos
+@inject HttpClient Http
+
+<h3>Alimentos</h3>
+
+@if (alimentos == null)
+{
+    <p>Cargando...</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nombre</th>
+                <th>Calorías</th>
+                <th>Proteínas</th>
+                <th>Carbohidratos</th>
+                <th>Grasas</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in alimentos)
+            {
+                <tr>
+                    <td>@item.AlimentoId</td>
+                    <td>@item.Nombre</td>
+                    <td>@item.Calorias</td>
+                    <td>@item.Proteinas</td>
+                    <td>@item.Carbohidratos</td>
+                    <td>@item.Grasas</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<AlimentoDTO>? alimentos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        alimentos = await Http.GetFromJsonAsync<List<AlimentoDTO>>("api/Alimento");
+    }
+}

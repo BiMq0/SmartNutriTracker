@@ -1,0 +1,38 @@
+@page "/menus"
+@using SmartNutriTracker.Shared.DTOs.Menus
+@using SmartNutriTracker.Shared.DTOs.Alimentos
+@inject HttpClient Http
+
+<h3>Menús</h3>
+
+@if (menus == null)
+{
+    <p>Cargando...</p>
+}
+else
+{
+    @foreach (var menu in menus)
+    {
+        <div class="card mb-3 p-3">
+            <h5>Menú ID: @menu.MenuId</h5>
+            <p>Fecha: @menu.Fecha.ToShortDateString()</p>
+
+            <h6>Alimentos:</h6>
+            <ul>
+                @foreach (var alimento in menu.Alimentos)
+                {
+                    <li>@alimento.Nombre (@alimento.Calorias cal)</li>
+                }
+            </ul>
+        </div>
+    }
+}
+
+@code {
+    private List<MenuDTO>? menus;
+
+    protected override async Task OnInitializedAsync()
+    {
+        menus = await Http.GetFromJsonAsync<List<MenuDTO>>("api/Menu");
+    }
+}
