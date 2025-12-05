@@ -63,8 +63,13 @@ namespace SmartNutriTracker.Back.Migrations
                     b.Property<decimal>("Altura")
                         .HasColumnType("decimal(4,2)");
 
-                    b.Property<int>("Edad")
-                        .HasColumnType("integer");
+                    b.Property<DateTime>("FechaNacimiento")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("IMC")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("decimal(5,2)")
+                        .HasComputedColumnSql("\"Peso\" / (\"Altura\" * \"Altura\")", true);
 
                     b.Property<string>("NombreCompleto")
                         .IsRequired()
@@ -73,6 +78,9 @@ namespace SmartNutriTracker.Back.Migrations
 
                     b.Property<decimal>("Peso")
                         .HasColumnType("decimal(5,2)");
+
+                    b.Property<int>("Sexo")
+                        .HasColumnType("integer");
 
                     b.HasKey("EstudianteId");
 
@@ -209,6 +217,12 @@ namespace SmartNutriTracker.Back.Migrations
 
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("HorasActividadFisica")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("HorasSueno")
+                        .HasColumnType("numeric");
 
                     b.HasKey("RegistroHabitoId");
 
