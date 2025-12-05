@@ -33,6 +33,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        menus = await Http.GetFromJsonAsync<List<MenuDTO>>("api/Menu");
+        menus = await Http.GetFromJsonAsync<List<MenuDTO>>(
+            "https://localhost:7187/api/Menu"
+        );
     }
 }

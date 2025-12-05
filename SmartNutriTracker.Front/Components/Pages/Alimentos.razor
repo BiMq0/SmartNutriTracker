@@ -42,6 +42,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        alimentos = await Http.GetFromJsonAsync<List<AlimentoDTO>>("api/Alimento");
+        alimentos = await Http.GetFromJsonAsync<List<AlimentoDTO>>(
+            "https://localhost:7187/api/Alimento"
+        );
     }
 }
