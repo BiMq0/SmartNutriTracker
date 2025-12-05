@@ -1,0 +1,251 @@
+﻿@page "/login"
+@using SmartNutriTracker.Shared.DTOs.Usuarios
+@using SmartNutriTracker.Front.Services
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<div class="login-page">
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1 class="login-title">🥗 SmartNutriTracker</h1>
+                <p class="login-subtitle">Bienvenido de nuevo</p>
+            </div>
+
+            @if (!string.IsNullOrEmpty(mensajeError))
+            {
+                <div class="alert alert-error">
+                    <span class="alert-icon">⚠️</span>
+                    <span>@mensajeError</span>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(mensajeExito))
+            {
+                <div class="alert alert-success">
+                    <span class="alert-icon">✓</span>
+                    <span>@mensajeExito</span>
+                </div>
+            }
+
+            <EditForm Model="@loginModel" OnSubmit="IniciarSesion" FormName="InicioSesion" class="login-form">
+                <div class="form-group">
+                    <label class="form-label">Usuario</label>
+                    <InputText class="form-input" @bind-Value="loginModel.Username" placeholder="Ingresa tu usuario" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Contraseña</label>
+                    <InputText type="password" class="form-input" @bind-Value="loginModel.Password"
+                        placeholder="Ingresa tu contraseña" />
+                </div>
+
+                <button type="submit" class="btn-submit" disabled="@enviando">
+                    @(enviando ? "Iniciando sesión..." : "Iniciar Sesión")
+                </button>
+
+                <div class="form-footer">
+                    <p>¿No tienes cuenta? <a href="/gestion-usuarios" class="link-register">Regístrate aquí</a></p>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+<style>
+    .login-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #BCD09F 0%, #576E40 100%);
+        padding: 20px;
+    }
+
+    .login-container {
+        width: 100%;
+        max-width: 450px;
+    }
+
+    .login-card {
+        background: #F1EAC0;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 10px 40px rgba(34, 28, 4, 0.2);
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .login-title {
+        color: #221C04;
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .login-subtitle {
+        color: #576E40;
+        font-size: 16px;
+        margin: 0;
+    }
+
+    .alert {
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .alert-error {
+        background-color: #ffe5e5;
+        color: #d32f2f;
+        border: 1px solid #ffcdd2;
+    }
+
+    .alert-success {
+        background-color: #e8f5e9;
+        color: #388e3c;
+        border: 1px solid #c8e6c9;
+    }
+
+    .alert-icon {
+        font-size: 18px;
+    }
+
+    .login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-label {
+        color: #221C04;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .form-input {
+        padding: 12px 16px;
+        border: 2px solid #BCD09F;
+        border-radius: 10px;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        background: white;
+        color: #221C04;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #576E40;
+        box-shadow: 0 0 0 3px rgba(87, 110, 64, 0.1);
+    }
+
+    .form-input::placeholder {
+        color: #999;
+    }
+
+    .btn-submit {
+        background: #576E40;
+        color: #F1EAC0;
+        border: none;
+        padding: 14px;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+        background: #C2854C;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(194, 133, 76, 0.3);
+    }
+
+    .btn-submit:disabled {
+        background: #999;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    .form-footer {
+        text-align: center;
+        margin-top: 10px;
+    }
+
+    .form-footer p {
+        color: #576E40;
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .link-register {
+        color: #C2854C;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s ease;
+    }
+
+    .link-register:hover {
+        color: #221C04;
+        text-decoration: underline;
+    }
+
+    @@media (max-width: 500px) {
+        .login-card {
+            padding: 30px 20px;
+        }
+
+        .login-title {
+            font-size: 24px;
+        }
+    }
+</style>
+
+@code {
+    private LoginDTO loginModel = new LoginDTO();
+    private bool enviando = false;
+    private string mensajeError = string.Empty;
+    private string mensajeExito = string.Empty;
+
+    private async void IniciarSesion()
+    {
+        enviando = true;
+        mensajeError = string.Empty;
+        mensajeExito = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(loginModel.Username) || string.IsNullOrWhiteSpace(loginModel.Password))
+        {
+            mensajeError = "Usuario y contraseña son obligatorios.";
+            enviando = false;
+            return;
+        }
+
+        var resultado = await AuthService.LoginAsync(loginModel);
+
+        if (resultado == null)
+        {
+            mensajeError = "Credenciales incorrectas o error en el servidor.";
+            enviando = false;
+            return;
+        }
+
+        mensajeExito = resultado.Mensaje ?? "Inicio de sesión exitoso.";
+        await Task.Delay(1000);
+        NavigationManager.NavigateTo("/"); // redirige al home/dashboard
+        enviando = false;
+    }
+}
