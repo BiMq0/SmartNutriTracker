@@ -1,0 +1,500 @@
+@page "/alimentos"
+@inject NavigationManager NavigationManager
+@using SmartNutriTracker.Shared.DTOs.Alimentos
+@inject HttpClient Http
+@rendermode InteractiveServer
+
+<div class="page-wrapper">
+    <header class="app-header">
+        <div class="header-band-top"></div>
+        <div class="header-band-main">
+            <h1 class="header-title">
+                <span class="icon-emoji">🍎</span> Seguimiento de Alimentos
+            </h1>
+            <p class="header-subtitle">Consulta y gestiona la información nutricional de tus alimentos.</p>
+        </div>
+        <div class="header-band-bottom"></div>
+    </header>
+    
+    <main class="alimentos-main-content">
+        <div class="page-header-section">
+            <h3 class="page-title">Detalles Nutricionales</h3>
+            <a href="/alimentos/registrar" class="btn-add-alimento">
+                <span class="btn-icon">➕</span> Agregar Alimento
+            </a>
+        </div>
+
+        @if (alimentos == null)
+        {
+            <p class="loading-text">Cargando datos de alimentos...</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table alimentos-table">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Nombre</th>
+                            <th class="text-end">Calorías (kcal)</th>
+                            <th class="text-end">Proteínas (g)</th>
+                            <th class="text-end">Carbohidratos (g)</th>
+                            <th class="text-end">Grasas (g)</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in alimentos)
+                        {
+                            <tr>
+                                <td class="id-col">@item.AlimentoId</td>
+                                <td class="name-col"><strong>@item.Nombre</strong></td>
+                                <td class="text-end">@item.Calorias</td>
+                                <td class="text-end">@item.Proteinas</td>
+                                <td class="text-end">@item.Carbohidratos</td>
+                                <td class="text-end">@item.Grasas</td>
+                                <td class="text-center">
+                                    <a class="btn-edit" href="/alimentos/editar/@item.AlimentoId">Editar</a>
+                                    <button type="button" class="btn-delete" @onclick="@(() => MostrarModalEliminar(item))">Eliminar</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </main>
+
+    <!-- Modal de confirmación de eliminación -->
+    @if (mostrarModal)
+    {
+        <div class="modal-overlay" @onclick="CerrarModal">
+            <div class="modal-content" @onclick:stopPropagation>
+                <div class="modal-header">
+                    <h4>⚠️ Confirmar Eliminación</h4>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas eliminar el alimento <strong>"@alimentoAEliminar?.Nombre"</strong>?</p>
+                    <p class="modal-warning">Esta acción no se puede deshacer.</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-modal-cancel" @onclick="CerrarModal">Cancelar</button>
+                    <button class="btn-modal-confirm" @onclick="ConfirmarEliminar">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <footer class="app-footer">
+        <div class="footer-band-top"></div>
+        <div class="footer-band-main">
+            <p>Creado con <span class="footer-icon">🌱</span> para mejorar tu bienestar.</p>
+        </div>
+    </footer>
+</div>
+
+@code {
+    private List<AlimentoDTO>? alimentos;
+    private bool mostrarModal = false;
+    private AlimentoDTO? alimentoAEliminar;
+
+    private void MostrarModalEliminar(AlimentoDTO alimento)
+    {
+        alimentoAEliminar = alimento;
+        mostrarModal = true;
+    }
+
+    private void CerrarModal()
+    {
+        mostrarModal = false;
+        alimentoAEliminar = null;
+    }
+
+    private async Task ConfirmarEliminar()
+    {
+        if (alimentoAEliminar == null) return;
+
+        try
+        {
+            var response = await Http.DeleteAsync($"https://localhost:7187/api/Alimento/{alimentoAEliminar.AlimentoId}");
+            if (response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"✓ Alimento {alimentoAEliminar.AlimentoId} eliminado correctamente");
+                await CargarAlimentos();
+            }
+            else
+            {
+                Console.WriteLine($"Error al eliminar alimento {alimentoAEliminar.AlimentoId}: {response.ReasonPhrase}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Excepción al eliminar alimento {alimentoAEliminar.AlimentoId}: {ex.Message}");
+        }
+        finally
+        {
+            CerrarModal();
+        }
+    }
+
+    private async Task CargarAlimentos()
+    {
+        try
+        {
+            alimentos = await Http.GetFromJsonAsync<List<AlimentoDTO>>("https://localhost:7187/api/Alimento");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al cargar alimentos: {ex.Message}");
+            alimentos = new List<AlimentoDTO>();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarAlimentos();
+    }
+}
+
+<style>
+    /* VARIABLES DE COLOR */
+    :root {
+        --color-light-green: #BCD09F;
+        --color-dark-green: #576E40;
+        --color-dark-brown: #221C04;
+        --color-orange-brown: #C2854C;
+        --color-cream: #F1EAC0;
+        --color-grey-dark: #3c3c3c;
+    }
+    
+    /* ---------------------------------------------------- */
+    /* GENERAL LAYOUT Y CONTENIDO PRINCIPAL */
+    /* ---------------------------------------------------- */
+
+    .page-wrapper {
+        background-color: var(--color-cream);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .alimentos-main-content {
+        flex-grow: 1;
+        padding: 2rem;
+    }
+
+    /* ---------------------------------------------------- */
+    /* HEADER CON BOTÓN DE AGREGAR */
+    /* ---------------------------------------------------- */
+
+    .page-header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .btn-add-alimento {
+        background-color: var(--color-dark-green);
+        color: var(--color-cream);
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .btn-add-alimento:hover {
+        background-color: var(--color-dark-brown);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .btn-icon {
+        font-size: 1.2em;
+    }
+
+    /* ---------------------------------------------------- */
+    /* HEADER */
+    /* ---------------------------------------------------- */
+
+    .app-header {
+        width: 100%;
+    }
+
+    .header-band-top {
+        height: 10px;
+        background-color: var(--color-grey-dark);
+    }
+    
+    .header-band-main {
+        background-color: var(--color-dark-green);
+        padding: 1.5rem 2rem;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-title {
+        color: var(--color-cream);
+        font-weight: 700;
+        margin: 0;
+        font-size: 2.2rem;
+        text-shadow: 1px 1px 2px var(--color-dark-brown);
+    }
+    
+    .header-subtitle {
+        color: var(--color-light-green);
+        margin: 0.25rem 0 0;
+        font-size: 1.1rem;
+    }
+
+    .icon-emoji {
+        font-size: 1.5em;
+        vertical-align: middle;
+        margin-right: 0.5rem;
+    }
+
+    .header-band-bottom {
+        height: 10px;
+        background-color: var(--color-orange-brown);
+    }
+
+    /* ---------------------------------------------------- */
+    /* FOOTER */
+    /* ---------------------------------------------------- */
+
+    .app-footer {
+        width: 100%;
+        margin-top: auto;
+    }
+    
+    .footer-band-top {
+        height: 10px;
+        background-color: var(--color-orange-brown);
+    }
+
+    .footer-band-main {
+        background-color: var(--color-light-green);
+        padding: 1.5rem 2rem;
+        text-align: center;
+    }
+    
+    .footer-band-main p {
+        color: var(--color-dark-brown);
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    .footer-icon {
+        font-size: 1.2em;
+    }
+    /* ---------------------------------------------------- */
+    /* TABLA */
+    /* ---------------------------------------------------- */
+    
+    .page-title {
+        color: var(--color-dark-brown);
+        font-weight: 600;
+        border-bottom: 3px solid var(--color-light-green);
+        padding-bottom: 0.5rem;
+        margin: 0;
+    }
+
+    .alimentos-table {
+        background-color: white;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow: hidden;
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+    }
+
+    .alimentos-table thead th {
+        background-color: var(--color-dark-green);
+        color: var(--color-cream);
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        padding: 1rem 0.75rem;
+        border: none;
+        vertical-align: middle;
+    }
+
+    .alimentos-table tbody tr:nth-child(even) {
+        background-color: var(--color-light-green);
+    }
+
+    .alimentos-table tbody tr:nth-child(odd) {
+        background-color: #ffffff; 
+    }
+
+    .alimentos-table tbody td {
+        color: var(--color-dark-brown);
+        padding: 0.75rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .alimentos-table tbody td strong {
+        color: var(--color-orange-brown);
+    }
+
+    .loading-text {
+        color: var(--color-orange-brown);
+        font-size: 1.1rem;
+        font-style: italic;
+    }
+
+    .btn-edit {
+        background-color: var(--color-light-green);
+        border: none;
+        color: var(--color-dark-brown);
+        padding: 0.25rem 0.5rem;
+        margin-right: 0.25rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-edit:hover {
+        background-color: var(--color-dark-green);
+        color: var(--color-cream);
+    }
+
+    .btn-delete {
+        background-color: var(--color-orange-brown);
+        border: none;
+        color: var(--color-cream);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .btn-delete:hover {
+        background-color: var(--color-dark-brown);
+    }
+
+    /* ---------------------------------------------------- */
+    /* MODAL DE CONFIRMACIÓN */
+    /* ---------------------------------------------------- */
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        animation: fadeIn 0.2s ease;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .modal-content {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        max-width: 500px;
+        width: 90%;
+        animation: slideDown 0.3s ease;
+    }
+
+    @@keyframes slideDown {
+        from {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .modal-header {
+        background-color: var(--color-dark-green);
+        color: var(--color-cream);
+        padding: 1.5rem;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .modal-header h4 {
+        margin: 0;
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+
+    .modal-body {
+        padding: 2rem 1.5rem;
+        color: var(--color-dark-brown);
+    }
+
+    .modal-body p {
+        margin: 0 0 1rem 0;
+        font-size: 1rem;
+    }
+
+    .modal-body strong {
+        color: var(--color-orange-brown);
+        font-weight: 700;
+    }
+
+    .modal-warning {
+        color: #d32f2f;
+        font-size: 0.9rem;
+        font-style: italic;
+    }
+
+    .modal-footer {
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #e0e0e0;
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+
+    .btn-modal-cancel,
+    .btn-modal-confirm {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-modal-cancel {
+        background-color: #e0e0e0;
+        color: var(--color-dark-brown);
+    }
+
+    .btn-modal-cancel:hover {
+        background-color: #d0d0d0;
+    }
+
+    .btn-modal-confirm {
+        background-color: #d32f2f;
+        color: white;
+    }
+
+    .btn-modal-confirm:hover {
+        background-color: #b71c1c;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(211, 47, 47, 0.3);
+    }
+</style>

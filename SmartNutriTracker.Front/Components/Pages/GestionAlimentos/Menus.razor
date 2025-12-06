@@ -1,0 +1,413 @@
+@page "/menus"
+@using SmartNutriTracker.Shared.DTOs.Menus
+@using SmartNutriTracker.Shared.DTOs.Alimentos
+@inject HttpClient Http
+
+<div class="page-wrapper">
+    
+    <header class="app-header">
+        <div class="header-band-top"></div>
+        <div class="header-band-main">
+            <h1 class="header-title">
+                <span class="icon-emoji">🍽️</span> Seguimiento de Menús
+            </h1>
+            <p class="header-subtitle">Revisa tus planes de alimentación diarios con detalles nutricionales.</p>
+        </div>
+        <div class="header-band-bottom"></div>
+    </header>
+
+    <main class="menus-main-content">
+        <h3 class="page-title">Historial de Menús</h3>
+
+        @if (menus == null)
+        {
+            <p class="loading-text">Cargando datos de menús...</p>
+        }
+        else
+        {
+            <div class="accordion" id="menusAccordion">
+                @if (!menus.Any())
+                {
+                    <p class="no-data-text">No se encontraron menús para mostrar.</p>
+                }
+                else
+                {
+                    @foreach (var menu in menus)
+                    {
+                        var targetId = $"collapse_{menu.MenuId}";
+                        var controlsId = $"heading_{menu.MenuId}";
+                        
+                        var totalCalorias = menu.Alimentos?.Sum(a => a.Calorias) ?? 0;
+                        var totalProteinas = menu.Alimentos?.Sum(a => a.Proteinas) ?? 0;
+                        var totalCarbohidratos = menu.Alimentos?.Sum(a => a.Carbohidratos) ?? 0;
+                        var totalGrasas = menu.Alimentos?.Sum(a => a.Grasas) ?? 0;
+                        
+                        <div class="menu-card">
+                        <div class="menu-card-header" id="@controlsId">
+                            <button class="menu-toggle-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#@targetId" aria-expanded="false" aria-controls="@targetId">
+                                <div class="menu-info">
+                                    <div class="menu-title-line">Menú del @menu.Fecha.ToShortDateString()</div>
+                                    <div class="menu-meta-line">Total: @totalCalorias kcal</div>
+                                </div>
+                                <span class="expand-icon fas fa-chevron-down"></span>
+                            </button>
+                        </div>
+
+                        <div id="@targetId" class="accordion-collapse collapse" aria-labelledby="@controlsId" data-bs-parent="#menusAccordion">
+                            <div class="menu-card-body">
+                                <h6 class="alimentos-heading">Detalle de Alimentos:</h6>
+                                
+                                <table class="table alimentos-detail-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Alimento</th>
+                                            <th class="text-end">Cal.</th>
+                                            <th class="text-end">Prot. (g)</th>
+                                            <th class="text-end">Carb. (g)</th>
+                                            <th class="text-end">Grasas (g)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (menu.Alimentos != null && menu.Alimentos.Any())
+                                        {
+                                            @foreach (var alimento in menu.Alimentos)
+                                            {
+                                                <tr>
+                                                    <td>@alimento.Nombre</td>
+                                                    <td class="text-end">@alimento.Calorias</td>
+                                                    <td class="text-end">@alimento.Proteinas</td>
+                                                    <td class="text-end">@alimento.Carbohidratos</td>
+                                                    <td class="text-end">@alimento.Grasas</td>
+                                                </tr>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr><td colspan="5" class="text-center no-alimentos">Menú sin alimentos registrados.</td></tr>
+                                        }
+                                    </tbody>
+                                </table>
+                                
+                                <div class="menu-summary">
+                                    <p>Totales del Día:</p>
+                                    <div class="summary-details">
+                                        <span>Calorías: <span class="summary-value">@totalCalorias kcal</span></span>
+                                        <span>Proteínas: <span class="summary-value">@totalProteinas g</span></span>
+                                        <span>Carbs: <span class="summary-value">@totalCarbohidratos g</span></span>
+                                        <span>Grasas: <span class="summary-value">@totalGrasas g</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    }
+                }
+            </div>
+        }
+    </main>
+
+    <footer class="app-footer">
+        <div class="footer-band-top"></div>
+        <div class="footer-band-main">
+            <p>Creado con <span class="footer-icon">🌱</span> para mejorar tu bienestar.</p>
+        </div>
+        <div class="footer-band-bottom">
+            <p>© SmartNutriTracker</p>
+        </div>
+    </footer>
+</div>
+
+@code {
+    private List<MenuDTO>? menus;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // El API endpoint que usamos es /api/Menu, que ya está correcto.
+            menus = await Http.GetFromJsonAsync<List<MenuDTO>>(
+                "https://localhost:7187/api/Menu"
+            );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al cargar menús: {ex.Message}");
+            menus = new List<MenuDTO>(); 
+        }
+    }
+}
+
+<style>
+    /* VARIABLES DE COLOR */
+    :root {
+        --color-light-green: #BCD09F;
+        --color-dark-green: #576E40;
+        --color-dark-brown: #221C04;
+        --color-orange-brown: #C2854C;
+        --color-cream: #F1EAC0;
+        --color-grey-dark: #3c3c3c;
+    }
+    
+    /* ---------------------------------------------------- */
+    /* GENERAL LAYOUT Y CONTENIDO PRINCIPAL */
+    /* ---------------------------------------------------- */
+
+    .page-wrapper {
+        background-color: var(--color-cream);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .menus-main-content {
+        flex-grow: 1;
+        padding: 2rem;
+    }
+
+    .page-title {
+        color: var(--color-dark-brown);
+        font-weight: 600;
+        border-bottom: 3px solid var(--color-light-green);
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .loading-text, .no-data-text {
+        color: var(--color-orange-brown);
+        font-size: 1.1rem;
+        font-style: italic;
+    }
+
+    /* ---------------------------------------------------- */
+    /* 1. HEADER (Reutilizado) */
+    /* ---------------------------------------------------- */
+
+    .app-header {
+        width: 100%;
+    }
+
+    .header-band-top {
+        height: 10px;
+        background-color: var(--color-grey-dark);
+    }
+    
+    .header-band-main {
+        background-color: var(--color-dark-green);
+        padding: 1.5rem 2rem;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-title {
+        color: var(--color-cream);
+        font-weight: 700;
+        margin: 0;
+        font-size: 2.2rem;
+        text-shadow: 1px 1px 2px var(--color-dark-brown);
+    }
+    
+    .header-subtitle {
+        color: var(--color-light-green);
+        margin: 0.25rem 0 0;
+        font-size: 1.1rem;
+    }
+
+    .icon-emoji {
+        font-size: 1.5em;
+        vertical-align: middle;
+        margin-right: 0.5rem;
+    }
+
+    .header-band-bottom {
+        height: 10px;
+        background-color: var(--color-orange-brown);
+    }
+
+    /* ---------------------------------------------------- */
+    /* 2. DISEÑO DE MENÚS (Acordeón) */
+    /* ---------------------------------------------------- */
+
+    .menu-card {
+        margin-bottom: 15px;
+        border-radius: 8px;
+        border: 1px solid var(--color-light-green);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        background-color: #ffffff;
+    }
+    
+    .menu-card-header {
+        background-color: var(--color-light-green); 
+        padding: 0;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .menu-toggle-button {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 1rem 1.5rem;
+    text-align: left;
+    color: var(--color-dark-brown);
+    font-weight: 600;
+    font-size: 1.1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    }
+
+    .menu-toggle-button .menu-info {
+        display: flex;
+        flex-direction: column; /* Pone fecha y total en columnas */
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+
+    .menu-toggle-button:hover:not(.collapsed),
+    .menu-toggle-button:not(.collapsed) {
+        background-color: #adc791;
+    }
+
+    .menu-toggle-button:not(.collapsed) .expand-icon {
+        transform: rotate(-180deg);
+    }
+
+    .expand-icon {
+        transition: transform 0.3s ease;
+        color: var(--color-dark-green);
+        font-size: 1.1rem;
+    }
+
+    
+    .menu-title {
+        color: var(--color-dark-brown);
+    }
+
+    .menu-meta {
+        font-size: 0.9rem;
+        color: var(--color-dark-green);
+        margin-left: auto;
+        padding-right: 1rem;
+    }
+    
+    .expand-icon {
+        transition: transform 0.3s ease;
+        color: var(--color-dark-green);
+    }
+
+    /* Cuerpo del Acordeón */
+    .menu-card-body {
+        padding: 1.5rem;
+        background-color: #ffffff;
+        border-radius: 0 0 8px 8px;
+    }
+
+    .alimentos-heading {
+        color: var(--color-dark-green);
+        border-bottom: 2px dashed var(--color-cream);
+        padding-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    /* Tabla de Detalles Nutricionales */
+    .alimentos-detail-table {
+        margin-bottom: 1.5rem;
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .alimentos-detail-table th {
+        background-color: var(--color-dark-green);
+        color: var(--color-cream);
+        padding: 0.75rem 0.5rem;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+    
+    .alimentos-detail-table tbody tr:nth-child(even) {
+        background-color: var(--color-cream);
+    }
+    
+    .alimentos-detail-table tbody td {
+        padding: 0.5rem 0.5rem;
+        border-bottom: 1px solid var(--color-light-green);
+        color: var(--color-dark-brown);
+        font-size: 0.95rem;
+    }
+    
+    .no-alimentos {
+        font-style: italic;
+        color: #888;
+    }
+
+    /* Resumen de Totales del Día */
+    .menu-summary {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 2px solid var(--color-orange-brown);
+        font-weight: 700;
+        color: var(--color-dark-green);
+    }
+    
+    .summary-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        margin-top: 0.5rem;
+    }
+    
+    .summary-details span {
+        font-size: 0.95rem;
+    }
+    
+    .summary-value {
+        color: var(--color-orange-brown);
+        font-weight: 800;
+    }
+
+    /* ---------------------------------------------------- */
+    /* 3. FOOTER (Reutilizado) */
+    /* ---------------------------------------------------- */
+
+    .app-footer {
+        width: 100%;
+        margin-top: auto;
+    }
+    
+    .footer-band-top {
+        height: 10px;
+        background-color: var(--color-orange-brown);
+    }
+
+    .footer-band-main {
+        background-color: var(--color-light-green);
+        padding: 1.5rem 2rem;
+        text-align: center;
+    }
+    
+    .footer-band-main p {
+        color: var(--color-dark-brown);
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    .footer-icon {
+        font-size: 1.2em;
+    }
+
+    .footer-band-bottom {
+        background-color: var(--color-grey-dark);
+        padding: 0.5rem 2rem;
+        text-align: right;
+    }
+
+    .footer-band-bottom p {
+        color: #aaaaaa;
+        margin: 0;
+        font-size: 0.8rem;
+    }
+</style>

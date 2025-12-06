@@ -91,7 +91,7 @@ namespace SmartNutriTracker.Back.Services.Alimentos
             entity.Carbohidratos = dto.Carbohidratos;
             entity.Grasas = dto.Grasas;
 
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync(); // ✅ Cambios guardados en la BD
 
             return new AlimentoDTO
             {
