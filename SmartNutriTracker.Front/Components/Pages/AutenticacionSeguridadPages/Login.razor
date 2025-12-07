@@ -245,7 +245,17 @@
 
         mensajeExito = resultado.Mensaje ?? "Inicio de sesión exitoso.";
         await Task.Delay(1000);
-        NavigationManager.NavigateTo("/"); // redirige al home/dashboard
+        if (resultado.Usuario.RolId == 1)
+        {
+            NavigationManager.NavigateTo("/gestion-usuarios");
+        }
+        else
+        {
+			NavigationManager.NavigateTo("/pagina-equis"); //coloca la ruta adecuada si no es admin
+        }
+
         enviando = false;
     }
+
+
 }
