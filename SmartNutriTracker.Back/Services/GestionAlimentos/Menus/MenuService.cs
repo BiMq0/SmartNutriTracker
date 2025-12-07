@@ -18,8 +18,8 @@ public class MenuService : IMenuService
     public async Task<List<MenuDTO>> GetAllAsync()
     {
         return await _context.Menus
-            .Include(m => m.MenuAlimentos) // Incluir tabla de unión
-                .ThenInclude(ma => ma.Alimento) // Incluir los alimentos
+            .Include(m => m.MenuAlimentos)
+                .ThenInclude(ma => ma.Alimento)
             .Select(m => new MenuDTO
             {
                 MenuId = m.MenuId,
@@ -67,10 +67,21 @@ public class MenuService : IMenuService
 
     public async Task<int> CreateAsync(CreateMenuDTO dto)
     {
-        var menu = new Menu // <- Aquí se cambió
+        // Convertir la fecha a UTC antes de guardar
+        var menu = new Menu
         {
-            Fecha = dto.Fecha
+            Fecha = DateTime.SpecifyKind(dto.Fecha, DateTimeKind.Utc)
         };
+
+        // Agregar los alimentos seleccionados
+        if (dto.AlimentoIds != null && dto.AlimentoIds.Any())
+        {
+            menu.MenuAlimentos = dto.AlimentoIds
+                .Select(id => new MenuAlimento
+                {
+                    AlimentoId = id
+                }).ToList();
+        }
 
         _context.Menus.Add(menu);
         await _context.SaveChangesAsync();
@@ -79,11 +90,28 @@ public class MenuService : IMenuService
 
     public async Task<bool> UpdateAsync(int id, UpdateMenuDTO dto)
     {
-        var menu = await _context.Menus.FindAsync(id);
+        var menu = await _context.Menus
+            .Include(m => m.MenuAlimentos)
+            .FirstOrDefaultAsync(m => m.MenuId == id);
+
         if (menu == null)
             return false;
 
-        menu.Fecha = dto.Fecha;
+        // Actualizar fecha en UTC
+        menu.Fecha = DateTime.SpecifyKind(dto.Fecha, DateTimeKind.Utc);
+
+        // Actualizar los alimentos (opcional: reemplazar todos)
+        if (dto.AlimentoIds != null)
+        {
+            // Eliminar relaciones existentes
+            menu.MenuAlimentos.Clear();
+
+            // Agregar nuevas relaciones
+            menu.MenuAlimentos = dto.AlimentoIds
+                .Select(aid => new MenuAlimento { AlimentoId = aid })
+                .ToList();
+        }
+
         await _context.SaveChangesAsync();
         return true;
     }

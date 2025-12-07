@@ -1,9 +1,23 @@
+using SmartNutriTracker.Domain.Models.BaseModels;
 using System.ComponentModel.DataAnnotations;
 
 namespace SmartNutriTracker.Shared.DTOs.Alimentos
 {
     public class UpdateAlimentoDTO
     {
+        public UpdateAlimentoDTO() { }
+
+        // Constructor adicional para cargar datos desde la entidad
+        public UpdateAlimentoDTO(Alimento entity)
+        {
+            AlimentoId = entity.AlimentoId;
+            Nombre = entity.Nombre;
+            Calorias = entity.Calorias;
+            Proteinas = entity.Proteinas;
+            Carbohidratos = entity.Carbohidratos;
+            Grasas = entity.Grasas;
+        }
+
         [Required]
         public int AlimentoId { get; set; }
 

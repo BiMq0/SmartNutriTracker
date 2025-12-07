@@ -87,9 +87,7 @@
             Console.WriteLine($"Enviando POST a: https://localhost:7187/api/Alimento");
             Console.WriteLine($"Datos: {System.Text.Json.JsonSerializer.Serialize(createDto)}");
 
-            var response = await Http.PostAsJsonAsync(
-                "https://localhost:7187/api/Alimento", 
-                createDto);
+            var response = await Http.PostAsJsonAsync("https://localhost:7187/api/alimentos/Create", createDto);
 
             if (response.IsSuccessStatusCode)
             {

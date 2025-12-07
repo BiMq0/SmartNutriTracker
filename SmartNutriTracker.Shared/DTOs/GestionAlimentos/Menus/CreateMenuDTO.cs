@@ -1,13 +1,29 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace SmartNutriTracker.Shared.DTOs.Menus;
-
-public class CreateMenuDTO
+namespace SmartNutriTracker.Shared.DTOs.Menus
 {
-    [Required(ErrorMessage = "La fecha es obligatoria.")]
-    public DateTime Fecha { get; set; }
+    public class CreateMenuDTO
+    {
+        [Required(ErrorMessage = "La fecha es obligatoria.")]
+        [DateNotInPast(ErrorMessage = "La fecha no puede ser anterior a hoy.")]
+        public DateTime Fecha { get; set; }
 
-    [Required(ErrorMessage = "Debe incluir al menos un alimento.")]
-    [MinLength(1, ErrorMessage = "Debe incluir al menos un alimento.")]
-    public List<int> AlimentoIds { get; set; } = new();
+        public List<int> AlimentoIds { get; set; } = new();
+    }
+
+    //validacion de fecha personalizadaa
+    public class DateNotInPastAttribute : ValidationAttribute
+    {
+        public override bool IsValid(object? value)
+        {
+            if (value is DateTime date)
+            {
+                //solo e hoy para adelante
+                return date.Date >= DateTime.Today;
+            }
+            return false;
+        }
+    }
 }

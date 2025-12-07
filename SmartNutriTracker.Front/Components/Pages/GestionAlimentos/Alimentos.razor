@@ -116,7 +116,7 @@
 
         try
         {
-            var response = await Http.DeleteAsync($"https://localhost:7187/api/Alimento/{alimentoAEliminar.AlimentoId}");
+            var response = await Http.DeleteAsync($"https://localhost:7187/api/alimentos/Delete/{alimentoAEliminar.AlimentoId}");
             if (response.IsSuccessStatusCode)
             {
                 Console.WriteLine($"✓ Alimento {alimentoAEliminar.AlimentoId} eliminado correctamente");
@@ -141,7 +141,7 @@
     {
         try
         {
-            alimentos = await Http.GetFromJsonAsync<List<AlimentoDTO>>("https://localhost:7187/api/Alimento");
+            alimentos = await Http.GetFromJsonAsync<List<AlimentoDTO>>("https://localhost:7187/api/alimentos/GetAll");
         }
         catch (Exception ex)
         {

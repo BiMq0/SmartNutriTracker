@@ -1,13 +1,25 @@
+using SmartNutriTracker.Domain.Models.BaseModels;
 using System.ComponentModel.DataAnnotations;
 
-namespace SmartNutriTracker.Shared.DTOs.Menus;
-
-public class UpdateMenuDTO
+namespace SmartNutriTracker.Shared.DTOs.Menus
 {
-    [Required(ErrorMessage = "La fecha es obligatoria.")]
-    public DateTime Fecha { get; set; }
+    public class UpdateMenuDTO
+    {
+        public UpdateMenuDTO() { }
 
-    [Required(ErrorMessage = "Debe incluir al menos un alimento.")]
-    [MinLength(1, ErrorMessage = "Debe incluir al menos un alimento.")]
-    public List<int> AlimentoIds { get; set; } = new();
+        public UpdateMenuDTO(Menu entity)
+        {
+            Fecha = entity.Fecha;
+            AlimentoIds = entity.MenuAlimentos?
+                .Select(ma => ma.AlimentoId)
+                .ToList() ?? new();
+        }
+
+        [Required]
+        public DateTime Fecha { get; set; }
+
+        [Required]
+        [MinLength(1)]
+        public List<int> AlimentoIds { get; set; } = new();
+    }
 }

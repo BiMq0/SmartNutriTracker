@@ -98,8 +98,7 @@ else
             errorMessage = null;
 
             // Obtener el alimento actual
-            var alimento = await Http.GetFromJsonAsync<AlimentoDTO>(
-                $"https://localhost:7187/api/Alimento/{AlimentoId}");
+            var alimento = await Http.GetFromJsonAsync<AlimentoDTO>($"https://localhost:7187/api/alimentos/GetById/{AlimentoId}");
 
             if (alimento != null)
             {
@@ -143,9 +142,7 @@ else
             Console.WriteLine($"Enviando PUT a: https://localhost:7187/api/Alimento/{updateDto.AlimentoId}");
             Console.WriteLine($"Datos: {System.Text.Json.JsonSerializer.Serialize(updateDto)}");
 
-            var response = await Http.PutAsJsonAsync(
-                $"https://localhost:7187/api/Alimento/{updateDto.AlimentoId}", 
-                updateDto);
+            var response = await Http.PutAsJsonAsync($"https://localhost:7187/api/alimentos/Update/{updateDto.AlimentoId}", updateDto);
 
             if (response.IsSuccessStatusCode)
             {
