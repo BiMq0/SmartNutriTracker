@@ -4,6 +4,6 @@ namespace SmartNutriTracker.Back.Services.Notificaciones;
 
 public interface INotificacionDiariaService
 {
-    Task<List<RecordatorioDiarioDTO>> ObtenerPendientesDiariosAsync();
-    Task<RecordatorioDiarioDTO?> ObtenerRecordatorioPorEstudianteAsync(int estudianteId);
+    Task<List<NotificacionDiariaDTO>> ObtenerPendientesDiariosAsync();
+    Task<NotificacionDiariaDTO?> ObtenerRecordatorioPorEstudianteAsync(int estudianteId);
 }

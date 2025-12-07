@@ -19,7 +19,7 @@ public class NotificacionDiariaService : INotificacionDiariaService
     /// Facilito, obtienes todos los recordatorios diarios pendientes.
     /// </summary>
     /// <returns>Lista de recordatorios diarios.</returns>
-    public async Task<List<RecordatorioDiarioDTO>> ObtenerPendientesDiariosAsync()
+    public async Task<List<NotificacionDiariaDTO>> ObtenerPendientesDiariosAsync()
     {
         var hoy = DateTime.Today;
         
@@ -29,7 +29,7 @@ public class NotificacionDiariaService : INotificacionDiariaService
                 .ThenInclude(ra => ra.Alimento)
             .ToListAsync();
 
-        var recordatorios = new List<RecordatorioDiarioDTO>();
+        var recordatorios = new List<NotificacionDiariaDTO>();
 
         foreach (var est in estudiantes)
         {
@@ -48,7 +48,7 @@ public class NotificacionDiariaService : INotificacionDiariaService
     /// </summary>
     /// <param name="estudianteId">ID del estudiante.</param>
     /// <returns>Recordatorio diario pendiente para el estudiante.</returns>
-    public async Task<RecordatorioDiarioDTO?> ObtenerRecordatorioPorEstudianteAsync(int estudianteId)
+    public async Task<NotificacionDiariaDTO?> ObtenerRecordatorioPorEstudianteAsync(int estudianteId)
     {
         var hoy = DateTime.Today;
 
@@ -69,13 +69,13 @@ public class NotificacionDiariaService : INotificacionDiariaService
     /// <param name="estudiante">Estudiante a procesar.</param>
     /// <param name="hoy">Fecha actual.</param>
     /// <returns>Recordatorio diario para el estudiante.</returns>
-    private RecordatorioDiarioDTO? ProcesarEstudiante(Estudiante est, DateTime hoy)
+    private NotificacionDiariaDTO? ProcesarEstudiante(Estudiante est, DateTime hoy)
     {
         var registroHoy = est.RegistroHabitos?.FirstOrDefault(rh => rh.Fecha.Date == hoy);
 
         if (registroHoy == null)
         {
-            return new RecordatorioDiarioDTO
+            return new NotificacionDiariaDTO
             {
                 EstudianteId = est.EstudianteId,
                 NombreEstudiante = est.NombreCompleto,
@@ -91,7 +91,7 @@ public class NotificacionDiariaService : INotificacionDiariaService
             {
                 var mensajeCompleto = $"Hola {est.NombreCompleto}, " + string.Join(" ", mensajes);
                 
-                return new RecordatorioDiarioDTO
+                return new NotificacionDiariaDTO
                 {
                     EstudianteId = est.EstudianteId,
                     NombreEstudiante = est.NombreCompleto,

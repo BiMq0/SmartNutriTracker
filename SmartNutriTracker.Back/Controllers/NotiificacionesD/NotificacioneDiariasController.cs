@@ -17,7 +17,7 @@ public class NotificacionDiariaController : ControllerBase
     }
     
     [HttpGet(NotificacionesDiariasEndpoints.OBTENER_PENDIENTES_DIARIOS)]
-    public async Task<List<RecordatorioDiarioDTO>> ObtenerPendientesDiarios()
+    public async Task<List<NotificacionDiariaDTO>> ObtenerPendientesDiarios()
     {
         return await _notificacionService.ObtenerPendientesDiariosAsync();
     }
