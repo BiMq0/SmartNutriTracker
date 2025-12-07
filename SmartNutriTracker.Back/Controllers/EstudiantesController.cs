@@ -24,6 +24,11 @@ public class EstudiantesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> RegistrarEstudiante([FromBody] EstudianteRegistroDTO dto)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
         try
         {
             var estudiante = await _estudianteService.RegistrarEstudianteAsync(dto);

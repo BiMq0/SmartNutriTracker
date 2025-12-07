@@ -29,12 +29,19 @@ public class EstudianteService : IEstudianteService
             FechaNacimiento = dto.FechaNacimiento, 
             Sexo = dto.Sexo, 
             Peso = dto.Peso,
-            Altura = dto.Altura,
-            IMC = 0
+            Altura = dto.Altura
+            // IMC es una columna calculada en la base de datos, no se debe establecer manualmente
         };
 
         _context.Estudiantes.Add(estudiante);
+        
+        // Marcar IMC como no modificado para que EF no intente insertarlo (es columna calculada)
+        _context.Entry(estudiante).Property(e => e.IMC).IsModified = false;
+        
         await _context.SaveChangesAsync();
+
+        // Recargar el estudiante para obtener el IMC calculado
+        await _context.Entry(estudiante).ReloadAsync();
 
         return estudiante;
     }

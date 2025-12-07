@@ -1,8 +1,9 @@
 ﻿@page "/registro-estudiante"
 @using SmartNutriTracker.Shared.DTOs.Estudiantes
 @using SmartNutriTracker.Domain.Statics
-@inject HttpClient Http
+@using SmartNutriTracker.Front.Handlers
 @inject NavigationManager Navigation
+@inject IHttpClientFactory HttpClientFactory
 
 <div class="container mt-4">
     <div class="row justify-content-center">
@@ -12,78 +13,76 @@
                     <h4 class="mb-0">Registro de Estudiante</h4>
                 </div>
                 <div class="card-body">
-                    <EditForm Model="@nuevoEstudiante" OnValidSubmit="@RegistrarEstudiante" FormName="registroEstudiante">
-                        <DataAnnotationsValidator />
-                        <ValidationSummary />
-
+                    <form @onsubmit:preventDefault @onsubmit="ValidarYRegistrar">
+                        
                         <!-- Nombre Completo -->
                         <div class="mb-3">
-                            <label class="form-label">Nombre Completo:</label>
-                            <InputText @bind-Value="@nuevoEstudiante.NombreCompleto" class="form-control" placeholder="Ingrese el nombre completo" />
-                            <ValidationMessage For="@(() => nuevoEstudiante.NombreCompleto)" />
+                            <label class="form-label">Nombre Completo *</label>
+                            <input type="text" 
+                                   @bind="nombreInput"
+                                   @bind:event="oninput"
+                                   class="form-control"
+                                   placeholder="Ej: Juan Pérez" />
+                            @if (!nombreValido && intentoEnviar)
+                            {
+                                <div class="text-danger small mt-1">
+                                    El nombre completo es requerido
+                                </div>
+                            }
                         </div>
 
                         <!-- Fecha de Nacimiento -->
                         <div class="mb-3">
-                            <label class="form-label">Fecha de Nacimiento:</label>
-                            <InputDate @bind-Value="@nuevoEstudiante.FechaNacimiento" class="form-control" />
-                            <ValidationMessage For="@(() => nuevoEstudiante.FechaNacimiento)" />
-                            <small class="form-text text-muted">Edad calculada: @EdadCalculada años</small>
+                            <label class="form-label">Fecha de Nacimiento *</label>
+                            <input type="date" 
+                                   @bind="nuevoEstudiante.FechaNacimiento"
+                                   @bind:format="yyyy-MM-dd"
+                                   class="form-control" />
                         </div>
 
                         <!-- Sexo -->
                         <div class="mb-3">
-                            <label class="form-label">Sexo:</label>
-                            <InputSelect @bind-Value="@nuevoEstudiante.Sexo" class="form-control">
-                                <option value="">Seleccionar sexo...</option>
+                            <label class="form-label">Sexo *</label>
+                            <select @bind="nuevoEstudiante.Sexo" class="form-control">
                                 <option value="@Sexo.Varon">Varón</option>
                                 <option value="@Sexo.Mujer">Mujer</option>
-                            </InputSelect>
-                            <ValidationMessage For="@(() => nuevoEstudiante.Sexo)" />
+                            </select>
                         </div>
 
                         <!-- Peso -->
                         <div class="mb-3">
-                            <label class="form-label">Peso (kg):</label>
-                            <InputNumber @bind-Value="@nuevoEstudiante.Peso" class="form-control" step="0.1" placeholder="Ej: 65.5" />
-                            <ValidationMessage For="@(() => nuevoEstudiante.Peso)" />
+                            <label class="form-label">Peso (kg) *</label>
+                            <input type="number" 
+                                   step="0.1"
+                                   @bind="nuevoEstudiante.Peso"
+                                   class="form-control" 
+                                   placeholder="Ej: 65.5" />
                         </div>
 
                         <!-- Altura -->
                         <div class="mb-3">
-                            <label class="form-label">Altura (m):</label>
-                            <InputNumber @bind-Value="@nuevoEstudiante.Altura" class="form-control" step="0.01" placeholder="Ej: 1.65" />
-                            <ValidationMessage For="@(() => nuevoEstudiante.Altura)" />
+                            <label class="form-label">Altura (m) *</label>
+                            <input type="number" 
+                                   step="0.01"
+                                   @bind="nuevoEstudiante.Altura"
+                                   class="form-control" 
+                                   placeholder="Ej: 1.65" />
                         </div>
 
-                        <!-- Cálculos automáticos -->
-                        @if (nuevoEstudiante.Peso > 0 && nuevoEstudiante.Altura > 0)
-                        {
-                            <div class="mb-3 p-3 bg-light rounded">
-                                <h6 class="mb-2">Cálculos Automáticos:</h6>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <strong>IMC:</strong> @IMCCalculado.ToString("F2")
-                                    </div>
-                                    <div class="col-md-6">
-                                        <strong>TMB:</strong> @TMBCalculado.ToString("F2") calorías/día
-                                    </div>
-                                </div>
-                            </div>
-                        }
-
                         <!-- Botón de registro -->
-                        <button type="submit" class="btn btn-primary w-100 py-2" disabled="@isLoading">
-                            @if (isLoading)
-                            {
-                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                                <span>Registrando...</span>
-                            }
-                            else
-                            {
-                                <span>Registrar Estudiante</span>
-                            }
-                        </button>
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg py-3" disabled="@isLoading">
+                                @if (isLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                    <span>Registrando...</span>
+                                }
+                                else
+                                {
+                                    <span>Registrar Estudiante</span>
+                                }
+                            </button>
+                        </div>
 
                         <!-- Mensaje de resultado -->
                         @if (!string.IsNullOrEmpty(mensaje))
@@ -92,7 +91,7 @@
                                 @mensaje
                             </div>
                         }
-                    </EditForm>
+                    </form>
                 </div>
             </div>
         </div>
@@ -101,64 +100,102 @@
 
 @code {
     private EstudianteRegistroDTO nuevoEstudiante = new();
+    private string nombreInput = "";
     private bool isLoading = false;
     private string mensaje = "";
-
-    // Propiedades calculadas para mostrar en tiempo real
-    private int EdadCalculada => nuevoEstudiante.FechaNacimiento != DateTime.MinValue ? 
-        DateTime.Now.Year - nuevoEstudiante.FechaNacimiento.Year - 
-        (DateTime.Now.DayOfYear < nuevoEstudiante.FechaNacimiento.DayOfYear ? 1 : 0) : 0;
-
-    private decimal IMCCalculado => nuevoEstudiante.Peso > 0 && nuevoEstudiante.Altura > 0 ? 
-        nuevoEstudiante.Peso / (nuevoEstudiante.Altura * nuevoEstudiante.Altura) : 0;
-
-    private decimal TMBCalculado {
-        get {
-            if (nuevoEstudiante.Peso <= 0 || nuevoEstudiante.Altura <= 0) return 0;
-            
-            var tmbBase = 10 * nuevoEstudiante.Peso + 6.25m * (nuevoEstudiante.Altura * 100) - 5 * EdadCalculada;
-            return nuevoEstudiante.Sexo == Sexo.Varon ? tmbBase + 5 : tmbBase - 161;
-        }
-    }
+    private bool intentoEnviar = false;
+    private bool nombreValido = true;
 
     protected override void OnInitialized()
     {
         // Valores por defecto
-        nuevoEstudiante.FechaNacimiento = DateTime.Now.AddYears(-20);
+        nuevoEstudiante.FechaNacimiento = new DateTime(2005, 1, 1);
         nuevoEstudiante.Sexo = Sexo.Varon;
+        nuevoEstudiante.Peso = 60;
+        nuevoEstudiante.Altura = 1.65m;
+    }
+
+    private async Task ValidarYRegistrar()
+    {
+        intentoEnviar = true;
+        isLoading = true;
+        mensaje = "";
+        StateHasChanged();
+        
+        // Asignar nombre desde el input separado
+        nuevoEstudiante.NombreCompleto = nombreInput?.Trim() ?? "";
+        
+        // Validación manual
+        nombreValido = !string.IsNullOrWhiteSpace(nuevoEstudiante.NombreCompleto) 
+                     && nuevoEstudiante.NombreCompleto.Length >= 2;
+        
+        if (!nombreValido)
+        {
+            mensaje = "El nombre completo es requerido (mínimo 2 caracteres)";
+            isLoading = false;
+            StateHasChanged();
+            return;
+        }
+        
+        if (nuevoEstudiante.Peso <= 0)
+        {
+            mensaje = "El peso debe ser mayor a 0";
+            isLoading = false;
+            StateHasChanged();
+            return;
+        }
+        
+        if (nuevoEstudiante.Altura <= 0)
+        {
+            mensaje = "La altura debe ser mayor a 0";
+            isLoading = false;
+            StateHasChanged();
+            return;
+        }
+        
+        // Si pasa validación, registrar
+        await RegistrarEstudiante();
     }
 
     private async Task RegistrarEstudiante()
     {
-        isLoading = true;
-        mensaje = "";
-        StateHasChanged();
-
         try
         {
-            var response = await Http.PostAsJsonAsync("api/estudiantes", nuevoEstudiante);
+            // Usar HttpClientFactory para obtener el cliente configurado
+            var httpClient = HttpClientFactory.CreateClient("ApiClient");
+            
+            var response = await httpClient.PostAsJsonAsync("api/estudiantes", nuevoEstudiante);
+            var responseContent = await response.Content.ReadAsStringAsync();
             
             if (response.IsSuccessStatusCode)
             {
                 mensaje = "Estudiante registrado exitosamente!";
-                await Task.Delay(2000);
                 
                 // Limpiar formulario
-                nuevoEstudiante = new EstudianteRegistroDTO 
-                { 
-                    FechaNacimiento = DateTime.Now.AddYears(-20),
-                    Sexo = Sexo.Varon
-                };
+                nuevoEstudiante = new EstudianteRegistroDTO();
+                nuevoEstudiante.FechaNacimiento = new DateTime(2005, 1, 1);
+                nuevoEstudiante.Sexo = Sexo.Varon;
+                nuevoEstudiante.Peso = 60;
+                nuevoEstudiante.Altura = 1.65m;
+                nombreInput = "";
+                intentoEnviar = false;
+                nombreValido = true;
+                
+                await Task.Delay(1000);
+                Navigation.NavigateTo("/dashboard");
             }
             else
             {
-                var error = await response.Content.ReadAsStringAsync();
-                mensaje = $"Error: {error}";
+                mensaje = $"Error al registrar estudiante ({(int)response.StatusCode}): {responseContent}";
             }
         }
         catch (Exception ex)
         {
-            mensaje = $"Error de conexion: {ex.Message}";
+            mensaje = $"Error de conexión: {ex.Message}";
+            if (ex.InnerException != null)
+            {
+                mensaje += $" | Detalle: {ex.InnerException.Message}";
+            }
         }
         finally
         {
