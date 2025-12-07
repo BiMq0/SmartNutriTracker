@@ -1,0 +1,190 @@
+@page "/habitos/editar/{registroHabitoId:int}"
+@using SmartNutriTracker.Shared.DTOs.Habitos
+@using SmartNutriTracker.Front.Services
+@inject RegistroHabitoService RegistroHabitoService
+@inject NavigationManager Navigation
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-warning text-white">
+            <h3 class="mb-0">✏️ Editar Hábito</h3>
+        </div>
+        
+        <div class="card-body">
+            @if (isLoading)
+            {
+                <div class="text-center py-4">
+                    <div class="spinner-border text-warning" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando datos del hábito...</p>
+                </div>
+            }
+            else if (habito == null)
+            {
+                <div class="alert alert-danger">
+                    ❌ No se encontró el hábito con ID @registroHabitoId
+                </div>
+                <button class="btn btn-secondary" @onclick="VolverAHistorial">
+                    ↩️ Volver al Historial
+                </button>
+            }
+            else
+            {
+                <div class="mb-4">
+                    <div class="alert alert-info">
+                        <strong>Editando hábito del estudiante @habito.EstudianteId</strong>
+                        <br/>Fecha: @habito.Fecha.ToString("dd/MM/yyyy HH:mm")
+                    </div>
+                </div>
+                
+                <EditForm Model="@dtoActualizacion" OnValidSubmit="@ActualizarHabito" FormName="EditarHabitoForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Horas de Sueño</label>
+                                <InputNumber step="0.1" class="form-control" @bind-Value="dtoActualizacion.HorasSueno" />
+                                <small class="text-muted">Actual: @habito.HorasSueno horas</small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Horas Actividad Física</label>
+                                <InputNumber step="0.1" class="form-control" @bind-Value="dtoActualizacion.HorasActividadFisica" />
+                                <small class="text-muted">Actual: @habito.HorasActividadFisica horas</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-warning me-2" disabled="@isSubmitting">
+                            @if (isSubmitting)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                <span>Actualizando...</span>
+                            }
+                            else
+                            {
+                                <span>💾 Guardar Cambios</span>
+                            }
+                        </button>
+                        
+                        <button type="button" class="btn btn-secondary" @onclick="VolverAHistorial">
+                            ↩️ Cancelar
+                        </button>
+                    </div>
+                </EditForm>
+                
+                @if (!string.IsNullOrEmpty(mensajeExito))
+                {
+                    <div class="alert alert-success mt-3">
+                        ✅ @mensajeExito
+                    </div>
+                }
+                
+                @if (!string.IsNullOrEmpty(mensajeError))
+                {
+                    <div class="alert alert-danger mt-3">
+                        ❌ @mensajeError
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int registroHabitoId { get; set; }
+    
+    private RegistroHabitoDTO? habito;
+    
+    [SupplyParameterFromForm]
+    private RegistroHabitoActualizarDTO dtoActualizacion { get; set; } = new();
+    
+    private bool isLoading = true;
+    private bool isSubmitting = false;
+    private string mensajeExito = string.Empty;
+    private string mensajeError = string.Empty;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarHabito();
+    }
+    
+    private async Task CargarHabito()
+    {
+        isLoading = true;
+        
+        try
+        {
+            // ✅ CORRECCIÓN: Usar el método directo del servicio
+            habito = await RegistroHabitoService.ObtenerHabitoPorIdAsync(registroHabitoId);
+            
+            if (habito != null)
+            {
+                dtoActualizacion.HorasSueno = habito.HorasSueno;
+                dtoActualizacion.HorasActividadFisica = habito.HorasActividadFisica;
+                Console.WriteLine($"✅ Hábito cargado: {habito.RegistroHabitoId}");
+            }
+            else
+            {
+                mensajeError = $"No se pudo cargar el hábito con ID {registroHabitoId}";
+                Console.WriteLine($"⚠️ Hábito no encontrado: {registroHabitoId}");
+            }
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error cargando hábito: {ex.Message}";
+            Console.WriteLine($"❌ Error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+    
+    private async Task ActualizarHabito()
+    {
+        isSubmitting = true;
+        mensajeExito = string.Empty;
+        mensajeError = string.Empty;
+        
+        try
+        {
+            var resultado = await RegistroHabitoService.ActualizarHabitoAsync(registroHabitoId, dtoActualizacion);
+            
+            if (resultado)
+            {
+                mensajeExito = "Hábito actualizado exitosamente!";
+                await Task.Delay(1500);
+                VolverAHistorial();
+            }
+            else
+            {
+                mensajeError = "Error al actualizar el hábito. Intente nuevamente.";
+            }
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+    
+    private void VolverAHistorial()
+    {
+        if (habito != null && habito.EstudianteId > 0)
+        {
+            Navigation.NavigateTo($"/habitos/historial/{habito.EstudianteId}");
+        }
+        else
+        {
+            Navigation.NavigateTo("/habitos/historial");
+        }
+    }
+}

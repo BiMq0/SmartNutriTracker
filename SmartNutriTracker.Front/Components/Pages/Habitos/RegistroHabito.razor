@@ -1,0 +1,249 @@
+@page "/habitos/registrar"
+@rendermode InteractiveServer
+@using SmartNutriTracker.Shared.DTOs.Habitos
+@using SmartNutriTracker.Front.Services 
+@using System.Text.Json
+@inject RegistroHabitoService RegistroHabitoService
+@inject NavigationManager Navigation
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">📝 Registrar Hábitos Diarios</h3>
+        </div>
+        
+        <div class="card-body">
+            <EditForm Model="@nuevoRegistro" OnValidSubmit="@RegistrarHabito" FormName="RegistroHabitoForm">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">ID Estudiante *</label>
+                            <InputNumber class="form-control" @bind-Value="nuevoRegistro.EstudianteId" />
+                            @if (errors.ContainsKey("EstudianteId"))
+                            {
+                                <small class="text-danger">@errors["EstudianteId"]</small>
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Fecha *</label>
+                            <input type="date" class="form-control" value="@fechaString" 
+                                   @onchange="@((ChangeEventArgs e) => fechaString = e.Value?.ToString() ?? string.Empty)" />
+                            @if (errors.ContainsKey("Fecha"))
+                            {
+                                <small class="text-danger">@errors["Fecha"]</small>
+                            }
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Hora *</label>
+                            <input type="time" class="form-control" value="@horaString" 
+                                   @onchange="@((ChangeEventArgs e) => horaString = e.Value?.ToString() ?? string.Empty)" />
+                            @if (errors.ContainsKey("Hora"))
+                            {
+                                <small class="text-danger">@errors["Hora"]</small>
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Horas de Sueño *</label>
+                            <InputNumber step="0.1" class="form-control" @bind-Value="nuevoRegistro.HorasSueno" />
+                            <small class="text-muted">Entre 0 y 24 horas</small>
+                            @if (errors.ContainsKey("HorasSueno"))
+                            {
+                                <small class="text-danger">@errors["HorasSueno"]</small>
+                            }
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Horas Actividad Física *</label>
+                            <InputNumber step="0.1" class="form-control" @bind-Value="nuevoRegistro.HorasActividadFisica" />
+                            <small class="text-muted">Entre 0 y 24 horas</small>
+                            @if (errors.ContainsKey("HorasActividadFisica"))
+                            {
+                                <small class="text-danger">@errors["HorasActividadFisica"]</small>
+                            }
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary me-2" disabled="@isSubmitting">
+                        @if (isSubmitting)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                            <span>Registrando...</span>
+                        }
+                        else
+                        {
+                            <span>📝 Registrar Hábito</span>
+                        }
+                    </button>
+                    
+                    <button type="button" class="btn btn-secondary" @onclick="LimpiarFormulario">
+                        🗑️ Limpiar
+                    </button>
+                </div>
+            </EditForm>
+            
+            @if (!string.IsNullOrEmpty(mensajeExito))
+            {
+                <div class="alert alert-success mt-3">
+                    ✅ @mensajeExito
+                </div>
+            }
+            
+            @if (!string.IsNullOrEmpty(mensajeError))
+            {
+                <div class="alert alert-danger mt-3">
+                    ❌ @mensajeError
+                </div>
+            }
+        </div>
+        
+        <div class="card-footer">
+            <button class="btn btn-outline-secondary" @onclick="IrAHistorialHabitos">
+                📋 Ver Historial de Hábitos
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private RegistroHabitoNuevoDTO nuevoRegistro { get; set; } = new();
+    
+    private bool isSubmitting = false;
+    private string mensajeExito = string.Empty;
+    private string mensajeError = string.Empty;
+    private Dictionary<string, string> errors = new();
+    
+    private string fechaString = DateTime.Today.ToString("yyyy-MM-dd");
+    private string horaString = DateTime.Now.ToString("HH:mm");
+    
+    protected override void OnInitialized()
+    {
+        // Inicializar valores por defecto solo si no vienen del formulario
+        if (nuevoRegistro.HorasSueno == 0)
+        {
+            nuevoRegistro.HorasSueno = 8;
+        }
+        if (nuevoRegistro.HorasActividadFisica == 0)
+        {
+            nuevoRegistro.HorasActividadFisica = 1;
+        }
+        
+        fechaString = DateTime.Today.ToString("yyyy-MM-dd");
+        horaString = DateTime.Now.ToString("HH:mm");
+    }
+    
+    private bool ValidarFormulario()
+    {
+        errors.Clear();
+        
+        if (nuevoRegistro.EstudianteId <= 0)
+            errors["EstudianteId"] = "El ID del estudiante es requerido";
+        
+        if (!DateOnly.TryParse(fechaString, out _))
+            errors["Fecha"] = "Fecha inválida";
+        
+        if (!TimeOnly.TryParse(horaString, out _))
+            errors["Hora"] = "Hora inválida";
+        
+        if (nuevoRegistro.HorasSueno < 0 || nuevoRegistro.HorasSueno > 24)
+            errors["HorasSueno"] = "Las horas de sueño deben estar entre 0 y 24";
+        
+        if (nuevoRegistro.HorasActividadFisica < 0 || nuevoRegistro.HorasActividadFisica > 24)
+            errors["HorasActividadFisica"] = "Las horas de actividad física deben estar entre 0 y 24";
+        
+        return errors.Count == 0;
+    }
+    
+    private async Task RegistrarHabito()
+    {
+        Console.WriteLine("🔄 Iniciando registro de hábito...");
+        
+        if (!ValidarFormulario())
+        {
+            mensajeError = "Por favor, corrija los errores en el formulario";
+            mensajeExito = string.Empty;
+            return;
+        }
+        
+        isSubmitting = true;
+        mensajeExito = string.Empty;
+        mensajeError = string.Empty;
+        
+        try
+        {
+            if (DateOnly.TryParse(fechaString, out var fecha))
+                nuevoRegistro.Fecha = fecha;
+            else
+                throw new InvalidOperationException("Fecha inválida");
+            
+            if (TimeOnly.TryParse(horaString, out var hora))
+                nuevoRegistro.Hora = hora;
+            else
+                throw new InvalidOperationException("Hora inválida");
+            
+            Console.WriteLine($"📦 Datos a enviar: {JsonSerializer.Serialize(nuevoRegistro)}");
+            
+            var resultado = await RegistroHabitoService.RegistrarHabitosAsync(nuevoRegistro);
+            
+            if (resultado)
+            {
+                mensajeExito = "¡Hábitos registrados exitosamente!";
+                Console.WriteLine("✅ Hábito registrado exitosamente");
+                await Task.Delay(1500);
+                
+                if (nuevoRegistro.EstudianteId > 0)
+                    Navigation.NavigateTo($"/habitos/historial/{nuevoRegistro.EstudianteId}");
+                else
+                    LimpiarFormulario();
+            }
+            else
+            {
+                mensajeError = "Error al registrar los hábitos. Por favor, intente nuevamente.";
+                Console.WriteLine("❌ Error al registrar hábito");
+            }
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error: {ex.Message}";
+            Console.WriteLine($"❌ Excepción: {ex.Message}");
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+    
+    private void LimpiarFormulario()
+    {
+        nuevoRegistro = new RegistroHabitoNuevoDTO();
+        fechaString = DateTime.Today.ToString("yyyy-MM-dd");
+        horaString = DateTime.Now.ToString("HH:mm");
+        nuevoRegistro.HorasSueno = 8;
+        nuevoRegistro.HorasActividadFisica = 1;
+        errors.Clear();
+        mensajeError = string.Empty;
+        mensajeExito = string.Empty;
+    }
+    
+    private void IrAHistorialHabitos()
+    {
+        Navigation.NavigateTo("/habitos/historial");
+    }
+}
