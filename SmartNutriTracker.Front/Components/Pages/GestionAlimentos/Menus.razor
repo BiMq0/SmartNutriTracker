@@ -1,14 +1,13 @@
 @page "/menus"
 @using SmartNutriTracker.Shared.DTOs.Menus
 @using SmartNutriTracker.Shared.DTOs.Alimentos
-@inject HttpClient Http
+@inject SmartNutriTracker.Front.Services.Menus.MenuService MenuService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
 <div class="page-wrapper">
     
     <header class="app-header">
-        <div class="header-band-top"></div>
         <div class="header-band-main">
             <h1 class="header-title">
                 <span class="icon-emoji">🍽️</span> Seguimiento de Menús
@@ -116,6 +115,9 @@
                                     </div>
 
                                     <div class="menu-actions">
+                                        <a href="/menus/resumen/@menu.MenuId" class="btn-view-resumen">
+                                            📊 Ver Resumen Completo
+                                        </a>
                                         <button class="btn-delete-menu" @onclick="@(() => MostrarModalEliminar(menu))">
                                             🗑️ Eliminar Menú
                                         </button>
@@ -154,9 +156,6 @@
         <div class="footer-band-main">
             <p>Creado con <span class="footer-icon">🌱</span> para mejorar tu bienestar.</p>
         </div>
-        <div class="footer-band-bottom">
-            <p>© SmartNutriTracker</p>
-        </div>
     </footer>
 </div>
 
@@ -175,7 +174,13 @@
     {
         try
         {
-            menus = await Http.GetFromJsonAsync<List<MenuDTO>>("https://localhost:7187/api/menus/GetAll");
+            // ✅ Usar el servicio en lugar de HttpClient directo
+            menus = await MenuService.ObtenerTodosAsync();
+            
+            if (menus == null)
+            {
+                menus = new List<MenuDTO>();
+            }
         }
         catch (Exception ex)
         {
@@ -214,15 +219,17 @@
 
         try
         {
-            var response = await Http.DeleteAsync($"https://localhost:7187/api/menus/Delete/{menuAEliminar.MenuId}");
-            if (response.IsSuccessStatusCode)
+            // ✅ Usar el servicio en lugar de HttpClient directo
+            var success = await MenuService.EliminarAsync(menuAEliminar.MenuId);
+            
+            if (success)
             {
                 Console.WriteLine($"✓ Menú {menuAEliminar.MenuId} eliminado correctamente");
                 await CargarMenus();
             }
             else
             {
-                Console.WriteLine($"Error al eliminar menú {menuAEliminar.MenuId}: {response.ReasonPhrase}");
+                Console.WriteLine($"Error al eliminar menú {menuAEliminar.MenuId}");
             }
         }
         catch (Exception ex)
@@ -237,7 +244,7 @@
 }
 
 <style>
-    /* VARIABLES DE COLOR */
+    /* (El CSS se mantiene igual) */
     :root {
         --color-light-green: #BCD09F;
         --color-dark-green: #576E40;
@@ -247,10 +254,6 @@
         --color-grey-dark: #3c3c3c;
     }
     
-    /* ---------------------------------------------------- */
-    /* GENERAL LAYOUT Y CONTENIDO PRINCIPAL */
-    /* ---------------------------------------------------- */
-
     .page-wrapper {
         background-color: var(--color-cream);
         min-height: 100vh;
@@ -262,10 +265,6 @@
         flex-grow: 1;
         padding: 2rem;
     }
-
-    /* ---------------------------------------------------- */
-    /* HEADER CON BOTÓN */
-    /* ---------------------------------------------------- */
 
     .page-header-section {
         display: flex;
@@ -322,17 +321,8 @@
         font-weight: 600;
     }
 
-    /* ---------------------------------------------------- */
-    /* HEADER */
-    /* ---------------------------------------------------- */
-
     .app-header {
         width: 100%;
-    }
-
-    .header-band-top {
-        height: 10px;
-        background-color: var(--color-grey-dark);
     }
     
     .header-band-main {
@@ -366,10 +356,6 @@
         height: 10px;
         background-color: var(--color-orange-brown);
     }
-
-    /* ---------------------------------------------------- */
-    /* DISEÑO DE MENÚS (Acordeón) */
-    /* ---------------------------------------------------- */
 
     .menu-card {
         margin-bottom: 15px;
@@ -453,7 +439,6 @@
         transform: rotate(-180deg);
     }
 
-    /* Cuerpo del Acordeón */
     .menu-card-body {
         padding: 1.5rem;
         background-color: #ffffff;
@@ -469,7 +454,6 @@
         font-size: 1.1rem;
     }
     
-    /* Tabla de Detalles Nutricionales */
     .alimentos-detail-table {
         margin-bottom: 1.5rem;
         width: 100%;
@@ -505,7 +489,6 @@
         color: #888;
     }
 
-    /* Resumen de Totales del Día */
     .menu-summary {
         margin-top: 1rem;
         padding-top: 1rem;
@@ -534,13 +517,32 @@
         font-weight: 800;
     }
 
-    /* Acciones del menú */
     .menu-actions {
         margin-top: 1rem;
         padding-top: 1rem;
         border-top: 1px solid #e0e0e0;
         display: flex;
         justify-content: flex-end;
+        gap: 0.75rem;
+    }
+
+    .btn-view-resumen {
+        background-color: var(--color-dark-green);
+        color: var(--color-cream);
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-view-resumen:hover {
+        background-color: var(--color-dark-brown);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
 
     .btn-delete-menu {
@@ -559,10 +561,6 @@
         transform: translateY(-1px);
         box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
-
-    /* ---------------------------------------------------- */
-    /* MODAL */
-    /* ---------------------------------------------------- */
 
     .modal-overlay {
         position: fixed;
@@ -675,10 +673,6 @@
         box-shadow: 0 4px 8px rgba(211, 47, 47, 0.3);
     }
 
-    /* ---------------------------------------------------- */
-    /* FOOTER */
-    /* ---------------------------------------------------- */
-
     .app-footer {
         width: 100%;
         margin-top: auto;
@@ -703,17 +697,5 @@
 
     .footer-icon {
         font-size: 1.2em;
-    }
-
-    .footer-band-bottom {
-        background-color: var(--color-grey-dark);
-        padding: 0.5rem 2rem;
-        text-align: right;
-    }
-
-    .footer-band-bottom p {
-        color: #aaaaaa;
-        margin: 0;
-        font-size: 0.8rem;
     }
 </style>

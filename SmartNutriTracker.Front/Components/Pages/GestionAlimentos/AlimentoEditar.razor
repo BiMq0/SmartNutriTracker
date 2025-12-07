@@ -1,7 +1,6 @@
 @page "/alimentos/editar/{AlimentoId:int}"
 @using SmartNutriTracker.Shared.DTOs.Alimentos
-@using System.Net.Http.Json
-@inject HttpClient Http
+@inject SmartNutriTracker.Front.Services.Alimentos.AlimentoService AlimentoService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
@@ -97,8 +96,8 @@ else
             isLoading = true;
             errorMessage = null;
 
-            // Obtener el alimento actual
-            var alimento = await Http.GetFromJsonAsync<AlimentoDTO>($"https://localhost:7187/api/alimentos/GetById/{AlimentoId}");
+            // ✅ Usar el servicio en lugar de HttpClient directo
+            var alimento = await AlimentoService.ObtenerPorIdAsync(AlimentoId);
 
             if (alimento != null)
             {
@@ -139,12 +138,13 @@ else
             errorMessage = null;
             successMessage = null;
 
-            Console.WriteLine($"Enviando PUT a: https://localhost:7187/api/Alimento/{updateDto.AlimentoId}");
+            Console.WriteLine($"Actualizando alimento ID: {updateDto.AlimentoId}");
             Console.WriteLine($"Datos: {System.Text.Json.JsonSerializer.Serialize(updateDto)}");
 
-            var response = await Http.PutAsJsonAsync($"https://localhost:7187/api/alimentos/Update/{updateDto.AlimentoId}", updateDto);
+            // ✅ Usar el servicio en lugar de HttpClient directo
+            var resultado = await AlimentoService.ActualizarAsync(updateDto.AlimentoId, updateDto);
 
-            if (response.IsSuccessStatusCode)
+            if (resultado != null)
             {
                 successMessage = "¡Alimento actualizado exitosamente!";
                 Console.WriteLine("✓ Actualización exitosa");
@@ -157,9 +157,8 @@ else
             }
             else
             {
-                var content = await response.Content.ReadAsStringAsync();
-                errorMessage = $"Error {response.StatusCode}: No se pudo actualizar el alimento.";
-                Console.WriteLine($"Error al actualizar: {response.StatusCode} - {content}");
+                errorMessage = "No se pudo actualizar el alimento.";
+                Console.WriteLine("Error al actualizar el alimento");
             }
         }
         catch (Exception ex)

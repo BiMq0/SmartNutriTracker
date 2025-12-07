@@ -1,8 +1,8 @@
 @page "/menus/crear"
 @using SmartNutriTracker.Shared.DTOs.Menus
 @using SmartNutriTracker.Shared.DTOs.Alimentos
-@using System.Net.Http.Json
-@inject HttpClient Http
+@inject SmartNutriTracker.Front.Services.Menus.MenuService MenuService
+@inject SmartNutriTracker.Front.Services.Alimentos.AlimentoService AlimentoService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
@@ -142,7 +142,14 @@ else
         try
         {
             isLoadingAlimentos = true;
-            alimentosDisponibles = await Http.GetFromJsonAsync<List<AlimentoDTO>>("https://localhost:7187/api/alimentos/GetAll");
+            
+            // ✅ Usar el servicio en lugar de HttpClient directo
+            alimentosDisponibles = await AlimentoService.ObtenerTodosAsync();
+            
+            if (alimentosDisponibles == null)
+            {
+                alimentosDisponibles = new List<AlimentoDTO>();
+            }
         }
         catch (Exception ex)
         {
@@ -222,26 +229,24 @@ else
             // Asignar los IDs de alimentos seleccionados
             createDto.AlimentoIds = alimentosSeleccionados.ToList();
 
-            Console.WriteLine($"Enviando POST a: https://localhost:7187/api/Menu");
-            Console.WriteLine($"Fecha: {createDto.Fecha}");
+            Console.WriteLine($"Creando menú para fecha: {createDto.Fecha}");
             Console.WriteLine($"AlimentoIds: [{string.Join(", ", createDto.AlimentoIds)}]");
-            Console.WriteLine($"Datos JSON: {System.Text.Json.JsonSerializer.Serialize(createDto)}");
 
-            var response = await Http.PostAsJsonAsync("https://localhost:7187/api/menus/Create", createDto);
+            // ✅ Usar el servicio en lugar de HttpClient directo
+            var menuId = await MenuService.CrearAsync(createDto);
 
-            if (response.IsSuccessStatusCode)
+            if (menuId.HasValue)
             {
                 successMessage = "¡Menú creado exitosamente!";
-                Console.WriteLine("✓ Menú creado correctamente");
+                Console.WriteLine($"✓ Menú creado correctamente - ID: {menuId}");
                 
                 await Task.Delay(1000);
                 NavigationManager.NavigateTo("/menus", forceLoad: true);
             }
             else
             {
-                var content = await response.Content.ReadAsStringAsync();
-                errorMessage = $"Error {response.StatusCode}: No se pudo crear el menú. {content}";
-                Console.WriteLine($"Error al crear: {response.StatusCode} - {content}");
+                errorMessage = "No se pudo crear el menú.";
+                Console.WriteLine("Error al crear el menú");
             }
         }
         catch (Exception ex)
@@ -306,7 +311,6 @@ else
         box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
     }
 
-    /* Contenedor de checkboxes de alimentos */
     .alimentos-selection-container {
         max-height: 400px;
         overflow-y: auto;
@@ -373,7 +377,6 @@ else
         text-decoration: underline;
     }
 
-    /* Resumen de selección */
     .resumen-seleccion {
         background-color: #f0f8ff;
         border: 2px solid #3498db;

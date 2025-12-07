@@ -1,7 +1,6 @@
 @page "/alimentos/registrar"
 @using SmartNutriTracker.Shared.DTOs.Alimentos
-@using System.Net.Http.Json
-@inject HttpClient Http
+@inject SmartNutriTracker.Front.Services.Alimentos.AlimentoService AlimentoService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
@@ -84,15 +83,16 @@
             errorMessage = null;
             successMessage = null;
 
-            Console.WriteLine($"Enviando POST a: https://localhost:7187/api/Alimento");
+            Console.WriteLine($"Registrando nuevo alimento");
             Console.WriteLine($"Datos: {System.Text.Json.JsonSerializer.Serialize(createDto)}");
 
-            var response = await Http.PostAsJsonAsync("https://localhost:7187/api/alimentos/Create", createDto);
+            // ✅ Usar el servicio en lugar de HttpClient directo
+            var resultado = await AlimentoService.CrearAsync(createDto);
 
-            if (response.IsSuccessStatusCode)
+            if (resultado != null)
             {
                 successMessage = "¡Alimento registrado exitosamente!";
-                Console.WriteLine("✓ Registro exitoso");
+                Console.WriteLine($"✓ Registro exitoso - ID: {resultado.AlimentoId}");
                 
                 // Esperar 1 segundo para que el usuario vea el mensaje
                 await Task.Delay(1000);
@@ -102,9 +102,8 @@
             }
             else
             {
-                var content = await response.Content.ReadAsStringAsync();
-                errorMessage = $"Error {response.StatusCode}: No se pudo registrar el alimento.";
-                Console.WriteLine($"Error al registrar: {response.StatusCode} - {content}");
+                errorMessage = "No se pudo registrar el alimento.";
+                Console.WriteLine("Error al registrar el alimento");
             }
         }
         catch (Exception ex)
