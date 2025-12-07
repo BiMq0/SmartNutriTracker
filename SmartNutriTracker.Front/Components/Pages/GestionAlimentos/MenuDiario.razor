@@ -6,121 +6,140 @@
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
-<h3 class="page-title">Crear Menú Diario</h3>
-
-@if (isLoadingAlimentos)
-{
-    <p class="loading-text">Cargando alimentos disponibles...</p>
-}
-else
-{
-    <EditForm Model="createDto" OnValidSubmit="CrearMenu" FormName="CrearMenu">
-        <DataAnnotationsValidator />
-        @if (mostrarErrorAlimentos)
-        {
-            <div class="validation-errors">
-                <ul>
-                    <li>Debe incluir al menos un alimento.</li>
-                </ul>
-            </div>
-        }
-
-        <div class="edit-form-container">
-
-            <div class="form-group">
-                <label>Fecha del Menú:</label>
-                <InputDate class="form-control" 
-                        @bind-Value="createDto.Fecha" 
-                        min="@DateTime.Today.ToString("yyyy-MM-dd")" />
-                <ValidationMessage For="@(() => createDto.Fecha)" />
-            </div>
-
-            <div class="form-group">
-                <label>Selecciona los Alimentos:</label>
-                <div class="alimentos-selection-container">
-                    @if (alimentosDisponibles == null || !alimentosDisponibles.Any())
-                    {
-                        <p class="no-alimentos-text">No hay alimentos disponibles. <a href="/alimentos/registrar">Crear alimento</a></p>
-                    }
-                    else
-                    {
-                        @foreach (var alimento in alimentosDisponibles)
-                        {
-                            var isSelected = alimentosSeleccionados.Contains(alimento.AlimentoId);
-                            <div class="alimento-checkbox-item @(isSelected ? "selected" : "")">
-                                <label>
-                                    <input type="checkbox" 
-                                           checked="@isSelected"
-                                           @onchange="@(() => ToggleAlimento(alimento.AlimentoId))" />
-                                    <span class="alimento-nombre">@alimento.Nombre</span>
-                                    <span class="alimento-calorias">(@alimento.Calorias kcal)</span>
-                                </label>
-                            </div>
-                        }
-                    }
-                </div>
-                @if (alimentosSeleccionados.Count == 0)
-                {
-                    <small class="validation-message">Debes seleccionar al menos un alimento</small>
-                }
-            </div>
-
-            @if (alimentosSeleccionados.Count > 0)
-            {
-                <div class="resumen-seleccion">
-                    <h5>Resumen del Menú</h5>
-                    <div class="resumen-grid">
-                        <div class="resumen-item">
-                            <span class="resumen-label">Alimentos:</span>
-                            <span class="resumen-value">@alimentosSeleccionados.Count</span>
-                        </div>
-                        <div class="resumen-item">
-                            <span class="resumen-label">Calorías Totales:</span>
-                            <span class="resumen-value">@CalcularCaloriasTotales() kcal</span>
-                        </div>
-                        <div class="resumen-item">
-                            <span class="resumen-label">Proteínas:</span>
-                            <span class="resumen-value">@CalcularProteinasTotales() g</span>
-                        </div>
-                        <div class="resumen-item">
-                            <span class="resumen-label">Carbohidratos:</span>
-                            <span class="resumen-value">@CalcularCarbohidratosTotales() g</span>
-                        </div>
-                        <div class="resumen-item">
-                            <span class="resumen-label">Grasas:</span>
-                            <span class="resumen-value">@CalcularGrasasTotales() g</span>
-                        </div>
-                    </div>
-                </div>
-            }
-
-            @if (successMessage != null)
-            {
-                <div class="alert alert-success">
-                    ✓ @successMessage
-                </div>
-            }
-
-            @if (errorMessage != null)
-            {
-                <div class="alert alert-danger">
-                    ✗ @errorMessage
-                </div>
-            }
-
-            <div class="form-actions">
-                <button type="submit" class="btn-save" disabled="@(isSaving || alimentosSeleccionados.Count == 0)">
-                    @(isSaving ? "Guardando..." : "Crear Menú")
-                </button>
-
-                <a href="/menus" class="btn-cancel">
-                    Cancelar
-                </a>
-            </div>
-
+<div class="page-wrapper">
+    <header class="app-header">
+        <div class="header-band-main">
+            <h1 class="header-title">
+                <span class="icon-emoji">🍽️</span> Crear Menú Diario
+            </h1>
+            <p class="header-subtitle">Planifica tu alimentación diaria seleccionando alimentos.</p>
         </div>
-    </EditForm>
-}
+        <div class="header-band-bottom"></div>
+    </header>
+
+    <main class="crear-menu-main-content">
+        @if (isLoadingAlimentos)
+        {
+            <p class="loading-text">Cargando alimentos disponibles...</p>
+        }
+        else
+        {
+            <EditForm Model="createDto" OnValidSubmit="CrearMenu" FormName="CrearMenu">
+                <DataAnnotationsValidator />
+                @if (mostrarErrorAlimentos)
+                {
+                    <div class="validation-errors">
+                        <ul>
+                            <li>Debe incluir al menos un alimento.</li>
+                        </ul>
+                    </div>
+                }
+
+                <div class="edit-form-container">
+
+                    <div class="form-group">
+                        <label>Fecha del Menú:</label>
+                        <InputDate class="form-control" 
+                                @bind-Value="createDto.Fecha" 
+                                min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                        <ValidationMessage For="@(() => createDto.Fecha)" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Selecciona los Alimentos:</label>
+                        <div class="alimentos-selection-container">
+                            @if (alimentosDisponibles == null || !alimentosDisponibles.Any())
+                            {
+                                <p class="no-alimentos-text">No hay alimentos disponibles. <a href="/alimentos/registrar">Crear alimento</a></p>
+                            }
+                            else
+                            {
+                                @foreach (var alimento in alimentosDisponibles)
+                                {
+                                    var isSelected = alimentosSeleccionados.Contains(alimento.AlimentoId);
+                                    <div class="alimento-checkbox-item @(isSelected ? "selected" : "")">
+                                        <label>
+                                            <input type="checkbox" 
+                                                   checked="@isSelected"
+                                                   @onchange="@(() => ToggleAlimento(alimento.AlimentoId))" />
+                                            <span class="alimento-nombre">@alimento.Nombre</span>
+                                            <span class="alimento-calorias">(@alimento.Calorias kcal)</span>
+                                        </label>
+                                    </div>
+                                }
+                            }
+                        </div>
+                        @if (alimentosSeleccionados.Count == 0)
+                        {
+                            <small class="validation-message">Debes seleccionar al menos un alimento</small>
+                        }
+                    </div>
+
+                    @if (alimentosSeleccionados.Count > 0)
+                    {
+                        <div class="resumen-seleccion">
+                            <h5>Resumen del Menú</h5>
+                            <div class="resumen-grid">
+                                <div class="resumen-item">
+                                    <span class="resumen-label">Alimentos:</span>
+                                    <span class="resumen-value">@alimentosSeleccionados.Count</span>
+                                </div>
+                                <div class="resumen-item">
+                                    <span class="resumen-label">Calorías Totales:</span>
+                                    <span class="resumen-value">@CalcularCaloriasTotales() kcal</span>
+                                </div>
+                                <div class="resumen-item">
+                                    <span class="resumen-label">Proteínas:</span>
+                                    <span class="resumen-value">@CalcularProteinasTotales() g</span>
+                                </div>
+                                <div class="resumen-item">
+                                    <span class="resumen-label">Carbohidratos:</span>
+                                    <span class="resumen-value">@CalcularCarbohidratosTotales() g</span>
+                                </div>
+                                <div class="resumen-item">
+                                    <span class="resumen-label">Grasas:</span>
+                                    <span class="resumen-value">@CalcularGrasasTotales() g</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (successMessage != null)
+                    {
+                        <div class="alert alert-success">
+                            ✓ @successMessage
+                        </div>
+                    }
+
+                    @if (errorMessage != null)
+                    {
+                        <div class="alert alert-danger">
+                            ✗ @errorMessage
+                        </div>
+                    }
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-save" disabled="@(isSaving || alimentosSeleccionados.Count == 0)">
+                            @(isSaving ? "Guardando..." : "Crear Menú")
+                        </button>
+
+                        <a href="/menus" class="btn-cancel">
+                            Cancelar
+                        </a>
+                    </div>
+
+                </div>
+            </EditForm>
+        }
+    </main>
+
+    <footer class="app-footer">
+        <div class="footer-band-top"></div>
+        <div class="footer-band-main">
+            <p>Creado con <span class="footer-icon">🌱</span> para mejorar tu bienestar.</p>
+        </div>
+    </footer>
+</div>
 
 @code {
     private CreateMenuDTO createDto = new CreateMenuDTO { Fecha = DateTime.Today };
@@ -142,8 +161,6 @@ else
         try
         {
             isLoadingAlimentos = true;
-            
-            // ✅ Usar el servicio en lugar de HttpClient directo
             alimentosDisponibles = await AlimentoService.ObtenerTodosAsync();
             
             if (alimentosDisponibles == null)
@@ -174,7 +191,6 @@ else
             alimentosSeleccionados.Add(alimentoId);
         }
         
-        // Ocultar error si ahora hay alimentos seleccionados
         if (alimentosSeleccionados.Count > 0)
         {
             mostrarErrorAlimentos = false;
@@ -211,7 +227,6 @@ else
 
     private async Task CrearMenu()
     {
-        // Validar que haya alimentos seleccionados
         if (alimentosSeleccionados.Count == 0)
         {
             mostrarErrorAlimentos = true;
@@ -226,33 +241,24 @@ else
             successMessage = null;
             mostrarErrorAlimentos = false;
 
-            // Asignar los IDs de alimentos seleccionados
             createDto.AlimentoIds = alimentosSeleccionados.ToList();
 
-            Console.WriteLine($"Creando menú para fecha: {createDto.Fecha}");
-            Console.WriteLine($"AlimentoIds: [{string.Join(", ", createDto.AlimentoIds)}]");
-
-            // ✅ Usar el servicio en lugar de HttpClient directo
             var menuId = await MenuService.CrearAsync(createDto);
 
             if (menuId.HasValue)
             {
                 successMessage = "¡Menú creado exitosamente!";
-                Console.WriteLine($"✓ Menú creado correctamente - ID: {menuId}");
-                
                 await Task.Delay(1000);
                 NavigationManager.NavigateTo("/menus", forceLoad: true);
             }
             else
             {
                 errorMessage = "No se pudo crear el menú.";
-                Console.WriteLine("Error al crear el menú");
             }
         }
         catch (Exception ex)
         {
             errorMessage = $"Error: {ex.Message}";
-            Console.WriteLine($"Excepción al crear: {ex}");
         }
         finally
         {
@@ -262,11 +268,61 @@ else
 }
 
 <style>
-    .page-title {
-        color: #2c3e50;
-        margin-bottom: 2rem;
-        font-size: 2rem;
-        font-weight: 600;
+    :root {
+        --color-light-green: #BCD09F;
+        --color-dark-green: #576E40;
+        --color-dark-brown: #221C04;
+        --color-orange-brown: #C2854C;
+        --color-cream: #F1EAC0;
+        --color-grey-dark: #3c3c3c;
+    }
+
+    .page-wrapper {
+        background-color: var(--color-cream);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .app-header {
+        width: 100%;
+    }
+    
+    .header-band-main {
+        background-color: var(--color-dark-green);
+        padding: 1.5rem 2rem;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-title {
+        color: var(--color-cream);
+        font-weight: 700;
+        margin: 0;
+        font-size: 2.2rem;
+        text-shadow: 1px 1px 2px var(--color-dark-brown);
+    }
+    
+    .header-subtitle {
+        color: var(--color-light-green);
+        margin: 0.25rem 0 0;
+        font-size: 1.1rem;
+    }
+
+    .icon-emoji {
+        font-size: 1.5em;
+        vertical-align: middle;
+        margin-right: 0.5rem;
+    }
+
+    .header-band-bottom {
+        height: 10px;
+        background-color: var(--color-orange-brown);
+    }
+
+    .crear-menu-main-content {
+        flex-grow: 1;
+        padding: 2rem;
     }
 
     .loading-text {
@@ -496,5 +552,31 @@ else
         background-color: #7f8c8d;
         transform: translateY(-1px);
         box-shadow: 0 4px 8px rgba(149, 165, 166, 0.3);
+    }
+
+    .app-footer {
+        width: 100%;
+        margin-top: auto;
+    }
+    
+    .footer-band-top {
+        height: 10px;
+        background-color: var(--color-orange-brown);
+    }
+
+    .footer-band-main {
+        background-color: var(--color-light-green);
+        padding: 1.5rem 2rem;
+        text-align: center;
+    }
+    
+    .footer-band-main p {
+        color: var(--color-dark-brown);
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    .footer-icon {
+        font-size: 1.2em;
     }
 </style>
