@@ -12,5 +12,8 @@ namespace SmartNutriTracker.Shared.DTOs.Nutrition
 
         // Salida estructurada por comidas (opcional si la IA devuelve JSON)
         public IEnumerable<ComidaDTO>? Comidas { get; set; }
+
+        // Tiempo de respuesta de la IA en milisegundos
+        public long TiempoRespuestaMs { get; set; }
     }
 }

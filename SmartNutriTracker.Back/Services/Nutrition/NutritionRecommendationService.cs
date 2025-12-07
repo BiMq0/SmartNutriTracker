@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using SmartNutriTracker.Back.Services.Nutrition;
 using SmartNutriTracker.Shared.DTOs.Nutrition;
+using System.Diagnostics;
 
 namespace SmartNutriTracker.Back.Services.Nutrition
 {
@@ -49,7 +50,12 @@ namespace SmartNutriTracker.Back.Services.Nutrition
                 temperature = 0.25
             };
 
+            // Medir tiempo de respuesta de la IA
+            var stopwatch = Stopwatch.StartNew();
             var response = await client.PostAsJsonAsync("v2/chat", requestBody);
+            stopwatch.Stop();
+            var tiempoRespuestaMs = stopwatch.ElapsedMilliseconds;
+
             if (!response.IsSuccessStatusCode)
             {
                 var err = await response.Content.ReadAsStringAsync();
@@ -108,7 +114,8 @@ namespace SmartNutriTracker.Back.Services.Nutrition
             {
                 TextoRecomendacion = textoRecomendacion,
                 ResultadoNutricional = resultadoNumerico,
-                Comidas = comidas
+                Comidas = comidas,
+                TiempoRespuestaMs = tiempoRespuestaMs
             };
 
             return resultadoFinal;
@@ -119,11 +126,13 @@ namespace SmartNutriTracker.Back.Services.Nutrition
             var objetivo = solicitud.Objetivo ?? "mantener";
             var actividad = solicitud.NivelActividad ?? "sedentario";
 
-                        // Pedir explícitamente un bloque JSON con claves en español: 'textoRecomendacion' y 'comidas'
-                        return $@"Eres un nutricionista escolar. Genera recomendaciones claras para un estudiante.
+            // Pedir explícitamente un bloque JSON con variación de comidas
+            return $@"Eres un nutricionista escolar. Genera recomendaciones claras y VARIADAS para un estudiante.
 Provee:
 1) Un campo 'textoRecomendacion' con un resumen breve (2-3 líneas).
-2) Un campo 'comidas' (array) donde cada elemento tenga: nombre, calorias, proteinas_g, grasas_g, carbohidratos_g, descripcion.
+2) Un campo 'comidas' (array) con 4-5 COMIDAS DIFERENTES Y VARIADAS para el día, asegurándote que NO se repitan alimentos.
+
+Cada elemento en 'comidas' debe tener: nombre, calorias, proteinas_g, grasas_g, carbohidratos_g, descripcion.
 
 Datos calculados:
 - TMB: {numeric.TMB} kcal
@@ -135,7 +144,10 @@ Datos calculados:
 Objetivo: {objetivo}
 Nivel de actividad: {actividad}
 
-IMPORTANTE: Devuelve SOLO un objeto JSON válido con las propiedades 'textoRecomendacion' (string) y 'comidas' (array de objetos con las claves indicadas). No incluyas texto adicional fuera del JSON."
+IMPORTANTE: 
+- Devuelve SOLO un objeto JSON válido con las propiedades 'textoRecomendacion' (string) y 'comidas' (array).
+- Las comidas deben ser VARIADAS y NO repetidas (diferentes alimentos en cada comida).
+- No incluyas texto adicional fuera del JSON."
                         ;
         }
 
@@ -187,6 +199,23 @@ IMPORTANTE: Devuelve SOLO un objeto JSON válido con las propiedades 'textoRecom
                 catch { }
             }
             return string.Empty;
+        }
+
+        private bool AreComidasDifferent(List<ComidaDTO> comidas)
+        {
+            if (comidas == null || comidas.Count <= 1)
+                return true;
+
+            // Normalizar nombres a minúsculas para comparación
+            var nombres = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var comida in comidas)
+            {
+                var nombre = (comida.Nombre ?? "").Trim().ToLower();
+                if (nombres.Contains(nombre))
+                    return false; // Encontró duplicado
+                nombres.Add(nombre);
+            }
+            return true;
         }
     }
 }
