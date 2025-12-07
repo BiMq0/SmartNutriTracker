@@ -1,0 +1,381 @@
+@page "/alimentos/registrar"
+@using SmartNutriTracker.Shared.DTOs.Alimentos
+@using SmartNutriTracker.Front.Services 
+@using System.Text.Json
+@inject RegistroAlimentoService RegistroAlimentoService
+@inject AlimentoService AlimentoService
+@inject TipoComidaService TipoComidaService
+@inject NavigationManager Navigation
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-success text-white">
+            <h3 class="mb-0">🍎 Registrar Consumo de Alimentos</h3>
+        </div>
+        
+        <div class="card-body">
+            @if (isLoadingCatalogos)
+            {
+                <div class="text-center py-4">
+                    <div class="spinner-border text-success" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando catálogos...</p>
+                </div>
+            }
+            else
+            {
+                <EditForm Model="@nuevoRegistro" OnValidSubmit="@RegistrarConsumo" FormName="RegistroAlimentoForm">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">ID Estudiante *</label>
+                                <InputNumber class="form-control" @bind-Value="nuevoRegistro.EstudianteId" />
+                                @if (errors.ContainsKey("EstudianteId"))
+                                {
+                                    <small class="text-danger">@errors["EstudianteId"]</small>
+                                }
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Fecha *</label>
+                                <input type="date" class="form-control" value="@fechaString" 
+                                       @onchange="@((ChangeEventArgs e) => fechaString = e.Value?.ToString() ?? string.Empty)" />
+                                @if (errors.ContainsKey("Fecha"))
+                                {
+                                    <small class="text-danger">@errors["Fecha"]</small>
+                                }
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Hora *</label>
+                                <input type="time" class="form-control" value="@horaString" 
+                                       @onchange="@((ChangeEventArgs e) => horaString = e.Value?.ToString() ?? string.Empty)" />
+                                @if (errors.ContainsKey("Hora"))
+                                {
+                                    <small class="text-danger">@errors["Hora"]</small>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h5 class="mt-4 mb-3">🍽️ Alimentos Consumidos</h5>
+                    
+                    @for (int i = 0; i < nuevoRegistro.AlimentosConsumidos.Count; i++)
+                    {
+                        var index = i;
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>Alimento @(index + 1)</span>
+                                    @if (nuevoRegistro.AlimentosConsumidos.Count > 1)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-danger" 
+                                                @onclick="() => EliminarAlimento(index)">
+                                            🗑️ Eliminar
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                            
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Alimento *</label>
+                                            <InputSelect class="form-select" @bind-Value="nuevoRegistro.AlimentosConsumidos[index].AlimentoId">
+                                                <option value="0">-- Seleccionar --</option>
+                                                @foreach (var alimento in alimentos)
+                                                {
+                                                    <option value="@alimento.AlimentoId">
+                                                        @alimento.Nombre (@alimento.Calorias kcal)
+                                                    </option>
+                                                }
+                                            </InputSelect>
+                                            @if (errors.ContainsKey($"Alimento_{index}"))
+                                            {
+                                                <small class="text-danger">@errors[$"Alimento_{index}"]</small>
+                                            }
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Tipo de Comida *</label>
+                                            <InputSelect class="form-select" @bind-Value="nuevoRegistro.AlimentosConsumidos[index].TipoComidaId">
+                                                <option value="0">-- Seleccionar --</option>
+                                                @foreach (var tipo in tiposComida)
+                                                {
+                                                    <option value="@tipo.TipoComidaId">@tipo.Nombre</option>
+                                                }
+                                            </InputSelect>
+                                            @if (errors.ContainsKey($"TipoComida_{index}"))
+                                            {
+                                                <small class="text-danger">@errors[$"TipoComida_{index}"]</small>
+                                            }
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Cantidad (g) *</label>
+                                            <InputNumber min="1" class="form-control" @bind-Value="nuevoRegistro.AlimentosConsumidos[index].Cantidad" />
+                                            @if (errors.ContainsKey($"Cantidad_{index}"))
+                                            {
+                                                <small class="text-danger">@errors[$"Cantidad_{index}"]</small>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    
+                    <div class="mt-3 mb-4">
+                        <button type="button" class="btn btn-outline-primary" @onclick="AgregarAlimento">
+                            ➕ Agregar Otro Alimento
+                        </button>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-success me-2" disabled="@isSubmitting">
+                            @if (isSubmitting)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                <span>Registrando...</span>
+                            }
+                            else
+                            {
+                                <span>💾 Registrar Consumo</span>
+                            }
+                        </button>
+                        
+                        <button type="button" class="btn btn-secondary" @onclick="LimpiarFormulario">
+                            🗑️ Limpiar
+                        </button>
+                    </div>
+                </EditForm>
+                
+                @if (!string.IsNullOrEmpty(mensajeExito))
+                {
+                    <div class="alert alert-success mt-3">
+                        ✅ @mensajeExito
+                    </div>
+                }
+                
+                @if (!string.IsNullOrEmpty(mensajeError))
+                {
+                    <div class="alert alert-danger mt-3">
+                        ❌ @mensajeError
+                    </div>
+                }
+            }
+        </div>
+        
+        <div class="card-footer">
+            <button type="button" class="btn btn-outline-secondary" @onclick="IrAHistorialConsumos">
+                📋 Ver Historial de Consumos
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private RegistroConsumoNuevoDTO nuevoRegistro { get; set; } = new();
+    
+    private List<AlimentoDTO> alimentos = new();
+    private List<TipoComidaDTO> tiposComida = new();
+    private bool isLoadingCatalogos = true;
+    private bool isSubmitting = false;
+    private string mensajeExito = string.Empty;
+    private string mensajeError = string.Empty;
+    private Dictionary<string, string> errors = new();
+    
+    private string fechaString = DateTime.Today.ToString("yyyy-MM-dd");
+    private string horaString = DateTime.Now.ToString("HH:mm");
+    
+    protected override async Task OnInitializedAsync()
+    {
+        Console.WriteLine("🔍 Inicializando componente de registro de alimentos...");
+        await CargarCatalogos();
+        
+        if (nuevoRegistro.AlimentosConsumidos == null || !nuevoRegistro.AlimentosConsumidos.Any())
+        {
+            AgregarAlimento();
+        }
+    }
+    
+    private async Task CargarCatalogos()
+    {
+        try
+        {
+            Console.WriteLine("📥 Cargando catálogos...");
+            var alimentosTask = AlimentoService.ObtenerTodosAsync();
+            var tiposComidaTask = TipoComidaService.ObtenerTodosAsync();
+            
+            await Task.WhenAll(alimentosTask, tiposComidaTask);
+            
+            alimentos = await alimentosTask ?? new List<AlimentoDTO>();
+            tiposComida = await tiposComidaTask ?? new List<TipoComidaDTO>();
+            
+            Console.WriteLine($"✅ Catálogos cargados: {alimentos.Count} alimentos, {tiposComida.Count} tipos de comida");
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error cargando catálogos: {ex.Message}";
+            Console.WriteLine($"❌ Error cargando catálogos: {ex.Message}");
+        }
+        finally
+        {
+            isLoadingCatalogos = false;
+        }
+    }
+    
+    private bool ValidarFormulario()
+    {
+        errors.Clear();
+        
+        if (nuevoRegistro.EstudianteId <= 0)
+            errors["EstudianteId"] = "El ID del estudiante es requerido";
+        
+        if (!DateOnly.TryParse(fechaString, out _))
+            errors["Fecha"] = "Fecha inválida";
+        
+        if (!TimeOnly.TryParse(horaString, out _))
+            errors["Hora"] = "Hora inválida";
+        
+        if (nuevoRegistro.AlimentosConsumidos == null || !nuevoRegistro.AlimentosConsumidos.Any())
+        {
+            errors["Alimentos"] = "Debe agregar al menos un alimento";
+        }
+        else
+        {
+            for (int i = 0; i < nuevoRegistro.AlimentosConsumidos.Count; i++)
+            {
+                var alimento = nuevoRegistro.AlimentosConsumidos[i];
+                
+                if (alimento.AlimentoId <= 0)
+                    errors[$"Alimento_{i}"] = "Seleccione un alimento";
+                
+                if (alimento.TipoComidaId <= 0)
+                    errors[$"TipoComida_{i}"] = "Seleccione un tipo de comida";
+                
+                if (alimento.Cantidad <= 0)
+                    errors[$"Cantidad_{i}"] = "La cantidad debe ser mayor a 0";
+            }
+        }
+        
+        return errors.Count == 0;
+    }
+    
+    private void AgregarAlimento()
+    {
+        nuevoRegistro.AlimentosConsumidos.Add(new RegistroAlimentoItemDTO());
+    }
+    
+    private void EliminarAlimento(int index)
+    {
+        if (nuevoRegistro.AlimentosConsumidos.Count > 1)
+        {
+            nuevoRegistro.AlimentosConsumidos.RemoveAt(index);
+        }
+    }
+    
+    private async Task RegistrarConsumo()
+    {
+        Console.WriteLine("🔄 Iniciando registro de consumo...");
+        
+        if (!ValidarFormulario())
+        {
+            mensajeError = "Por favor, corrija los errores en el formulario";
+            mensajeExito = string.Empty;
+            return;
+        }
+        
+        isSubmitting = true;
+        mensajeExito = string.Empty;
+        mensajeError = string.Empty;
+        
+        try
+        {
+            Console.WriteLine("📤 Convirtiendo fechas...");
+            
+            if (DateOnly.TryParse(fechaString, out var fecha))
+            {
+                nuevoRegistro.Fecha = fecha;
+                Console.WriteLine($"📅 Fecha establecida: {fecha}");
+            }
+            else
+            {
+                throw new InvalidOperationException("Fecha inválida");
+            }
+            
+            if (TimeOnly.TryParse(horaString, out var hora))
+            {
+                nuevoRegistro.Hora = hora;
+                Console.WriteLine($"⏰ Hora establecida: {hora}");
+            }
+            else
+            {
+                throw new InvalidOperationException("Hora inválida");
+            }
+            
+            Console.WriteLine($"📦 Datos a enviar: {JsonSerializer.Serialize(nuevoRegistro)}");
+            
+            var resultado = await RegistroAlimentoService.RegistrarConsumoAsync(nuevoRegistro);
+            
+            if (resultado)
+            {
+                mensajeExito = "¡Consumo registrado exitosamente!";
+                Console.WriteLine("✅ Consumo registrado exitosamente");
+                await Task.Delay(1500);
+                
+                if (nuevoRegistro.EstudianteId > 0)
+                    Navigation.NavigateTo($"/alimentos/historial/{nuevoRegistro.EstudianteId}");
+                else
+                    LimpiarFormulario();
+            }
+            else
+            {
+                mensajeError = "Error al registrar el consumo. Por favor, intente nuevamente.";
+                Console.WriteLine("❌ Error al registrar consumo");
+            }
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error: {ex.Message}";
+            Console.WriteLine($"❌ Excepción: {ex.Message}");
+            Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+    
+    private void LimpiarFormulario()
+    {
+        var estudianteId = nuevoRegistro.EstudianteId;
+        nuevoRegistro = new RegistroConsumoNuevoDTO
+        {
+            EstudianteId = estudianteId
+        };
+        fechaString = DateTime.Today.ToString("yyyy-MM-dd");
+        horaString = DateTime.Now.ToString("HH:mm");
+        AgregarAlimento();
+        errors.Clear();
+        mensajeError = string.Empty;
+        mensajeExito = string.Empty;
+    }
+    
+    private void IrAHistorialConsumos()
+    {
+        Console.WriteLine("🔗 Navegando al historial de consumos...");
+        Navigation.NavigateTo("/alimentos/historial");
+    }
+}
