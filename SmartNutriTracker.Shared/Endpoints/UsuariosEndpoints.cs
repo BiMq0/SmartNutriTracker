@@ -7,7 +7,10 @@ namespace SmartNutriTracker.Shared.Endpoints
 {
     public static class UsuariosEndpoints
     {
-        public const string OBTENER_TODOS_USUARIOS = "/obtener-todos";
-        public const string REGISTRAR_USUARIO = "/registrar-usuario";
+        public const string BASE = "api/user/";
+        public const string OBTENER_TODOS_USUARIOS = "ObtenerUsuarios";
+        public const string INICIAR_SESION = "IniciarSesion";
+        public const string REGISTRAR_USUARIO = "RegistrarUsuario";
+        public const string CERRAR_SESION = "CerrarSesion";
     }
 }
