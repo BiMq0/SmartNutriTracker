@@ -39,7 +39,7 @@
 - Las opciones de formulario no son claras, ejemplo → objetivo: "mantener" (¿mantener qué?)
 - Backend para nada legible y con full chatsito
 
-** No implementa sus opciones en NavMenu**
+**No implementa sus opciones en NavMenu**
 
 ---
 
@@ -56,7 +56,7 @@
   - Por rango de horas de sueño
   - Por fechas de registro, etc.
 
-** No implementa sus opciones en NavMenu**
+**No implementa sus opciones en NavMenu**
 
 ---
 
@@ -70,9 +70,9 @@
 - Se puede colocar una fecha posterior a la actual, incoherencia de datos, no debería poder seleccionarse
 - Los controllers implementan directamente el `DbContext`, **no se respeta la arquitectura**
 
-** Coordinar DTOs entre equipos de Registro de Hábitos y Gestión de Alimentos, se tiene un error grave de referencia con `AlimentoDTO`**
+**Coordinar DTOs entre equipos de Registro de Hábitos y Gestión de Alimentos, se tiene un error grave de referencia con `AlimentoDTO`**
 
-** No implementa sus opciones en NavMenu**
+**No implementa sus opciones en NavMenu**
 
 ---
 
@@ -89,7 +89,7 @@
   - Cantidad o rango de calorías
   - Proteínas, etc.
 
-** No implementa sus opciones en NavMenu**
+**No implementa sus opciones en NavMenu**
 
 ---
 
@@ -104,7 +104,7 @@
 - Se está utilizando tanto `DbContext` como servicio en backend, **normalizar y llevar todo a `EstudianteService`/`IEstudianteService`**
 - No se están utilizando las rutas de `.Shared`, **no se está siguiendo la arquitectura**
 
-** Implementa sus opciones en NavMenu**
+**Implementa sus opciones en NavMenu**
 
 ---
 
