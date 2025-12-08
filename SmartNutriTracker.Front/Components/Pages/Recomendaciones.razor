@@ -325,6 +325,45 @@
             <div class="contenedor-resultado">
                 <h2 class="titulo-resultado">Tu Plan Personalizado</h2>
                 <div class="tiempo-respuesta">Tiempo de procesamiento: @recomendacion.TiempoRespuestaMs ms</div>
+                
+                @if (recomendacion.ResultadoNutricional != null)
+                {
+                    <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 2px solid #BCD09F;">
+                        <h3 style="color: #576E40; margin-top: 0; margin-bottom: 15px; font-size: 20px;">📊 Valores Nutricionales Calculados</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                            <div style="background: #F1EAC0; padding: 12px; border-radius: 8px; border-left: 4px solid #C2854C;">
+                                <div style="color: #576E40; font-size: 12px; font-weight: 600; margin-bottom: 4px;">IMC</div>
+                                <div style="color: #221C04; font-size: 18px; font-weight: 700;">@recomendacion.ResultadoNutricional.IMC.ToString("F2")</div>
+                                <div style="color: #576E40; font-size: 11px; font-style: italic;">@recomendacion.ResultadoNutricional.CategoriaIMC</div>
+                            </div>
+                            <div style="background: #F1EAC0; padding: 12px; border-radius: 8px; border-left: 4px solid #C2854C;">
+                                <div style="color: #576E40; font-size: 12px; font-weight: 600; margin-bottom: 4px;">TMB (Metabolismo Basal)</div>
+                                <div style="color: #221C04; font-size: 18px; font-weight: 700;">@recomendacion.ResultadoNutricional.TMB.ToString("F0") kcal</div>
+                            </div>
+                            <div style="background: #F1EAC0; padding: 12px; border-radius: 8px; border-left: 4px solid #C2854C;">
+                                <div style="color: #576E40; font-size: 12px; font-weight: 600; margin-bottom: 4px;">Calorías Mantenimiento</div>
+                                <div style="color: #221C04; font-size: 18px; font-weight: 700;">@recomendacion.ResultadoNutricional.CaloriasMantenimiento.ToString("F0") kcal</div>
+                            </div>
+                            <div style="background: #BCD09F; padding: 12px; border-radius: 8px; border-left: 4px solid #576E40;">
+                                <div style="color: #221C04; font-size: 12px; font-weight: 600; margin-bottom: 4px;">🎯 Calorías Objetivo</div>
+                                <div style="color: #221C04; font-size: 20px; font-weight: 700;">@recomendacion.ResultadoNutricional.CaloriasObjetivo.ToString("F0") kcal</div>
+                            </div>
+                            <div style="background: #F1EAC0; padding: 12px; border-radius: 8px; border-left: 4px solid #C2854C;">
+                                <div style="color: #576E40; font-size: 12px; font-weight: 600; margin-bottom: 4px;">🥩 Proteínas</div>
+                                <div style="color: #221C04; font-size: 18px; font-weight: 700;">@recomendacion.ResultadoNutricional.ProteinasGr.ToString("F0") g</div>
+                            </div>
+                            <div style="background: #F1EAC0; padding: 12px; border-radius: 8px; border-left: 4px solid #C2854C;">
+                                <div style="color: #576E40; font-size: 12px; font-weight: 600; margin-bottom: 4px;">🥑 Grasas</div>
+                                <div style="color: #221C04; font-size: 18px; font-weight: 700;">@recomendacion.ResultadoNutricional.GrasasGr.ToString("F0") g</div>
+                            </div>
+                            <div style="background: #F1EAC0; padding: 12px; border-radius: 8px; border-left: 4px solid #C2854C;">
+                                <div style="color: #576E40; font-size: 12px; font-weight: 600; margin-bottom: 4px;">🍞 Carbohidratos</div>
+                                <div style="color: #221C04; font-size: 18px; font-weight: 700;">@recomendacion.ResultadoNutricional.CarbohidratosGr.ToString("F0") g</div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                
                 <p class="texto-recomendacion">@recomendacion.TextoRecomendacion</p>
                 
                 @if (recomendacion.Comidas?.Any() == true)
@@ -336,10 +375,10 @@
                             <li class="item-comida">
                                 <div class="nombre-comida">@comida.Nombre</div>
                                 <div class="stats-comida">
-                                    <div class="stat-item">@comida.Calorias kcal</div>
-                                    <div class="stat-item">P: @comida.Proteinas_g g</div>
-                                    <div class="stat-item">G: @comida.Grasas_g g</div>
-                                    <div class="stat-item">C: @comida.Carbohidratos_g g</div>
+                                    <div class="stat-item">🔥 Calorías: @comida.Calorias kcal</div>
+                                    <div class="stat-item">🥩 Proteínas: @comida.Proteinas_g g</div>
+                                    <div class="stat-item">🥑 Grasas: @comida.Grasas_g g</div>
+                                    <div class="stat-item">🍞 Carbohidratos: @comida.Carbohidratos_g g</div>
                                 </div>
                                 <div class="descripcion-comida">@comida.Descripcion</div>
                             </li>
