@@ -1,0 +1,117 @@
+using Microsoft.AspNetCore.Mvc;
+using SmartNutriTracker.Back.Services.Menus;
+using SmartNutriTracker.Shared.DTOs.Menus;
+using SmartNutriTracker.Shared.Endpoints;
+using Microsoft.Extensions.Logging;
+
+namespace SmartNutriTracker.Back.Controllers
+{
+    [ApiController]
+    [Route(MenusEndpoints.BASE)]
+    public class MenuController : ControllerBase
+    {
+        private readonly IMenuService _menuService;
+        private readonly ILogger<MenuController> _logger;
+
+        public MenuController(IMenuService menuService, ILogger<MenuController> logger)
+        {
+            _menuService = menuService;
+            _logger = logger;
+        }
+
+        // GET: api/menus/GetAll
+        [HttpGet(MenusEndpoints.OBTENER_TODOS)]
+        public async Task<ActionResult<List<MenuDTO>>> GetAll()
+        {
+            _logger.LogInformation("Solicitud GET: Obtener todos los menús.");
+
+            var menus = await _menuService.GetAllAsync();
+
+            _logger.LogInformation("Total de menús obtenidos: {Cantidad}", menus.Count);
+
+            return Ok(menus);
+        }
+
+        // GET: api/menus/GetById/{id}
+        [HttpGet(MenusEndpoints.OBTENER_POR_ID + "/{id}")]
+        public async Task<ActionResult<MenuDTO>> GetById(int id)
+        {
+            _logger.LogInformation("Solicitud GET: Obtener menú por ID: {Id}", id);
+
+            var menu = await _menuService.GetByIdAsync(id);
+
+            if (menu == null)
+            {
+                _logger.LogWarning("Menú no encontrado con ID: {Id}", id);
+                return NotFound();
+            }
+
+            _logger.LogInformation("Menú encontrado con ID: {Id}", id);
+
+            return Ok(menu);
+        }
+
+        // POST: api/menus/Create
+        [HttpPost(MenusEndpoints.CREAR_MENU)]
+        public async Task<ActionResult<int>> Create([FromBody] CreateMenuDTO dto)
+        {
+            _logger.LogInformation("Solicitud POST: Crear menú para fecha: {Fecha}", dto.Fecha);
+
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Validación fallida al crear menú.");
+                return BadRequest(ModelState);
+            }
+
+            var menuId = await _menuService.CreateAsync(dto);
+
+            _logger.LogInformation("Menú creado exitosamente con ID: {Id}", menuId);
+
+            return CreatedAtAction(nameof(GetById), new { id = menuId }, menuId);
+        }
+
+        // PUT: api/menus/Update/{id}
+        [HttpPut(MenusEndpoints.ACTUALIZAR_MENU + "/{id}")]
+        public async Task<ActionResult> Update(int id, [FromBody] UpdateMenuDTO dto)
+        {
+            _logger.LogInformation("Solicitud PUT: Actualizar menú con ID: {Id}", id);
+
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Validación fallida al actualizar menú con ID: {Id}", id);
+                return BadRequest(ModelState);
+            }
+
+            var success = await _menuService.UpdateAsync(id, dto);
+
+            if (!success)
+            {
+                _logger.LogWarning("No se pudo actualizar. Menú no encontrado con ID: {Id}", id);
+                return NotFound();
+            }
+
+            _logger.LogInformation("Menú actualizado correctamente con ID: {Id}", id);
+
+            return NoContent();
+        }
+
+        // DELETE: api/menus/Delete/{id}
+        [HttpDelete(MenusEndpoints.ELIMINAR_MENU + "/{id}")]
+        public async Task<ActionResult> Delete(int id)
+        {
+            _logger.LogInformation("Solicitud DELETE: Eliminar menú con ID: {Id}", id);
+
+            var success = await _menuService.DeleteAsync(id);
+
+            if (!success)
+            {
+                _logger.LogWarning("No se pudo eliminar. Menú no encontrado con ID: {Id}", id);
+                return NotFound();
+            }
+
+            _logger.LogInformation("Menú eliminado exitosamente con ID: {Id}", id);
+
+            return NoContent();
+        }
+    }
+}
