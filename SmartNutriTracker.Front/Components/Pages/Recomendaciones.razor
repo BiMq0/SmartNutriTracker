@@ -1,0 +1,312 @@
+@page "/recomendaciones"
+@inject HttpClient Http
+
+<style>
+    .contenedor-recomendaciones {
+        background: linear-gradient(135deg, #BCD09F 0%, #F1EAC0 100%);
+        min-height: 100vh;
+        padding: 40px 20px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .tarjeta-principal {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 8px 32px rgba(87, 110, 64, 0.15);
+        padding: 40px;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    
+    .titulo {
+        color: #576E40;
+        text-align: center;
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 30px;
+        border-bottom: 3px solid #C2854C;
+        padding-bottom: 15px;
+    }
+    
+    .grupo-formulario {
+        margin-bottom: 18px;
+    }
+    
+    .grupo-formulario label {
+        display: block;
+        color: #576E40;
+        font-weight: 600;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+    
+    .grupo-formulario input,
+    .grupo-formulario select {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #BCD09F;
+        border-radius: 8px;
+        font-size: 14px;
+        background-color: #F1EAC0;
+        color: #221C04;
+        transition: all 0.3s ease;
+    }
+    
+    .grupo-formulario input:focus,
+    .grupo-formulario select:focus {
+        outline: none;
+        border-color: #C2854C;
+        box-shadow: 0 0 0 3px rgba(194, 133, 76, 0.1);
+        background-color: white;
+    }
+    
+    .boton-pedir {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #576E40 0%, #C2854C 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+        box-shadow: 0 4px 15px rgba(87, 110, 64, 0.2);
+    }
+    
+    .boton-pedir:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(87, 110, 64, 0.3);
+    }
+    
+    .boton-pedir:active {
+        transform: translateY(0);
+    }
+    
+    .cargando {
+        text-align: center;
+        color: #576E40;
+        font-style: italic;
+        margin-top: 20px;
+    }
+    
+    .contenedor-resultado {
+        background: #F1EAC0;
+        border-left: 5px solid #C2854C;
+        padding: 25px;
+        border-radius: 10px;
+        margin-top: 30px;
+    }
+    
+    .titulo-resultado {
+        color: #576E40;
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+    
+    .texto-recomendacion {
+        color: #221C04;
+        line-height: 1.8;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+    
+    .lista-comidas {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .item-comida {
+        background: white;
+        padding: 15px;
+        margin-bottom: 12px;
+        border-radius: 8px;
+        border-left: 4px solid #BCD09F;
+        box-shadow: 0 2px 8px rgba(87, 110, 64, 0.1);
+    }
+    
+    .nombre-comida {
+        color: #576E40;
+        font-weight: 700;
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+    
+    .stats-comida {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        font-size: 13px;
+        color: #221C04;
+    }
+    
+    .stat-item {
+        background: #BCD09F;
+        padding: 8px;
+        border-radius: 5px;
+        font-weight: 600;
+    }
+    
+    .descripcion-comida {
+        margin-top: 10px;
+        font-size: 13px;
+        color: #576E40;
+        font-style: italic;
+    }
+
+    .tiempo-respuesta {
+        background: #BCD09F;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        color: #221C04;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .botones-accion {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .boton-exportar {
+        flex: 1;
+        padding: 12px;
+        background: linear-gradient(135deg, #C2854C 0%, #576E40 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(194, 133, 76, 0.2);
+    }
+
+    .boton-exportar:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(194, 133, 76, 0.3);
+    }
+
+    .boton-exportar:active {
+        transform: translateY(0);
+    }
+
+    /* Estilos para errores */
+    #contenedor-errores {
+        background: #ffe6e6;
+        border: 2px solid #ff4444;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+        display: none;
+    }
+
+    .error-item {
+        color: #c00;
+        font-size: 14px;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+
+    .error-item:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Skeleton loader */
+    .skeleton-loader {
+        animation: fadeIn 0.3s ease-in;
+    }
+
+    .skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 2s infinite;
+        border-radius: 4px;
+        margin-bottom: 12px;
+    }
+
+    .skeleton-text {
+        height: 12px;
+        width: 100%;
+    }
+
+    .skeleton-card {
+        height: 80px;
+        width: 100%;
+    }
+</style>
+
+<div class="contenedor-recomendaciones">
+    <div class="tarjeta-principal">
+        <h1 class="titulo">Recomendaciones Nutricionales</h1>
+
+        <div id="contenedor-errores"></div>
+
+        <div class="grupo-formulario">
+            <label>Peso (kg):</label>
+            <input @bind="pesoKg" type="number" step="0.1" />
+        </div>
+        <div class="grupo-formulario">
+            <label>Altura (m):</label>
+            <input @bind="alturaM" type="number" step="0.01" />
+        </div>
+        <div class="grupo-formulario">
+            <label>Fecha Nacimiento:</label>
+            <input @bind="fechaNacimiento" type="date" />
+        </div>
+        <div class="grupo-formulario">
+            <label>Sexo:</label>
+            <select @bind="sexo">
+                <option value="Varon">Varón</option>
+                <option value="Mujer">Mujer</option>
+            </select>
+        </div>
+        <div class="grupo-formulario">
+            <label>Nivel Actividad:</label>
+            <select @bind="nivelActividad">
+                <option value="Sedentario">Sedentario</option>
+                <option value="Ligero">Ligero</option>
+                <option value="Moderado">Moderado</option>
+                <option value="Alto">Alto</option>
+                <option value="MuyAlto">Muy Alto</option>
+            </select>
+        </div>
+        <div class="grupo-formulario">
+            <label>Objetivo:</label>
+            <select @bind="objetivo">
+                <option value="Mantener">Mantener</option>
+                <option value="Perder">Perder peso</option>
+                <option value="Ganar">Ganar peso</option>
+            </select>
+        </div>
+        
+        <button class="boton-pedir" id="btnPedir" onclick="pedirRecomendacion()">
+            <span id="btnText">Pedir recomendación</span>
+        </button>
+        
+        <div id="contenedor-resultado" style="display: none;">
+            <div class="contenedor-resultado">
+                <h2 class="titulo-resultado">Tu Plan Personalizado</h2>
+                <div class="tiempo-respuesta" id="tiempoRespuesta"></div>
+                <p class="texto-recomendacion" id="textoRecomendacion"></p>
+                <div id="listComidas"></div>
+                <div class="botones-accion">
+                    <button class="boton-exportar" onclick="exportarAPdf()">Descargar PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private decimal pesoKg = 70m;
+    private decimal alturaM = 1.75m;
+    private DateTime fechaNacimiento = DateTime.Parse("1995-06-15");
+    private string sexo = "Varon";
+    private string nivelActividad = "Moderado";
+    private string objetivo = "Mantener";
+}
