@@ -1,5 +1,9 @@
 @page "/recomendaciones"
+@rendermode InteractiveServer
+@using SmartNutriTracker.Shared.DTOs.Nutrition
+@using System.Net.Http.Json
 @inject HttpClient Http
+@inject IJSRuntime JS
 
 <style>
     .contenedor-recomendaciones {
@@ -75,20 +79,20 @@
         box-shadow: 0 4px 15px rgba(87, 110, 64, 0.2);
     }
     
-    .boton-pedir:hover {
+    .boton-pedir:hover:not(:disabled) {
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(87, 110, 64, 0.3);
     }
     
-    .boton-pedir:active {
-        transform: translateY(0);
+    .boton-pedir:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        background: linear-gradient(135deg, #888888 0%, #666666 100%);
+        transform: none;
     }
     
-    .cargando {
-        text-align: center;
-        color: #576E40;
-        font-style: italic;
-        margin-top: 20px;
+    .boton-pedir:active:not(:disabled) {
+        transform: translateY(0);
     }
     
     .contenedor-resultado {
@@ -111,6 +115,7 @@
         line-height: 1.8;
         margin-bottom: 20px;
         font-size: 14px;
+        white-space: pre-wrap;
     }
     
     .lista-comidas {
@@ -191,18 +196,12 @@
         box-shadow: 0 6px 20px rgba(194, 133, 76, 0.3);
     }
 
-    .boton-exportar:active {
-        transform: translateY(0);
-    }
-
-    /* Estilos para errores */
-    #contenedor-errores {
+    .contenedor-errores {
         background: #ffe6e6;
         border: 2px solid #ff4444;
         border-radius: 8px;
         padding: 15px;
         margin-bottom: 20px;
-        display: none;
     }
 
     .error-item {
@@ -216,27 +215,33 @@
         margin-bottom: 0;
     }
 
-    /* Skeleton loader */
-    .skeleton-loader {
-        animation: fadeIn 0.3s ease-in;
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #576E40;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
     }
 
-    .skeleton {
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        animation: shimmer 2s infinite;
-        border-radius: 4px;
-        margin-bottom: 12px;
+    .contenedor-info {
+        background: #e8f5e9;
+        border: 2px solid #4caf50;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
     }
 
-    .skeleton-text {
-        height: 12px;
-        width: 100%;
+    .info-item {
+        color: #2e7d32;
+        font-size: 14px;
+        font-weight: 500;
     }
 
-    .skeleton-card {
-        height: 80px;
-        width: 100%;
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
 </style>
 
@@ -244,61 +249,109 @@
     <div class="tarjeta-principal">
         <h1 class="titulo">Recomendaciones Nutricionales</h1>
 
-        <div id="contenedor-errores"></div>
+        @if (estudianteId.HasValue)
+        {
+            <div class="contenedor-info">
+                <div class="info-item">Datos cargados, Hola, @nombreEstudiante</div>
+            </div>
+        }
+
+        @if (errores.Any())
+        {
+            <div class="contenedor-errores">
+                @foreach (var error in errores)
+                {
+                    <div class="error-item">✗ @error</div>
+                }
+            </div>
+        }
 
         <div class="grupo-formulario">
-            <label>Peso (kg):</label>
-            <input @bind="pesoKg" type="number" step="0.1" />
+            <label>Peso Corporal (kilogramos):</label>
+            <input @bind="pesoKg" type="number" step="0.1" placeholder="Ej: 70.5" />
         </div>
         <div class="grupo-formulario">
-            <label>Altura (m):</label>
-            <input @bind="alturaM" type="number" step="0.01" />
+            <label>Altura (metros):</label>
+            <input @bind="alturaM" type="number" step="0.01" placeholder="Ej: 1.75" />
         </div>
         <div class="grupo-formulario">
-            <label>Fecha Nacimiento:</label>
+            <label>Fecha de Nacimiento:</label>
             <input @bind="fechaNacimiento" type="date" />
         </div>
         <div class="grupo-formulario">
-            <label>Sexo:</label>
+            <label>Sexo Biológico:</label>
             <select @bind="sexo">
                 <option value="Varon">Varón</option>
                 <option value="Mujer">Mujer</option>
             </select>
         </div>
         <div class="grupo-formulario">
-            <label>Nivel Actividad:</label>
+            <label>Nivel de Actividad Física:</label>
             <select @bind="nivelActividad">
-                <option value="Sedentario">Sedentario</option>
-                <option value="Ligero">Ligero</option>
-                <option value="Moderado">Moderado</option>
-                <option value="Alto">Alto</option>
-                <option value="MuyAlto">Muy Alto</option>
+                <option value="Sedentario">Sedentario (poco o ningún ejercicio)</option>
+                <option value="Ligero">Ligero (ejercicio ligero 1-3 días/semana)</option>
+                <option value="Moderado">Moderado (ejercicio moderado 3-5 días/semana)</option>
+                <option value="Alto">Alto (ejercicio intenso 6-7 días/semana)</option>
+                <option value="MuyAlto">Muy Alto (ejercicio muy intenso, trabajo físico)</option>
             </select>
         </div>
         <div class="grupo-formulario">
-            <label>Objetivo:</label>
+            <label>Objetivo de Peso Corporal:</label>
             <select @bind="objetivo">
-                <option value="Mantener">Mantener</option>
-                <option value="Perder">Perder peso</option>
-                <option value="Ganar">Ganar peso</option>
+                <option value="Mantener">Mantener mi peso actual</option>
+                <option value="Perder">Perder peso (déficit calórico)</option>
+                <option value="Ganar">Ganar peso (superávit calórico)</option>
             </select>
         </div>
         
-        <button class="boton-pedir" id="btnPedir" onclick="pedirRecomendacion()">
-            <span id="btnText">Pedir recomendación</span>
+        <button type="button" class="boton-pedir" @onclick="PedirRecomendacion" disabled="@cargando">
+            @if (cargando)
+            {
+                <span>Generando recomendación...</span>
+            }
+            else
+            {
+                <span>Pedir recomendación</span>
+            }
         </button>
+
+        @if (cargando)
+        {
+            <div class="spinner"></div>
+        }
         
-        <div id="contenedor-resultado" style="display: none;">
+        @if (recomendacion != null)
+        {
             <div class="contenedor-resultado">
                 <h2 class="titulo-resultado">Tu Plan Personalizado</h2>
-                <div class="tiempo-respuesta" id="tiempoRespuesta"></div>
-                <p class="texto-recomendacion" id="textoRecomendacion"></p>
-                <div id="listComidas"></div>
+                <div class="tiempo-respuesta">Tiempo de procesamiento: @recomendacion.TiempoRespuestaMs ms</div>
+                <p class="texto-recomendacion">@recomendacion.TextoRecomendacion</p>
+                
+                @if (recomendacion.Comidas?.Any() == true)
+                {
+                    <h3 style="color: #576E40; margin-top: 20px; margin-bottom: 15px;">Plan de Comidas</h3>
+                    <ul class="lista-comidas">
+                        @foreach (var comida in recomendacion.Comidas)
+                        {
+                            <li class="item-comida">
+                                <div class="nombre-comida">@comida.Nombre</div>
+                                <div class="stats-comida">
+                                    <div class="stat-item">@comida.Calorias kcal</div>
+                                    <div class="stat-item">P: @comida.Proteinas_g g</div>
+                                    <div class="stat-item">G: @comida.Grasas_g g</div>
+                                    <div class="stat-item">C: @comida.Carbohidratos_g g</div>
+                                </div>
+                                <div class="descripcion-comida">@comida.Descripcion</div>
+                            </li>
+                        }
+                    </ul>
+                }
+                
                 <div class="botones-accion">
-                    <button class="boton-exportar" onclick="exportarAPdf()">Descargar PDF</button>
+                    <button class="boton-exportar" @onclick="ExportarAPdf">Descargar PDF</button>
                 </div>
             </div>
-        </div>
+        }
     </div>
 </div>
 
@@ -309,4 +362,161 @@
     private string sexo = "Varon";
     private string nivelActividad = "Moderado";
     private string objetivo = "Mantener";
+    
+    private bool cargando = false;
+    private List<string> errores = new();
+    private ResultadoRecomendacionNutricionalDTO? recomendacion;
+    private int? estudianteId = null;
+    private string nombreEstudiante = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Console.WriteLine("Componente Recomendaciones inicializado");
+        await CargarDatosEstudiante();
+    }
+
+    private async Task CargarDatosEstudiante()
+    {
+        try
+        {
+            // ID hardcodeado 
+            int idEstudianteHardcoded = 1;
+            
+            var response = await Http.GetAsync($"https://localhost:7187/api/Nutrition/estudiante/{idEstudianteHardcoded}");
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var estudiante = await response.Content.ReadFromJsonAsync<EstudianteDTO>();
+                if (estudiante != null)
+                {
+                    estudianteId = estudiante.EstudianteId;
+                    nombreEstudiante = estudiante.NombreCompleto;
+                    pesoKg = estudiante.Peso;
+                    alturaM = estudiante.Altura;
+                    fechaNacimiento = estudiante.FechaNacimiento;
+                    sexo = estudiante.Sexo;
+                    Console.WriteLine($"Datos del estudiante cargados: {estudiante.NombreCompleto}");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"No se encontró estudiante con ID {idEstudianteHardcoded}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al cargar datos del estudiante: {ex.Message}");
+        }
+    }
+
+    private class EstudianteDTO
+    {
+        public int EstudianteId { get; set; }
+        public string NombreCompleto { get; set; } = "";
+        public DateTime FechaNacimiento { get; set; }
+        public decimal Peso { get; set; }
+        public decimal Altura { get; set; }
+        public string Sexo { get; set; } = "";
+    }
+
+    private async Task PedirRecomendacion()
+    {
+        Console.WriteLine($"PedirRecomendacion llamado - pesoKg: {pesoKg}, alturaM: {alturaM}");
+        errores.Clear();
+        
+        // Validación
+        if (pesoKg < 30 || pesoKg > 300)
+            errores.Add("El peso debe estar entre 30 kg y 300 kg");
+        
+        if (alturaM < 1.2m || alturaM > 2.5m)
+            errores.Add("La altura debe estar entre 1.2 m y 2.5 m");
+        
+        var edad = DateTime.Now.Year - fechaNacimiento.Year;
+        if (DateTime.Now < fechaNacimiento.AddYears(edad)) edad--;
+        
+        if (edad < 13 || edad > 100)
+            errores.Add($"La edad debe estar entre 13 y 100 años. Edad calculada: {edad} años");
+        
+        if (errores.Any())
+            return;
+        
+        cargando = true;
+        
+        try
+        {
+            var solicitud = new NutritionRequestDTO
+            {
+                EstudianteId = estudianteId, // Incluir el ID del estudiante si está disponible
+                PesoKg = pesoKg,
+                AlturaM = alturaM,
+                FechaNacimiento = fechaNacimiento,
+                Sexo = sexo,
+                NivelActividad = nivelActividad,
+                Objetivo = objetivo
+            };
+            
+            var response = await Http.PostAsJsonAsync("https://localhost:7187/api/Nutrition/recommendations", solicitud);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                recomendacion = await response.Content.ReadFromJsonAsync<ResultadoRecomendacionNutricionalDTO>();
+            }
+            else
+            {
+                var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+                if (errorResponse?.Errores != null)
+                    errores.AddRange(errorResponse.Errores);
+                else
+                    errores.Add($"Error: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            errores.Add($"Error de conexión: {ex.Message}");
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private async Task ExportarAPdf()
+    {
+        if (recomendacion == null)
+        {
+            await JS.InvokeVoidAsync("alert", "No hay recomendación para exportar. Por favor, genera una primero.");
+            return;
+        }
+        
+        try
+        {
+            var response = await Http.PostAsJsonAsync("https://localhost:7187/api/Nutrition/export-pdf", recomendacion);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var bytes = await response.Content.ReadAsByteArrayAsync();
+                var base64 = Convert.ToBase64String(bytes);
+                var fileName = $"Recomendacion_Nutricional_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+                
+                // Crear función inline segura para descargar sin usar eval
+                await JS.InvokeVoidAsync("eval", $"(function(){{const a=document.createElement('a');a.href='data:application/pdf;base64,{base64}';a.download='{fileName}';document.body.appendChild(a);a.click();document.body.removeChild(a);}})();");
+                
+                await JS.InvokeVoidAsync("alert", "PDF descargado exitosamente");
+            }
+            else
+            {
+                await JS.InvokeVoidAsync("alert", $"Error al exportar PDF: {response.StatusCode}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Error al exportar PDF: {ex.Message}");
+        }
+    }
+
+    private class ErrorResponse
+    {
+        public string? Mensaje { get; set; }
+        public List<string>? Errores { get; set; }
+    }
 }
