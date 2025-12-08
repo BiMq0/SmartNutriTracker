@@ -63,7 +63,6 @@ namespace SmartNutriTracker.Front.Services
 
                 if (resultado != null && !string.IsNullOrEmpty(resultado.Token))
                 {
-                    // Guardar token en localStorage
                     await GuardarTokenAsync(resultado.Token);
                     NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
                 }
@@ -75,6 +74,7 @@ namespace SmartNutriTracker.Front.Services
                 return null;
             }
         }
+
 
         // Guardar token en localStorage
         public async Task GuardarTokenAsync(string token)
@@ -135,7 +135,7 @@ namespace SmartNutriTracker.Front.Services
         // Método para verificar si existe token (hardcodeado por ahora)
         public bool ExistsToken()
         {
-            return false; // Hardcodeado temporalmente para simular que no hay token
+            return !string.IsNullOrEmpty(_token); // Hardcodeado temporalmente para simular que no hay token
                           // return true; // Hardcodeado temporalmente para simular que hay token
         }
     }
