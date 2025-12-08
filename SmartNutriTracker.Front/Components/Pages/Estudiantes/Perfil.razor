@@ -1,0 +1,35 @@
+@inject NavigationManager Navigation
+@using SmartNutriTracker.Shared.DTOs.Estudiantes
+@page "/perfil"
+
+@inject HttpClient Http
+
+<h3>Perfil del Estudiante</h3>
+
+@if (perfil is null)
+{
+    <p>Cargando...</p>
+}
+else
+{
+    <div>
+        <p><strong>Nombre:</strong> @perfil.NombreCompleto</p>
+        <p><strong>Edad:</strong> @perfil.Edad</p>
+        <p><strong>Sexo:</strong> @perfil.Sexo</p>
+        <p><strong>Peso:</strong> @perfil.Peso kg</p>
+        <p><strong>Altura:</strong> @perfil.Altura m</p>
+        <p><strong>IMC:</strong> @perfil.IMC</p>
+        <p><strong>TMB:</strong> @perfil.TMB</p>
+    </div>
+}
+
+@code {
+    PerfilEstudianteDTO? perfil;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // TEMPORAL - ID 1
+        perfil = await Http.GetFromJsonAsync<PerfilEstudianteDTO>(
+            "api/estudiantes/perfil/1");
+    }
+}
