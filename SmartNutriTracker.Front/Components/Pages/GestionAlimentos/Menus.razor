@@ -174,7 +174,7 @@
     {
         try
         {
-            // ✅ Usar el servicio en lugar de HttpClient directo
+            //Usar el servicio en lugar de HttpClient directo
             menus = await MenuService.ObtenerTodosAsync();
             
             if (menus == null)
@@ -219,7 +219,7 @@
 
         try
         {
-            // ✅ Usar el servicio en lugar de HttpClient directo
+            //Usar el servicio en lugar de HttpClient directo
             var success = await MenuService.EliminarAsync(menuAEliminar.MenuId);
             
             if (success)
