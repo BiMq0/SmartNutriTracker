@@ -23,6 +23,9 @@ public class EstudianteService : IEstudianteService
         if (dto.Peso <= 0 || dto.Altura <= 0)
             throw new ArgumentException("Peso y altura deben ser mayores a 0");
 
+        // Asegurar que la fecha se envíe como UTC para PostgreSQL (timestamp with time zone)
+        dto.FechaNacimiento = DateTime.SpecifyKind(dto.FechaNacimiento, DateTimeKind.Utc);
+
         var estudiante = new Estudiante
         {
             NombreCompleto = dto.NombreCompleto,

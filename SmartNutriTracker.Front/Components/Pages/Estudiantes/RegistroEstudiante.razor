@@ -1,97 +1,107 @@
 ﻿@page "/registro-estudiante"
 @using SmartNutriTracker.Shared.DTOs.Estudiantes
 @using SmartNutriTracker.Domain.Statics
-@using SmartNutriTracker.Front.Handlers
+@using SmartNutriTracker.Front.Services
+@inject EstudianteService EstudianteService
 @inject NavigationManager Navigation
-@inject IHttpClientFactory HttpClientFactory
+@rendermode InteractiveServer
+
+<style>
+    .btn-primary-custom {
+        background-color: #576E40;
+        border-color: #576E40;
+        color: #F1EAC0;
+    }
+    .btn-primary-custom:hover {
+        background-color: #BCD09F;
+        border-color: #BCD09F;
+        color: #221C04;
+    }
+    .card-custom {
+        border-color: #BCD09F;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .card-header-custom {
+        background-color: #576E40;
+        color: #F1EAC0;
+    }
+    .form-control:focus {
+        border-color: #576E40;
+        box-shadow: 0 0 0 0.2rem rgba(87, 110, 64, 0.25);
+    }
+    .form-label {
+        color: #221C04;
+        font-weight: 600;
+    }
+    .alert-success-custom {
+        background-color: #BCD09F;
+        border-color: #576E40;
+        color: #221C04;
+    }
+    .alert-danger-custom {
+        background-color: #F8D7DA;
+        border-color: #C2854C;
+        color: #8B4513;
+    }
+</style>
 
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
+            <div class="card card-custom">
+                <div class="card-header card-header-custom">
                     <h4 class="mb-0">Registro de Estudiante</h4>
                 </div>
                 <div class="card-body">
-                    <form @onsubmit:preventDefault @onsubmit="ValidarYRegistrar">
-                        
-                        <!-- Nombre Completo -->
+                    @if (!string.IsNullOrEmpty(Message))
+                    {
+                        <div class="alert @(Success ? "alert-success-custom" : "alert-danger-custom") mb-3">
+                            @Message
+                        </div>
+                    }
+
+                    <EditForm Model="@NuevoEstudiante" OnSubmit="OnSubmit" FormName="RegistroEstudianteForm">
+                        <DataAnnotationsValidator />
+
                         <div class="mb-3">
                             <label class="form-label">Nombre Completo *</label>
-                            <input type="text" 
-                                   @bind="nombreInput"
-                                   @bind:event="oninput"
-                                   class="form-control"
-                                   placeholder="Ej: Juan Pérez" />
-                            @if (!nombreValido && intentoEnviar)
-                            {
-                                <div class="text-danger small mt-1">
-                                    El nombre completo es requerido
-                                </div>
-                            }
+                            <InputText @bind-Value="NuevoEstudiante.NombreCompleto" class="form-control" placeholder="Ej: Juan Pérez" />
+                            <ValidationMessage For="@(() => NuevoEstudiante.NombreCompleto)" class="text-danger small" />
                         </div>
 
-                        <!-- Fecha de Nacimiento -->
                         <div class="mb-3">
                             <label class="form-label">Fecha de Nacimiento *</label>
-                            <input type="date" 
-                                   @bind="nuevoEstudiante.FechaNacimiento"
-                                   @bind:format="yyyy-MM-dd"
-                                   class="form-control" />
+                            <InputDate @bind-Value="NuevoEstudiante.FechaNacimiento" class="form-control" />
+                            <ValidationMessage For="@(() => NuevoEstudiante.FechaNacimiento)" class="text-danger small" />
                         </div>
 
-                        <!-- Sexo -->
                         <div class="mb-3">
                             <label class="form-label">Sexo *</label>
-                            <select @bind="nuevoEstudiante.Sexo" class="form-control">
+                            <InputSelect @bind-Value="NuevoEstudiante.Sexo" class="form-control">
                                 <option value="@Sexo.Varon">Varón</option>
                                 <option value="@Sexo.Mujer">Mujer</option>
-                            </select>
+                            </InputSelect>
+                            <ValidationMessage For="@(() => NuevoEstudiante.Sexo)" class="text-danger small" />
                         </div>
 
-                        <!-- Peso -->
                         <div class="mb-3">
                             <label class="form-label">Peso (kg) *</label>
-                            <input type="number" 
-                                   step="0.1"
-                                   @bind="nuevoEstudiante.Peso"
-                                   class="form-control" 
-                                   placeholder="Ej: 65.5" />
+                            <InputNumber @bind-Value="NuevoEstudiante.Peso" class="form-control" step="0.1" placeholder="Ej: 65.5" />
+                            <ValidationMessage For="@(() => NuevoEstudiante.Peso)" class="text-danger small" />
                         </div>
 
-                        <!-- Altura -->
                         <div class="mb-3">
                             <label class="form-label">Altura (m) *</label>
-                            <input type="number" 
-                                   step="0.01"
-                                   @bind="nuevoEstudiante.Altura"
-                                   class="form-control" 
-                                   placeholder="Ej: 1.65" />
+                            <InputNumber @bind-Value="NuevoEstudiante.Altura" class="form-control" step="0.01" placeholder="Ej: 1.65" />
+                            <ValidationMessage For="@(() => NuevoEstudiante.Altura)" class="text-danger small" />
                         </div>
 
-                        <!-- Botón de registro -->
                         <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg py-3" disabled="@isLoading">
-                                @if (isLoading)
-                                {
-                                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                                    <span>Registrando...</span>
-                                }
-                                else
-                                {
-                                    <span>Registrar Estudiante</span>
-                                }
+                            <button type="submit" class="btn btn-primary-custom btn-lg py-3" disabled="@Enviando">
+                                @(Enviando ? "Registrando..." : "Registrar Estudiante")
                             </button>
                         </div>
-
-                        <!-- Mensaje de resultado -->
-                        @if (!string.IsNullOrEmpty(mensaje))
-                        {
-                            <div class="alert @(mensaje.Contains("exito") ? "alert-success" : "alert-danger") mt-3">
-                                @mensaje
-                            </div>
-                        }
-                    </form>
+                    </EditForm>
                 </div>
             </div>
         </div>
@@ -99,108 +109,40 @@
 </div>
 
 @code {
-    private EstudianteRegistroDTO nuevoEstudiante = new();
-    private string nombreInput = "";
-    private bool isLoading = false;
-    private string mensaje = "";
-    private bool intentoEnviar = false;
-    private bool nombreValido = true;
+    private EstudianteRegistroDTO NuevoEstudiante = new();
+    private string Message = string.Empty;
+    private bool Success = false;
+    private bool Enviando = false;
 
     protected override void OnInitialized()
     {
         // Valores por defecto
-        nuevoEstudiante.FechaNacimiento = new DateTime(2005, 1, 1);
-        nuevoEstudiante.Sexo = Sexo.Varon;
-        nuevoEstudiante.Peso = 60;
-        nuevoEstudiante.Altura = 1.65m;
+        NuevoEstudiante.FechaNacimiento = new DateTime(2005, 1, 1);
+        NuevoEstudiante.Sexo = Sexo.Varon;
+        NuevoEstudiante.Peso = 60;
+        NuevoEstudiante.Altura = 1.65m;
     }
 
-    private async Task ValidarYRegistrar()
+    private async Task OnSubmit()
     {
-        intentoEnviar = true;
-        isLoading = true;
-        mensaje = "";
-        StateHasChanged();
-        
-        // Asignar nombre desde el input separado
-        nuevoEstudiante.NombreCompleto = nombreInput?.Trim() ?? "";
-        
-        // Validación manual
-        nombreValido = !string.IsNullOrWhiteSpace(nuevoEstudiante.NombreCompleto) 
-                     && nuevoEstudiante.NombreCompleto.Length >= 2;
-        
-        if (!nombreValido)
-        {
-            mensaje = "El nombre completo es requerido (mínimo 2 caracteres)";
-            isLoading = false;
-            StateHasChanged();
-            return;
-        }
-        
-        if (nuevoEstudiante.Peso <= 0)
-        {
-            mensaje = "El peso debe ser mayor a 0";
-            isLoading = false;
-            StateHasChanged();
-            return;
-        }
-        
-        if (nuevoEstudiante.Altura <= 0)
-        {
-            mensaje = "La altura debe ser mayor a 0";
-            isLoading = false;
-            StateHasChanged();
-            return;
-        }
-        
-        // Si pasa validación, registrar
-        await RegistrarEstudiante();
-    }
+        Enviando = true;
+        Message = "";
+        Success = false;
 
-    private async Task RegistrarEstudiante()
-    {
-        try
+        var response = await EstudianteService.RegistrarEstudianteAsync(NuevoEstudiante);
+
+        if (response != null && response.Estudiante != null)
         {
-            // Usar HttpClientFactory para obtener el cliente configurado
-            var httpClient = HttpClientFactory.CreateClient("ApiClient");
-            
-            var response = await httpClient.PostAsJsonAsync("api/estudiantes", nuevoEstudiante);
-            var responseContent = await response.Content.ReadAsStringAsync();
-            
-            if (response.IsSuccessStatusCode)
-            {
-                mensaje = "Estudiante registrado exitosamente!";
-                
-                // Limpiar formulario
-                nuevoEstudiante = new EstudianteRegistroDTO();
-                nuevoEstudiante.FechaNacimiento = new DateTime(2005, 1, 1);
-                nuevoEstudiante.Sexo = Sexo.Varon;
-                nuevoEstudiante.Peso = 60;
-                nuevoEstudiante.Altura = 1.65m;
-                nombreInput = "";
-                intentoEnviar = false;
-                nombreValido = true;
-                
-                await Task.Delay(1000);
-                Navigation.NavigateTo("/dashboard");
-            }
-            else
-            {
-                mensaje = $"Error al registrar estudiante ({(int)response.StatusCode}): {responseContent}";
-            }
+            Success = true;
+            Message = "Estudiante registrado correctamente.";
+            await Task.Delay(1000);
+            Navigation.NavigateTo("/dashboard");
         }
-        catch (Exception ex)
+        else
         {
-            mensaje = $"Error de conexión: {ex.Message}";
-            if (ex.InnerException != null)
-            {
-                mensaje += $" | Detalle: {ex.InnerException.Message}";
-            }
+            Message = response?.Mensaje ?? "Error al registrar el estudiante.";
         }
-        finally
-        {
-            isLoading = false;
-            StateHasChanged();
-        }
+
+        Enviando = false;
     }
 }

@@ -1,0 +1,209 @@
+@page "/estudiantes"
+@using SmartNutriTracker.Domain.Models.BaseModels
+@using SmartNutriTracker.Front.Services
+@inject EstudianteService EstudianteService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<style>
+    .btn-primary-custom {
+        background-color: #576E40;
+        border-color: #576E40;
+        color: #F1EAC0;
+    }
+    .btn-primary-custom:hover {
+        background-color: #BCD09F;
+        border-color: #BCD09F;
+        color: #221C04;
+    }
+    .card-custom {
+        border-color: #BCD09F;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .card-header-custom {
+        background-color: #576E40;
+        color: #F1EAC0;
+    }
+    .table-custom th {
+        background-color: #576E40;
+        color: #F1EAC0;
+    }
+    .table-custom tbody tr:hover {
+        background-color: #F1EAC0;
+        transition: background-color 0.2s;
+    }
+    .badge-imc-normal {
+        background-color: #576E40 !important;
+        color: #F1EAC0 !important;
+    }
+    .badge-imc-bajo {
+        background-color: #BCD09F !important;
+        color: #221C04 !important;
+    }
+    .badge-imc-sobrepeso {
+        background-color: #C2854C !important;
+        color: #221C04 !important;
+    }
+    .badge-imc-obesidad {
+        background-color: #8B4513 !important;
+        color: #F1EAC0 !important;
+    }
+    .alert-info-custom {
+        background-color: #BCD09F;
+        border-color: #576E40;
+        color: #221C04;
+    }
+    .text-custom-secondary {
+        color: #C2854C;
+    }
+    .search-box {
+        background-color: #F1EAC0;
+        border: 2px solid #BCD09F;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 20px;
+    }
+    .search-box input {
+        border: 2px solid #BCD09F;
+        border-radius: 6px;
+        padding: 8px 12px;
+    }
+    .search-box input:focus {
+        border-color: #576E40;
+        box-shadow: 0 0 0 0.2rem rgba(87, 110, 64, 0.25);
+        outline: none;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-custom">
+                <div class="card-header card-header-custom">
+                    <h4 class="mb-0">Lista de Estudiantes</h4>
+                </div>
+                <div class="card-body">
+                    @if (isLoading)
+                    {
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-custom-secondary" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                            <p class="mt-2 text-custom-secondary">Cargando estudiantes...</p>
+                        </div>
+                    }
+                    else if (estudiantes == null || !estudiantes.Any())
+                    {
+                        <div class="alert alert-info-custom">
+                            <p class="mb-0">No hay estudiantes registrados.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="search-box">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <label for="searchNombre" class="form-label mb-2" style="color: #221C04; font-weight: 600;">Buscar por nombre:</label>
+                                    <input type="text" 
+                                           id="searchNombre" 
+                                           class="form-control" 
+                                           placeholder="Escribe el nombre del estudiante..."
+                                           value="@filtroNombre" 
+                                           @oninput="@((ChangeEventArgs e) => { filtroNombre = e.Value?.ToString() ?? ""; AplicarFiltros(); })" />
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <small class="text-muted">
+                                        Mostrando @estudiantesFiltrados.Count de @estudiantes.Count estudiantes
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover table-custom">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Edad</th>
+                                        <th>IMC</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var estudiante in estudiantesFiltrados)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@estudiante.NombreCompleto</strong>
+                                            </td>
+                                            <td>@estudiante.Edad años</td>
+                                            <td>
+                                                <span class="badge @GetIMCBadgeClass(estudiante.IMC)">
+                                                    @estudiante.IMC.ToString("F2")
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-primary-custom" 
+                                                        @onclick="() => VerDetalle(estudiante.EstudianteId)">
+                                                    Ver Detalle
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Estudiante>? estudiantes;
+    private List<Estudiante> estudiantesFiltrados = new();
+    private bool isLoading = true;
+    private string filtroNombre = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarEstudiantes();
+    }
+
+    private async Task CargarEstudiantes()
+    {
+        isLoading = true;
+        estudiantes = await EstudianteService.ObtenerTodosAsync();
+        AplicarFiltros();
+        isLoading = false;
+    }
+
+    private void AplicarFiltros()
+    {
+        if (estudiantes == null)
+        {
+            estudiantesFiltrados = new List<Estudiante>();
+            return;
+        }
+
+        estudiantesFiltrados = estudiantes.Where(e =>
+            string.IsNullOrWhiteSpace(filtroNombre) ||
+            e.NombreCompleto.Contains(filtroNombre, StringComparison.OrdinalIgnoreCase)
+        ).ToList();
+    }
+
+    private void VerDetalle(int estudianteId)
+    {
+        Navigation.NavigateTo($"/estudiantes/{estudianteId}/detalle");
+    }
+
+    private string GetIMCBadgeClass(decimal imc)
+    {
+        if (imc < 18.5m) return "badge-imc-bajo";
+        if (imc < 25m) return "badge-imc-normal";
+        if (imc < 30m) return "badge-imc-sobrepeso";
+        return "badge-imc-obesidad";
+    }
+}
+

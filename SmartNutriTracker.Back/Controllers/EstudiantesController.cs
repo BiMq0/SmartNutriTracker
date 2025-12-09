@@ -7,6 +7,7 @@ using SmartNutriTracker.Domain.Statics;
 using SmartNutriTracker.Shared.DTOs.Estudiantes;
 using System;
 using System.Threading.Tasks;
+using System.Linq;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -58,6 +59,67 @@ public class EstudiantesController : ControllerBase
     {
         var estudiante = await _context.Estudiantes.FindAsync(id);
         return estudiante != null ? Ok(estudiante) : NotFound();
+    }
+
+    [HttpGet("{id}/detalle-completo")]
+    public async Task<IActionResult> ObtenerDetalleCompleto(int id)
+    {
+        try
+        {
+            var estudiante = await _context.Estudiantes
+                .Include(e => e.RegistroHabitos!)
+                    .ThenInclude(rh => rh.RegistroAlimentos!)
+                        .ThenInclude(ra => ra.Alimento)
+                .Include(e => e.RegistroHabitos!)
+                    .ThenInclude(rh => rh.RegistroAlimentos!)
+                        .ThenInclude(ra => ra.TipoComida)
+                .FirstOrDefaultAsync(e => e.EstudianteId == id);
+
+            if (estudiante == null)
+            {
+                return NotFound($"Estudiante con ID {id} no encontrado.");
+            }
+
+            var resultado = new
+            {
+                EstudianteId = estudiante.EstudianteId,
+                NombreCompleto = estudiante.NombreCompleto,
+                Edad = estudiante.Edad,
+                IMC = estudiante.IMC,
+                RegistroHabitos = estudiante.RegistroHabitos?.Select(rh => new
+                {
+                    RegistroHabitoId = rh.RegistroHabitoId,
+                    Fecha = rh.Fecha,
+                    HorasSueno = rh.HorasSueno,
+                    HorasActividadFisica = rh.HorasActividadFisica,
+                    RegistroAlimentos = rh.RegistroAlimentos?.Select(ra => new
+                    {
+                        RegistroAlimentoId = ra.RegistroAlimentoId,
+                        Alimento = ra.Alimento != null ? new
+                        {
+                            AlimentoId = ra.Alimento.AlimentoId,
+                            Nombre = ra.Alimento.Nombre,
+                            Calorias = ra.Alimento.Calorias,
+                            Proteinas = ra.Alimento.Proteinas,
+                            Carbohidratos = ra.Alimento.Carbohidratos,
+                            Grasas = ra.Alimento.Grasas
+                        } : null,
+                        Cantidad = ra.Cantidad,
+                        TipoComida = ra.TipoComida != null ? new
+                        {
+                            TipoComidaId = ra.TipoComida.TipoComidaId,
+                            Nombre = ra.TipoComida.Nombre
+                        } : null
+                    }).ToList()
+                }).ToList()
+            };
+
+            return Ok(resultado);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error al obtener detalle completo: {ex.Message}");
+        }
     }
 
     // Tu método para actualizar el perfil

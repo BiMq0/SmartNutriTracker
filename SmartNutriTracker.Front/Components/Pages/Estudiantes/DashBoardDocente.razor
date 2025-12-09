@@ -80,6 +80,28 @@
     .table-custom tr:hover {
         background-color: #F1EAC0;
     }
+    .search-box {
+        background-color: #F1EAC0;
+        border: 2px solid #BCD09F;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    .search-box input, .search-box select {
+        border: 2px solid #BCD09F;
+        border-radius: 6px;
+        padding: 8px 12px;
+    }
+    .search-box input:focus, .search-box select:focus {
+        border-color: #576E40;
+        box-shadow: 0 0 0 0.2rem rgba(87, 110, 64, 0.25);
+        outline: none;
+    }
+    .search-box label {
+        color: #221C04;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
 </style>
 
 <div class="container mt-4">
@@ -87,7 +109,7 @@
         <div class="col-12">
             <div class="card card-custom">
                 <div class="card-header card-header-custom">
-                    <h4 class="mb-0">📊 Dashboard de Estudiantes</h4>
+                    <h4 class="mb-0">Dashboard de Estudiantes</h4>
                 </div>
                 <div class="card-body">
                     @if (isLoading)
@@ -102,23 +124,57 @@
                     else if (!string.IsNullOrEmpty(errorMessage))
                     {
                         <div class="alert alert-danger-custom">
-                            <strong>⚠️ Error:</strong> @errorMessage
+                            <strong>Error:</strong> @errorMessage
                         </div>
                     }
                     else if (estudiantes != null && estudiantes.Any())
                     {
+                        <div class="search-box">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="searchNombre" class="form-label">Buscar por nombre:</label>
+                                    <input type="text" 
+                                           id="searchNombre" 
+                                           class="form-control" 
+                                           placeholder="Escribe el nombre..."
+                                           value="@filtroNombre" 
+                                           @oninput="@((ChangeEventArgs e) => { filtroNombre = e.Value?.ToString() ?? ""; AplicarFiltros(); })" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="searchEstado" class="form-label">Buscar por estado:</label>
+                                    <select id="searchEstado" 
+                                            class="form-control" 
+                                            value="@filtroEstado" 
+                                            @onchange="@((ChangeEventArgs e) => { filtroEstado = e.Value?.ToString() ?? ""; AplicarFiltros(); })">
+                                        <option value="">Todos los estados</option>
+                                        <option value="Normal">Normal</option>
+                                        <option value="Bajo peso">Bajo peso</option>
+                                        <option value="Sobrepeso">Sobrepeso</option>
+                                        <option value="Obesidad">Obesidad</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-12 text-end">
+                                    <small class="text-muted">
+                                        Mostrando @estudiantesFiltrados.Count de @estudiantes.Count estudiantes
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="table-responsive">
                             <table class="table table-custom table-striped table-hover">
                                 <thead>
                                     <tr>
-                                        <th>👤 Nombre Completo</th>
-                                        <th>⚖️ IMC</th>
-                                        <th>🏷️ Estado</th>
-                                        <th>📊 Indicador</th>
+                                        <th>Nombre Completo</th>
+                                        <th>IMC</th>
+                                        <th>Estado</th>
+                                        <th>Indicador</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var estudiante in estudiantes)
+                                    @foreach (var estudiante in estudiantesFiltrados)
                                     {
                                         <tr>
                                             <td>
@@ -151,13 +207,13 @@
                         </div>
 
                         <div class="mt-4 p-3 rounded" style="background-color: #F1EAC0;">
-                            <h5 class="text-custom-secondary">📈 Resumen del Grupo</h5>
+                            <h5 class="text-custom-secondary">Resumen del Grupo</h5>
                             <div class="row text-center mt-3">
                                 <div class="col-md-3 mb-3">
                                     <div class="card card-summary-normal">
                                         <div class="card-body">
                                             <h4 class="display-6">@estudiantes.Count(e => e.CategoriaIMC == "Normal")</h4>
-                                            <p class="mb-0">📍 Peso Normal</p>
+                                            <p class="mb-0">Peso Normal</p>
                                         </div>
                                     </div>
                                 </div>
@@ -165,7 +221,7 @@
                                     <div class="card card-summary-bajo">
                                         <div class="card-body">
                                             <h4 class="display-6">@estudiantes.Count(e => e.CategoriaIMC == "Bajo peso")</h4>
-                                            <p class="mb-0">📉 Bajo Peso</p>
+                                            <p class="mb-0">Bajo Peso</p>
                                         </div>
                                     </div>
                                 </div>
@@ -173,7 +229,7 @@
                                     <div class="card card-summary-sobrepeso">
                                         <div class="card-body">
                                             <h4 class="display-6">@estudiantes.Count(e => e.CategoriaIMC == "Sobrepeso")</h4>
-                                            <p class="mb-0">📊 Sobrepeso</p>
+                                            <p class="mb-0">Sobrepeso</p>
                                         </div>
                                     </div>
                                 </div>
@@ -181,14 +237,14 @@
                                     <div class="card card-summary-obesidad">
                                         <div class="card-body">
                                             <h4 class="display-6">@estudiantes.Count(e => e.CategoriaIMC == "Obesidad")</h4>
-                                            <p class="mb-0">⚠️ Obesidad</p>
+                                            <p class="mb-0">Obesidad</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="mt-3 text-center">
                                 <small class="text-muted">
-                                    📋 Total de estudiantes: <strong>@estudiantes.Count</strong>
+                                    Total de estudiantes: <strong>@estudiantes.Count</strong>
                                 </small>
                             </div>
                         </div>
@@ -196,9 +252,9 @@
                     else
                     {
                         <div class="alert alert-info-custom text-center">
-                            <p class="mb-3">📭 No hay estudiantes registrados aún.</p>
+                            <p class="mb-3">No hay estudiantes registrados aún.</p>
                             <a href="/registro-estudiante" class="btn btn-primary-custom">
-                                📝 Registrar Primer Estudiante
+                                Registrar Primer Estudiante
                             </a>
                         </div>
                     }
@@ -210,8 +266,11 @@
 
 @code {
     private List<EstudianteDashboardItem>? estudiantes;
+    private List<EstudianteDashboardItem> estudiantesFiltrados = new();
     private bool isLoading = true;
     private string? errorMessage;
+    private string filtroNombre = string.Empty;
+    private string filtroEstado = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -228,6 +287,7 @@
             // Usa HTTP en lugar de HTTPS para evitar problemas SSL
             estudiantes = await Http.GetFromJsonAsync<List<EstudianteDashboardItem>>(
                 "http://localhost:5073/api/estudiantes/dashboard");
+            AplicarFiltros();
         }
         catch (Exception ex)
         {
@@ -239,6 +299,22 @@
             isLoading = false;
             StateHasChanged();
         }
+    }
+
+    private void AplicarFiltros()
+    {
+        if (estudiantes == null)
+        {
+            estudiantesFiltrados = new List<EstudianteDashboardItem>();
+            return;
+        }
+
+        estudiantesFiltrados = estudiantes.Where(e =>
+            (string.IsNullOrWhiteSpace(filtroNombre) ||
+             e.NombreCompleto.Contains(filtroNombre, StringComparison.OrdinalIgnoreCase)) &&
+            (string.IsNullOrWhiteSpace(filtroEstado) ||
+             e.CategoriaIMC.Equals(filtroEstado, StringComparison.OrdinalIgnoreCase))
+        ).ToList();
     }
 
     private string GetBadgeClass(string categoria)
