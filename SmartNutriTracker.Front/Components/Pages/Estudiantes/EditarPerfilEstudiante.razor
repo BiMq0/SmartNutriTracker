@@ -1,11 +1,11 @@
 @page "/estudiantes/editar/{EstudianteId:int}"
-@inject HttpClient Http
+@inject SmartNutriTracker.Front.Services.EstudianteService EstudianteService
 @inject NavigationManager Navigation
 
 @using SmartNutriTracker.Shared.DTOs.Estudiantes
-@using SmartNutriTracker.Shared.Endpoints
 @using SmartNutriTracker.Domain.Models.BaseModels
-@using SmartNutriTracker.Domain.Statics  @* ← AGREGAR este using *@
+@using SmartNutriTracker.Domain.Statics
+@using SmartNutriTracker.Front.Services
 
 <style>
     /* Estilos personalizados con tu paleta de colores */
@@ -64,10 +64,12 @@
                                 <div class="col-md-6">
                                     <label for="nombreCompleto" class="form-label">Nombre Completo:</label>
                                     <InputText id="nombreCompleto" class="form-control" @bind-Value="estudianteUpdateDTO.NombreCompleto" />
+                                    <ValidationMessage For="@(() => estudianteUpdateDTO.NombreCompleto)" />
                                 </div>
                                 <div class="col-md-6">
                                     <label for="fechaNacimiento" class="form-label">Fecha de Nacimiento:</label>
                                     <InputDate id="fechaNacimiento" class="form-control" @bind-Value="estudianteUpdateDTO.FechaNacimiento" />
+                                    <ValidationMessage For="@(() => estudianteUpdateDTO.FechaNacimiento)" />
                                 </div>
                             </div>
 
@@ -79,10 +81,12 @@
                                         <option value="@Sexo.Varon">Varón</option>
                                         <option value="@Sexo.Mujer">Mujer</option>
                                     </InputSelect>
+                                    <ValidationMessage For="@(() => estudianteUpdateDTO.Sexo)" />
                                 </div>
                                 <div class="col-md-6">
                                     <label for="peso" class="form-label">Peso (kg):</label>
                                     <InputNumber id="peso" class="form-control" @bind-Value="estudianteUpdateDTO.Peso" />
+                                    <ValidationMessage For="@(() => estudianteUpdateDTO.Peso)" />
                                 </div>
                             </div>
 
@@ -90,6 +94,7 @@
                                 <div class="col-md-6">
                                     <label for="altura" class="form-label">Altura (m):</label>
                                     <InputNumber id="altura" class="form-control" @bind-Value="estudianteUpdateDTO.Altura" />
+                                    <ValidationMessage For="@(() => estudianteUpdateDTO.Altura)" />
                                 </div>
                             </div>
 
@@ -127,8 +132,7 @@
         try
         {
             // Obtener el estudiante existente para poblar el formulario
-            var url = $"{EstudiantesEndpoints.OBTENER_ESTUDIANTE_POR_ID.Replace("{id}", EstudianteId.ToString())}";
-            estudiante = await Http.GetFromJsonAsync<Estudiante>(url);
+            estudiante = await EstudianteService.ObtenerEstudiantePorIdAsync(EstudianteId);
 
             if (estudiante != null)
             {
@@ -166,14 +170,13 @@
         errorMessage = null;
         try
         {
-            // Enviar los datos actualizados al backend
-            var url = $"{EstudiantesEndpoints.ACTUALIZAR_PERFIL_ESTUDIANTE.Replace("{id}", EstudianteId.ToString())}";
-            var response = await Http.PutAsJsonAsync(url, estudianteUpdateDTO);
+            // Enviar los datos actualizados al backend usando el servicio
+            var response = await EstudianteService.ActualizarPerfilAsync(EstudianteId, estudianteUpdateDTO);
 
             if (response.IsSuccessStatusCode)
             {
-                // Éxito: Navegar a la página de visualización del estudiante o un mensaje de éxito
-                Navigation.NavigateTo($"/estudiantes/{EstudianteId}");
+                // Éxito: Navegar a la página principal (Home)
+                Navigation.NavigateTo("/");
             }
             else
             {

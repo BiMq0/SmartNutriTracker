@@ -173,18 +173,17 @@
     {
         try
         {
-            // Temporal: mostrar el estudiante real con ID 10 desde BD
-            estudiante = await EstudianteService.ObtenerPorIdAsync(10);
+            // Intentar cargar el estudiante real por ID 1 (pruebas). Si no existe, usar el endpoint de perfil.
+            estudiante = await EstudianteService.ObtenerEstudiantePorIdAsync(1);
 
-            // Si no existe en BD, usar el endpoint de perfil simulado
             if (estudiante is null)
             {
-                perfil = await EstudianteService.ObtenerPerfilAsync(10);
+                perfil = await EstudianteService.ObtenerPerfilAsync(1);
             }
 
             if (estudiante is null && perfil is null)
             {
-                errorMessage = "No se encontró el estudiante con ID 10.";
+                errorMessage = "No se encontró el estudiante con ID 1.";
             }
         }
         catch (Exception ex)
