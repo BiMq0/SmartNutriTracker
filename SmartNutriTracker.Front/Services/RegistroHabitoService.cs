@@ -1,4 +1,3 @@
-// Front/Services/RegistroHabitoService.cs
 using SmartNutriTracker.Shared.DTOs.Habitos;
 using SmartNutriTracker.Shared.Endpoints;
 using System.Text.Json;

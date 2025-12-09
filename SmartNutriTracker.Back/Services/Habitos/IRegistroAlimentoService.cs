@@ -1,4 +1,3 @@
-// .back/Services/Alimentos/IRegistroAlimentoService.cs
 using SmartNutriTracker.Shared.DTOs.Alimentos;
 
 namespace SmartNutriTracker.Back.Services.Alimentos

@@ -1,4 +1,3 @@
-// Cambia el namespace para que coincida con lo que usa el controlador
 namespace SmartNutriTracker.Shared.DTOs.Alimentos
 {
     public class TipoComidaDTO

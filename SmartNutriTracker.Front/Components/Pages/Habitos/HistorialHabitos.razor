@@ -7,92 +7,261 @@
 @inject NavigationManager Navigation
 
 <div class="container mt-4">
-    <div class="card shadow">
-        <div class="card-header bg-primary text-white">
-            <h3 class="mb-0">📊 Historial de Hábitos</h3>
+    <div class="card shadow-lg">
+        <div class="card-header header-custom">
+            <h3 class="mb-0">📊 Tu progreso diario</h3>
         </div>
         
         <div class="card-body">
             <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="input-group">
-                        <span class="input-group-text">👤 ID Estudiante</span>
-                        <input type="number" class="form-control" 
-                               value="@estudianteId"
-                               @oninput="@(e => estudianteId = int.TryParse(e.Value?.ToString(), out var val) ? val : 0)"
-                               @onkeypress="@(async (e) => { if (e.Key == "Enter") await CargarHabitos(); })" />
-                        <button type="button" class="btn btn-outline-success" @onclick="async () => await CargarHabitos()">
-                            🔍 Buscar
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="col-md-6 text-end">
-                    <button type="button" class="btn btn-success" @onclick="IrARegistrarHabito">
-                        ➕ Nuevo Registro
+                <div class="col-12 text-end">
+                    <button type="button" class="btn btn-primary-custom" @onclick="IrARegistrarHabito">
+                        ➕ Registrar hábitos de hoy
                     </button>
+                </div>
+            </div>
+
+            <div class="card filter-card mb-4">
+                <div class="card-header filter-header">
+                    <h5 class="mb-0">🔍 Filtros de búsqueda</h5>
+                    <small>Usa los filtros para encontrar registros específicos</small>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <!-- Filtro por fecha -->
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label form-label-custom">📅 Filtrar por fecha</label>
+                                <input type="date" class="form-control form-control-custom" 
+                                       value="@filtroFechaString"
+                                       @onchange="@((e) => filtroFechaString = e.Value?.ToString())" />
+                                <small style="color: var(--color-secondary); opacity: 0.8; font-size: 0.8rem;">
+                                    Deja vacío para ver todos los registros
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label form-label-custom">😴 Horas de sueño (mínimo)</label>
+                                <input type="number" class="form-control form-control-custom" 
+                                       step="0.1" min="0" max="24"
+                                       value="@filtroSuenoMin"
+                                       @onchange="@(e => { if (decimal.TryParse(e.Value?.ToString(), out var val)) filtroSuenoMin = val; })"
+                                       placeholder="Ej: 7.5" />
+                                <small style="color: var(--color-secondary); opacity: 0.8; font-size: 0.8rem;">
+                                    Muestra registros con al menos estas horas
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label form-label-custom">🏃 Horas de ejercicio (mínimo)</label>
+                                <input type="number" class="form-control form-control-custom" 
+                                       step="0.1" min="0" max="24"
+                                       value="@filtroEjercicioMin"
+                                       @onchange="@(e => { if (decimal.TryParse(e.Value?.ToString(), out var val)) filtroEjercicioMin = val; })"
+                                       placeholder="Ej: 1.0" />
+                                <small style="color: var(--color-secondary); opacity: 0.8; font-size: 0.8rem;">
+                                    Muestra registros con al menos estas horas
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-2">
+                        <div class="col-12 d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary-custom" @onclick="AplicarFiltros">
+                                <span style="margin-right: 0.5rem;">🔍</span>
+                                Aplicar filtros
+                            </button>
+                            
+                            <button type="button" class="btn btn-outline-custom" @onclick="LimpiarFiltros">
+                                <span style="margin-right: 0.5rem;">🗑️</span>
+                                Limpiar filtros
+                            </button>
+                        </div>
+                    </div>
+                    
+                    @if (FiltrosActivos)
+                    {
+                        <div class="mt-3">
+                            <div class="alert alert-info-custom py-2">
+                                <div class="d-flex align-items-center">
+                                    <span style="font-size: 1.2rem; margin-right: 0.5rem;">📊</span>
+                                    <div>
+                                        <strong>Filtros activos:</strong>
+                                        @if (!string.IsNullOrEmpty(filtroFechaString))
+                                        {
+                                            <span class="badge-filter">Fecha: @filtroFechaString</span>
+                                        }
+                                        @if (filtroSuenoMin > 0)
+                                        {
+                                            <span class="badge-filter">Sueño ≥ @filtroSuenoMin horas</span>
+                                        }
+                                        @if (filtroEjercicioMin > 0)
+                                        {
+                                            <span class="badge-filter">Ejercicio ≥ @filtroEjercicioMin horas</span>
+                                        }
+                                        <span class="badge-filter">Resultados: @habitosFiltrados.Count</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
             
             @if (isLoading)
             {
-                <div class="text-center py-4">
-                    <div class="spinner-border text-primary" role="status">
+                <div class="text-center py-5">
+                    <div class="spinner-border" style="color: var(--color-accent); width: 3rem; height: 3rem;" role="status">
                         <span class="visually-hidden">Cargando...</span>
                     </div>
-                    <p class="mt-2">Cargando historial...</p>
+                    <p class="mt-3" style="color: var(--color-secondary); font-size: 1.1rem;">Cargando tu progreso...</p>
                 </div>
             }
             else if (!string.IsNullOrEmpty(mensajeError))
             {
                 <div class="alert alert-danger">
-                    ❌ @mensajeError
+                    <div class="d-flex align-items-center">
+                        <span style="font-size: 1.5rem; margin-right: 0.5rem;">❌</span>
+                        <div>@mensajeError</div>
+                    </div>
                 </div>
             }
             else if (habitos == null || !habitos.Any())
             {
-                <div class="alert alert-info">
-                    ℹ️ No se encontraron registros de hábitos para el estudiante @estudianteId
+                <div class="alert-empty">
+                    <div class="text-center py-5">
+                        <div style="font-size: 4rem; opacity: 0.3;">📊</div>
+                        <h4 style="color: var(--color-secondary); margin-top: 1rem;">Aún no hay registros</h4>
+                        <p style="color: var(--color-secondary); opacity: 0.8;">Comienza a registrar tus hábitos diarios para ver tu progreso</p>
+                        <button class="btn btn-primary-custom mt-3" @onclick="IrARegistrarHabito">
+                            ➕ Hacer mi primer registro
+                        </button>
+                    </div>
                 </div>
             }
             else
             {
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>📅 Fecha</th>
-                                <th>😴 Horas Sueño</th>
-                                <th>💪 Horas Actividad</th>
-                                <th>⚡ Total Horas</th>
-                                <th>🔧 Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var habito in habitos)
-                            {
+                @if (habitosFiltrados.Count == 0 && FiltrosActivos)
+                {
+                    <div class="alert alert-warning-custom">
+                        <div class="d-flex align-items-center">
+                            <span style="font-size: 1.5rem; margin-right: 0.5rem;">🔍</span>
+                            <div>
+                                <strong>No se encontraron registros con los filtros aplicados</strong>
+                                <p class="mb-0">Intenta con otros criterios de búsqueda</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-custom">
+                            <thead class="table-header-custom">
                                 <tr>
-                                    <td>@habito.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td>
-                                        <span class="badge bg-info">@habito.HorasSueno horas</span>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-success">@habito.HorasActividadFisica horas</span>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-primary">@(habito.HorasSueno + habito.HorasActividadFisica) horas</span>
-                                    </td>
-                                    <td>
-                                        <button type="button" class="btn btn-sm btn-warning" 
-                                                @onclick="@(() => EditarHabito(habito.RegistroHabitoId))">
-                                            ✏️ Editar
-                                        </button>
-                                    </td>
+                                    <th>📅 Fecha</th>
+                                    <th>😴 ¿Cuánto dormiste?</th>
+                                    <th>🏃 ¿Cuánto ejercicio?</th>
+                                    <th>📊 Resumen</th>
+                                    <th>🔧 Acciones</th>
                                 </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var habito in habitosFiltrados)
+                                {
+                                    var totalHoras = habito.HorasSueno + habito.HorasActividadFisica;
+                                    var evaluacionSueno = EvaluarSueno(habito.HorasSueno);
+                                    var evaluacionEjercicio = EvaluarEjercicio(habito.HorasActividadFisica);
+                                    
+                                    <tr class="table-row-custom">
+                                        <td class="fecha-cell">
+                                            <strong>@habito.Fecha.ToString("dd/MM/yyyy")</strong>
+                                            <br/>
+                                            <small style="color: var(--color-secondary); opacity: 0.8;">
+                                                @(habito.Fecha.ToString("HH:mm"))
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <div class="habito-card sueno">
+                                                <div class="habito-valor">@habito.HorasSueno.ToString("0.0") horas</div>
+                                                <div class="habito-evaluacion">@evaluacionSueno</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="habito-card ejercicio">
+                                                <div class="habito-valor">@habito.HorasActividadFisica.ToString("0.0") horas</div>
+                                                <div class="habito-evaluacion">@evaluacionEjercicio</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="resumen-card">
+                                                <div style="font-size: 0.85rem; color: var(--color-secondary); margin-bottom: 0.3rem;">
+                                                    Total del día
+                                                </div>
+                                                <div style="font-size: 1.3rem; font-weight: 700; color: var(--color-dark);">
+                                                    @totalHoras.ToString("0.0")h
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-warning-custom" 
+                                                    @onclick="@(() => EditarHabito(habito.RegistroHabitoId))">
+                                                ✏️ Editar
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="mt-4 d-flex justify-content-between align-items-center">
+                        <div>
+                            <p style="color: var(--color-secondary); margin-bottom: 0;">
+                                Mostrando <strong>@habitosFiltrados.Count</strong> de <strong>@habitos.Count</strong> registros
+                            </p>
+                        </div>
+                        <div>
+                            @if (habitosFiltrados.Count < habitos.Count)
+                            {
+                                <button type="button" class="btn btn-outline-custom btn-sm" @onclick="LimpiarFiltros">
+                                    Ver todos los registros
+                                </button>
                             }
-                        </tbody>
-                    </table>
-                </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <div class="estadisticas-card">
+                            <h5 style="color: var(--color-secondary); margin-bottom: 1rem;">📈 Estadísticas</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="stat-item">
+                                        <div class="stat-label">Promedio de sueño</div>
+                                        <div class="stat-value">@(habitosFiltrados.Any() ? habitosFiltrados.Average(h => h.HorasSueno).ToString("0.0") : "0.0") horas</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="stat-item">
+                                        <div class="stat-label">Promedio de ejercicio</div>
+                                        <div class="stat-value">@(habitosFiltrados.Any() ? habitosFiltrados.Average(h => h.HorasActividadFisica).ToString("0.0") : "0.0") horas</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="stat-item">
+                                        <div class="stat-label">Total de registros</div>
+                                        <div class="stat-value">@habitosFiltrados.Count días</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
             }
         </div>
     </div>
@@ -103,14 +272,41 @@
     public int estudianteId { get; set; }
     
     private List<HabitoRegistroDTO> habitos = new();
+    private List<HabitoRegistroDTO> habitosFiltrados = new();
     private bool isLoading = false;
     private string mensajeError = string.Empty;
+    
+    // Variables para filtros
+    private string filtroFechaString = string.Empty;
+    private decimal filtroSuenoMin = 0;
+    private decimal filtroEjercicioMin = 0;
+    
+    private bool FiltrosActivos => !string.IsNullOrEmpty(filtroFechaString) || filtroSuenoMin > 0 || filtroEjercicioMin > 0;
     
     protected override async Task OnParametersSetAsync()
     {
         if (estudianteId > 0)
         {
+            await CargarDatosIniciales();
+        }
+    }
+    
+    private async Task CargarDatosIniciales()
+    {
+        isLoading = true;
+        
+        try
+        {
+            // Cargar hábitos
             await CargarHabitos();
+        }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error cargando datos: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
         }
     }
     
@@ -122,23 +318,76 @@
             return;
         }
         
-        isLoading = true;
-        mensajeError = string.Empty;
-        
         try
         {
             habitos = await HabitoService.ObtenerHabitosPorEstudianteAsync(estudianteId) 
                      ?? new List<HabitoRegistroDTO>();
+            
+            // Inicializar la lista filtrada con todos los hábitos
+            habitosFiltrados = new List<HabitoRegistroDTO>(habitos);
         }
         catch (Exception ex)
         {
             mensajeError = $"Error cargando hábitos: {ex.Message}";
             habitos = new List<HabitoRegistroDTO>();
+            habitosFiltrados = new List<HabitoRegistroDTO>();
         }
-        finally
+    }
+    
+    private void AplicarFiltros()
+    {
+        try
         {
-            isLoading = false;
+            // Aplicar filtros en cascada
+            var resultado = habitos.AsEnumerable();
+            
+            // Filtro por fecha
+            if (!string.IsNullOrEmpty(filtroFechaString))
+            {
+                if (DateTime.TryParse(filtroFechaString, out DateTime fechaFiltro))
+                {
+                    resultado = resultado.Where(h => 
+                        h.Fecha.Year == fechaFiltro.Year && 
+                        h.Fecha.Month == fechaFiltro.Month && 
+                        h.Fecha.Day == fechaFiltro.Day);
+                }
+            }
+            
+            // Filtro por horas de sueño (mínimo)
+            if (filtroSuenoMin > 0)
+            {
+                resultado = resultado.Where(h => h.HorasSueno >= filtroSuenoMin);
+            }
+            
+            // Filtro por horas de ejercicio (mínimo)
+            if (filtroEjercicioMin > 0)
+            {
+                resultado = resultado.Where(h => h.HorasActividadFisica >= filtroEjercicioMin);
+            }
+            
+            habitosFiltrados = resultado.ToList();
+            
+            // Forzar actualización de la UI
+            StateHasChanged();
         }
+        catch (Exception ex)
+        {
+            mensajeError = $"Error aplicando filtros: {ex.Message}";
+            Console.WriteLine($"Error en AplicarFiltros: {ex.Message}");
+        }
+    }
+    
+    private void LimpiarFiltros()
+    {
+        filtroFechaString = string.Empty;
+        filtroSuenoMin = 0;
+        filtroEjercicioMin = 0;
+        
+        // Restaurar todos los registros
+        habitosFiltrados = new List<HabitoRegistroDTO>(habitos);
+        
+        // Forzar actualización de la UI
+        StateHasChanged();
     }
     
     private void EditarHabito(int registroHabitoId)
@@ -149,6 +398,292 @@
     
     private void IrARegistrarHabito()
     {
-        Navigation.NavigateTo("/habitos/registrar");
+        if (estudianteId > 0)
+            Navigation.NavigateTo($"/habitos/registrar/{estudianteId}");
+        else
+            Navigation.NavigateTo("/habitos/registrar");
+    }
+    
+    private string EvaluarSueno(decimal horas)
+    {
+        if (horas >= 7 && horas <= 9) return "😊 Perfecto";
+        if (horas >= 6 && horas < 7) return "😐 Poco";
+        if (horas > 9) return "😴 Mucho";
+        return "😟 Muy poco";
+    }
+    
+    private string EvaluarEjercicio(decimal horas)
+    {
+        if (horas >= 1) return "💪 ¡Excelente!";
+        if (horas >= 0.5m) return "👍 Bien";
+        if (horas > 0) return "😊 Algo es algo";
+        return "😕 Sin actividad";
     }
 }
+
+<style>
+    :root {
+        --color-primary: #BCD09F;
+        --color-secondary: #576E40;
+        --color-dark: #221C04;
+        --color-accent: #C2854C;
+        --color-light: #F1EAC0;
+    }
+    
+    .header-custom {
+        background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 100%);
+        color: white;
+        border: none;
+        padding: 1.5rem;
+    }
+    
+    .btn-primary-custom {
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+        color: var(--color-dark);
+        font-weight: 600;
+        transition: all 0.3s ease;
+        padding: 0.6rem 1.5rem;
+        border-radius: 8px;
+    }
+    
+    .btn-primary-custom:hover {
+        background-color: var(--color-secondary);
+        border-color: var(--color-secondary);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(87, 110, 64, 0.3);
+    }
+    
+    .btn-warning-custom {
+        background-color: var(--color-accent);
+        border-color: var(--color-accent);
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+    }
+    
+    .btn-warning-custom:hover {
+        background-color: #a66f3d;
+        border-color: #a66f3d;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(194, 133, 76, 0.4);
+    }
+    
+    .btn-secondary-custom {
+        background-color: var(--color-secondary);
+        border-color: var(--color-secondary);
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        padding: 0.6rem 1.5rem;
+        border-radius: 8px;
+    }
+    
+    .btn-secondary-custom:hover {
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+        color: var(--color-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(188, 208, 159, 0.3);
+    }
+    
+    .btn-outline-custom {
+        background-color: transparent;
+        border-color: var(--color-secondary);
+        color: var(--color-secondary);
+        font-weight: 600;
+        padding: 0.6rem 1.5rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-outline-custom:hover {
+        background-color: var(--color-secondary);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(87, 110, 64, 0.3);
+    }
+    
+    .alert-info-custom {
+        background-color: var(--color-light);
+        border-color: var(--color-primary);
+        color: var(--color-dark);
+        border-left: 4px solid var(--color-primary);
+        border-radius: 8px;
+    }
+    
+    .alert-warning-custom {
+        background-color: rgba(241, 234, 192, 0.3);
+        border-color: var(--color-accent);
+        color: var(--color-dark);
+        border-left: 4px solid var(--color-accent);
+        border-radius: 8px;
+    }
+    
+    .alert-empty {
+        background-color: rgba(188, 208, 159, 0.1);
+        border: 2px dashed var(--color-primary);
+        border-radius: 12px;
+        padding: 2rem;
+    }
+    
+    .filter-card {
+        border: 2px solid var(--color-light);
+        border-radius: 10px;
+        background-color: rgba(241, 234, 192, 0.1);
+    }
+    
+    .filter-header {
+        background-color: var(--color-light);
+        border-bottom: 2px solid var(--color-primary);
+        color: var(--color-dark);
+        font-weight: 600;
+    }
+    
+    .badge-filter {
+        background-color: var(--color-accent);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        margin-right: 0.5rem;
+        display: inline-block;
+        margin-top: 0.25rem;
+    }
+    
+    .alert-danger {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+        color: #721c24;
+        border-left: 4px solid #dc3545;
+        border-radius: 8px;
+    }
+    
+    .table-custom {
+        border-collapse: separate;
+        border-spacing: 0 0.5rem;
+    }
+    
+    .table-header-custom {
+        background-color: var(--color-secondary);
+        color: white;
+    }
+    
+    .table-header-custom th {
+        padding: 1rem;
+        font-weight: 600;
+        border: none;
+        font-size: 0.95rem;
+    }
+    
+    .table-row-custom {
+        background-color: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+    }
+    
+    .table-row-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(188, 208, 159, 0.4);
+    }
+    
+    .table-row-custom td {
+        padding: 1rem;
+        vertical-align: middle;
+        border: none;
+        background-color: white;
+    }
+    
+    .fecha-cell {
+        color: var(--color-secondary);
+        font-size: 0.95rem;
+    }
+    
+    .habito-card {
+        background-color: var(--color-light);
+        border-radius: 8px;
+        padding: 0.8rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .habito-card.sueno {
+        border-left: 4px solid #5ce24a7a;
+    }
+    
+    .habito-card.ejercicio {
+        border-left: 4px solid #7ED321;
+    }
+    
+    .habito-card:hover {
+        background-color: var(--color-primary);
+        transform: scale(1.05);
+    }
+    
+    .habito-valor {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--color-dark);
+        margin-bottom: 0.3rem;
+    }
+    
+    .habito-evaluacion {
+        font-size: 0.85rem;
+        color: var(--color-secondary);
+    }
+    
+    .resumen-card {
+        background-color: var(--color-accent);
+        color: white;
+        border-radius: 8px;
+        padding: 0.8rem;
+        text-align: center;
+    }
+    
+    .estadisticas-card {
+        background-color: var(--color-light);
+        border-radius: 12px;
+        padding: 1.5rem;
+        border-left: 4px solid var(--color-primary);
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: var(--color-secondary);
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--color-dark);
+    }
+    
+    .form-label-custom {
+        color: var(--color-secondary);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .form-control-custom {
+        border: 2px solid var(--color-light);
+        transition: all 0.3s ease;
+        border-radius: 8px;
+        padding: 0.6rem;
+    }
+    
+    .form-control-custom:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 0.3rem rgba(188, 208, 159, 0.25);
+    }
+</style>

@@ -19,17 +19,14 @@ public class UserService : IUserService
         _logger = logger;
     }
 
-    // Registro de usuario
     public async Task<UsuarioRegistroDTO?> RegistrarUsuarioAsync(UsuarioNuevoDTO nuevoUsuario)
     {
         if (string.IsNullOrWhiteSpace(nuevoUsuario.Username) || string.IsNullOrWhiteSpace(nuevoUsuario.Password))
             return null;
 
-        // Verificar si el usuario ya existe
         var existe = await _context.Usuarios.AnyAsync(u => u.Username == nuevoUsuario.Username);
         if (existe) return null;
 
-        // Crear usuario con contraseña hasheada
         var usuario = new Usuario
         {
             Username = nuevoUsuario.Username.Trim(),
@@ -40,7 +37,6 @@ public class UserService : IUserService
         _context.Usuarios.Add(usuario);
         await _context.SaveChangesAsync();
 
-        // Cargar referencia al rol
         await _context.Entry(usuario).Reference(u => u.Rol).LoadAsync();
 
         _logger.LogInformation("Usuario registrado: {Username}", usuario.Username);
@@ -48,7 +44,6 @@ public class UserService : IUserService
         return new UsuarioRegistroDTO(usuario);
     }
 
-    // Autenticación de usuario
     public async Task<LoginResponseDTO?> AutenticarUsuarioAsync(LoginDTO loginDTO)
     {
         var usuario = await _context.Usuarios
@@ -57,11 +52,9 @@ public class UserService : IUserService
 
         if (usuario == null) return null;
 
-        // Verificar contraseña
         bool esValida = BCrypt.Net.BCrypt.Verify(loginDTO.Password, usuario.PasswordHash);
         if (!esValida) return null;
 
-        // Generar token JWT
         var token = _tokenService.GenerarToken(usuario);
 
         return new LoginResponseDTO
@@ -71,14 +64,12 @@ public class UserService : IUserService
         };
     }
 
-    // Obtener todos los usuarios
     public async Task<List<UsuarioRegistroDTO>> ObtenerUsuariosAsync()
     {
         var usuarios = await _context.Usuarios.Include(u => u.Rol).ToListAsync();
         return usuarios.Select(u => new UsuarioRegistroDTO(u)).ToList();
     }
 
-    // Validación de credenciales (para otros usos)
     public async Task<Usuario?> ValidarCredencialesAsync(string nombreUsuario, string contrasena)
     {
         var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Username == nombreUsuario);

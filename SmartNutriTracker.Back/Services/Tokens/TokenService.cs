@@ -19,7 +19,6 @@ public class TokenService : ITokenService
 
     public string GenerarToken(Usuario usuario)
     {
-        // 1. Crear los CLAIMS (datos que irán dentro del token)
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, usuario.UsuarioId.ToString()),
@@ -27,11 +26,9 @@ public class TokenService : ITokenService
             new Claim(ClaimTypes.Role, usuario.Rol?.Nombre ?? "Usuario")
         };
 
-        // 2. Crear la clave secreta de seguridad
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        // 3. Crear el token con expiración de 24 horas
         var token = new JwtSecurityToken(
             issuer: _jwtSettings.Issuer,
             audience: _jwtSettings.Audience,
@@ -40,7 +37,6 @@ public class TokenService : ITokenService
             signingCredentials: creds
         );
 
-        // 4. Serializar el token a string
         var tokenHandler = new JwtSecurityTokenHandler();
         return tokenHandler.WriteToken(token);
     }

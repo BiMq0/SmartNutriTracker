@@ -1,4 +1,3 @@
-// .back/Services/Habitos/RegistroHabitoService.cs
 using Microsoft.EntityFrameworkCore;
 using SmartNutriTracker.Back.Database;
 using SmartNutriTracker.Domain.Models.BaseModels;
@@ -133,7 +132,6 @@ namespace SmartNutriTracker.Back.Services.Habitos
             }).ToList();
         }
 
-        // ✅ NUEVO MÉTODO: Obtener hábito por ID
         public async Task<RegistroHabitoDTO?> ObtenerHabitoPorIdAsync(int registroHabitoId)
         {
             try

@@ -1,4 +1,4 @@
-using SmartNutriTracker.Shared.DTOs.Habitos; // ← CAMBIAR namespace
+using SmartNutriTracker.Shared.DTOs.Habitos; 
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

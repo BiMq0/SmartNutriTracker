@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartNutriTracker.Back.Database;
-using SmartNutriTracker.Shared.DTOs.Alimentos; // ✅ DTO correcto
+using SmartNutriTracker.Shared.DTOs.Alimentos;
 using SmartNutriTracker.Shared.Endpoints;
 
 namespace SmartNutriTracker.Back.Controllers
@@ -22,7 +22,7 @@ namespace SmartNutriTracker.Back.Controllers
         {
             var alimentos = await _context.Alimentos
                 .AsNoTracking()
-                .Select(a => new AlimentoDTO // ✅ Usar AlimentoDTO
+                .Select(a => new AlimentosDTO 
                 {
                     AlimentoId = a.AlimentoId,
                     Nombre = a.Nombre,

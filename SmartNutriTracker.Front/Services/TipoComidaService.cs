@@ -1,5 +1,4 @@
-// Front/Services/TipoComidaService.cs
-using SmartNutriTracker.Shared.DTOs.Alimentos; // ← Cambiar namespace
+using SmartNutriTracker.Shared.DTOs.Alimentos; 
 using SmartNutriTracker.Shared.Endpoints;
 using System.Net.Http.Json;
 using System.Text.Json;

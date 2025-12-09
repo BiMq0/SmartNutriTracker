@@ -3,90 +3,70 @@
 @using SmartNutriTracker.Shared.DTOs.Alimentos
 @using SmartNutriTracker.Front.Services 
 @inject RegistroAlimentoService RegistroAlimentoService
-@inject AlimentoService AlimentoService
+@inject AlimentosService AlimentosService
 @inject TipoComidaService TipoComidaService
 @inject NavigationManager Navigation
 
 <div class="container mt-4">
-    <div class="card shadow">
-        <div class="card-header bg-warning text-white">
-            <h3 class="mb-0">🍽️ Editar Consumo de Alimentos</h3>
+    <div class="card shadow-lg">
+        <div class="card-header header-custom">
+            <h3 class="mb-0">✏️ Editar lo que comiste</h3>
         </div>
         
         <div class="card-body">
             @if (isLoading)
             {
                 <div class="text-center py-4">
-                    <div class="spinner-border text-warning" role="status">
+                    <div class="spinner-border" style="color: var(--color-accent);" role="status">
                         <span class="visually-hidden">Cargando...</span>
                     </div>
-                    <p class="mt-2">Cargando datos del consumo...</p>
+                    <p class="mt-2" style="color: var(--color-secondary);">Cargando tus datos...</p>
                 </div>
             }
             else if (consumo == null)
             {
                 <div class="alert alert-danger">
-                    ❌ No se encontró el consumo con ID @registroHabitoId
+                    ❌ No encontramos ese registro
                 </div>
-                <button type="button" class="btn btn-secondary" @onclick="VolverAHistorial">
-                    ↩️ Volver al Historial
+                <button type="button" class="btn btn-secondary-custom" @onclick="VolverAHistorial">
+                    ↩️ Volver al historial
                 </button>
             }
             else if (isLoadingCatalogos)
             {
                 <div class="text-center py-4">
-                    <div class="spinner-border text-primary" role="status">
+                    <div class="spinner-border" style="color: var(--color-primary);" role="status">
                         <span class="visually-hidden">Cargando...</span>
                     </div>
-                    <p class="mt-2">Cargando catálogos...</p>
+                    <p class="mt-2" style="color: var(--color-secondary);">Cargando opciones...</p>
                 </div>
             }
             else
             {
                 <div class="mb-4">
-                    <div class="alert alert-info">
-                        <strong>Editando consumo del estudiante @consumo.EstudianteId</strong>
-                        <br/>Fecha: @consumo.Fecha.ToString("dd/MM/yyyy HH:mm")
+                    <div class="alert alert-info-custom">
+                        <strong>📅 Registro del @consumo.Fecha.ToString("dd/MM/yyyy") a las @consumo.Fecha.ToString("HH:mm")</strong>
                     </div>
                 </div>
                 
                 <EditForm Model="@dtoActualizacion" OnValidSubmit="@ActualizarConsumo" FormName="EditarAlimentoForm">
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Nueva Fecha</label>
-                                <input type="date" class="form-control" 
-                                       value="@fechaString"
-                                       @onchange="@((ChangeEventArgs e) => fechaString = e.Value?.ToString() ?? string.Empty)" />
-                                <small class="text-muted">Actual: @DateOnly.FromDateTime(consumo.Fecha).ToString("dd/MM/yyyy")</small>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Nueva Hora</label>
-                                <input type="time" class="form-control" 
-                                       value="@horaString"
-                                       @onchange="@((ChangeEventArgs e) => horaString = e.Value?.ToString() ?? string.Empty)" />
-                                <small class="text-muted">Actual: @TimeOnly.FromDateTime(consumo.Fecha).ToString("HH:mm")</small>
-                            </div>
-                        </div>
-                    </div>
                     
-                    <h5 class="mt-4 mb-3">🍎 Alimentos Consumidos</h5>
+                    <h5 class="mt-4 mb-3" style="color: var(--color-secondary);">
+                        <span style="font-size: 1.5rem;">🍽️</span> ¿Qué comiste?
+                    </h5>
                     
                     @for (int i = 0; i < dtoActualizacion.AlimentosConsumidos.Count; i++)
                     {
                         var index = i;
-                        <div class="card mb-3">
-                            <div class="card-header bg-light">
+                        <div class="card card-alimento mb-3">
+                            <div class="card-header card-header-alimento">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <span>Alimento @(index + 1)</span>
+                                    <span>Alimento #@(index + 1)</span>
                                     @if (dtoActualizacion.AlimentosConsumidos.Count > 1)
                                     {
-                                        <button type="button" class="btn btn-sm btn-danger" 
+                                        <button type="button" class="btn btn-sm btn-danger-custom" 
                                                 @onclick="() => EliminarAlimento(index)">
-                                            🗑️ Eliminar
+                                            🗑️ Quitar
                                         </button>
                                     }
                                 </div>
@@ -96,38 +76,38 @@
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label class="form-label">Alimento *</label>
-                                            <InputSelect class="form-select" @bind-Value="dtoActualizacion.AlimentosConsumidos[index].AlimentoId">
-                                                <option value="0">-- Seleccionar --</option>
+                                            <label class="form-label form-label-custom">¿Qué alimento fue? *</label>
+                                            <select class="form-select form-select-custom" @bind="dtoActualizacion.AlimentosConsumidos[index].AlimentoId">
+                                                <option value="0">-- Selecciona un alimento --</option>
                                                 @foreach (var alimento in alimentos)
                                                 {
                                                     <option value="@alimento.AlimentoId">
                                                         @alimento.Nombre (@alimento.Calorias kcal)
                                                     </option>
                                                 }
-                                            </InputSelect>
+                                            </select>
                                         </div>
                                     </div>
                                     
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label class="form-label">Tipo de Comida *</label>
-                                            <InputSelect class="form-select" @bind-Value="dtoActualizacion.AlimentosConsumidos[index].TipoComidaId">
-                                                <option value="0">-- Seleccionar --</option>
+                                            <label class="form-label form-label-custom">¿En qué comida? *</label>
+                                            <select class="form-select form-select-custom" @bind="dtoActualizacion.AlimentosConsumidos[index].TipoComidaId">
+                                                <option value="0">-- Selecciona --</option>
                                                 @foreach (var tipo in tiposComida)
                                                 {
-                                                    <option value="@tipo.TipoComidaId">
-                                                        @tipo.Nombre
-                                                    </option>
+                                                    <option value="@tipo.TipoComidaId">@tipo.Nombre</option>
                                                 }
-                                            </InputSelect>
+                                            </select>
                                         </div>
                                     </div>
                                     
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label class="form-label">Cantidad (g) *</label>
-                                            <InputNumber class="form-control" @bind-Value="dtoActualizacion.AlimentosConsumidos[index].Cantidad" />
+                                            <label class="form-label form-label-custom">¿Cuánto comiste? (gramos) *</label>
+                                            <input type="number" class="form-control form-control-custom" 
+                                                   @bind="dtoActualizacion.AlimentosConsumidos[index].Cantidad" 
+                                                   min="1" step="1" />
                                         </div>
                                     </div>
                                 </div>
@@ -136,25 +116,25 @@
                     }
                     
                     <div class="mt-3 mb-4">
-                        <button type="button" class="btn btn-outline-primary" @onclick="AgregarAlimento">
-                            ➕ Agregar Otro Alimento
+                        <button type="button" class="btn btn-primary-custom" @onclick="AgregarAlimento">
+                            ➕ Agregar otro alimento
                         </button>
                     </div>
                     
-                    <div class="mt-4">
-                        <button type="submit" class="btn btn-warning me-2" disabled="@isSubmitting">
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-warning-custom" disabled="@isSubmitting">
                             @if (isSubmitting)
                             {
                                 <span class="spinner-border spinner-border-sm me-1" role="status"></span>
-                                <span>Actualizando...</span>
+                                <span>Guardando...</span>
                             }
                             else
                             {
-                                <span>💾 Guardar Cambios</span>
+                                <span>💾 Guardar cambios</span>
                             }
                         </button>
                         
-                        <button type="button" class="btn btn-secondary" @onclick="VolverAHistorial">
+                        <button type="button" class="btn btn-secondary-custom" @onclick="VolverAHistorial">
                             ↩️ Cancelar
                         </button>
                     </div>
@@ -187,16 +167,13 @@
     [SupplyParameterFromForm]
     private RegistroConsumoActualizarDTO dtoActualizacion { get; set; } = new();
     
-    private List<AlimentoDTO> alimentos = new();
+    private List<AlimentosDTO> alimentos = new();
     private List<TipoComidaDTO> tiposComida = new();
     private bool isLoading = true;
     private bool isLoadingCatalogos = true;
     private bool isSubmitting = false;
     private string mensajeExito = string.Empty;
     private string mensajeError = string.Empty;
-    
-    private string fechaString = string.Empty;
-    private string horaString = string.Empty;
     
     protected override async Task OnInitializedAsync()
     {
@@ -216,8 +193,6 @@
             {
                 dtoActualizacion.Fecha = DateOnly.FromDateTime(consumo.Fecha);
                 dtoActualizacion.Hora = TimeOnly.FromDateTime(consumo.Fecha);
-                fechaString = $"{dtoActualizacion.Fecha:yyyy-MM-dd}";
-                horaString = $"{dtoActualizacion.Hora:HH:mm}";
                 
                 dtoActualizacion.AlimentosConsumidos = consumo.AlimentosConsumidos.Select(a => new RegistroAlimentoItemDTO
                 {
@@ -241,12 +216,12 @@
     {
         try
         {
-            var alimentosTask = AlimentoService.ObtenerTodosAsync();
+            var alimentosTask = AlimentosService.ObtenerTodosAsync();
             var tiposComidaTask = TipoComidaService.ObtenerTodosAsync();
             
             await Task.WhenAll(alimentosTask, tiposComidaTask);
             
-            alimentos = await alimentosTask ?? new List<AlimentoDTO>();
+            alimentos = await alimentosTask ?? new List<AlimentosDTO>();
             tiposComida = await tiposComidaTask ?? new List<TipoComidaDTO>();
         }
         catch (Exception ex)
@@ -280,34 +255,27 @@
         
         try
         {
-            if (DateOnly.TryParse(fechaString, out var fecha))
-            {
-                dtoActualizacion.Fecha = fecha;
-            }
-            if (TimeOnly.TryParse(horaString, out var hora))
-            {
-                dtoActualizacion.Hora = hora;
-            }
-            
             var resultado = await RegistroAlimentoService.ActualizarConsumoAsync(registroHabitoId, dtoActualizacion);
             
             if (resultado)
             {
-                mensajeExito = "Consumo actualizado exitosamente!";
-                await Task.Delay(1500);
+                mensajeExito = "¡Listo! Actualizamos tu registro";
+                await Task.Delay(1000);
+                isSubmitting = false;
                 VolverAHistorial();
             }
             else
             {
-                mensajeError = "Error al actualizar el consumo. Intente nuevamente.";
+                mensajeError = "Hubo un problema al guardar. Intenta de nuevo.";
+                isSubmitting = false;
             }
         }
         catch (Exception ex)
         {
-            mensajeError = $"Error: {ex.Message}";
-        }
-        finally
-        {
+            if (ex.GetType().Name != "NavigationException")
+            {
+                mensajeError = $"Error: {ex.Message}";
+            }
             isSubmitting = false;
         }
     }
@@ -324,3 +292,117 @@
         }
     }
 }
+
+<style>
+    :root {
+        --color-primary: #BCD09F;
+        --color-secondary: #576E40;
+        --color-dark: #221C04;
+        --color-accent: #C2854C;
+        --color-light: #F1EAC0;
+    }
+    
+    .header-custom {
+        background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 100%);
+        color: white;
+        border: none;
+    }
+    
+    .btn-primary-custom {
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+        color: var(--color-dark);
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary-custom:hover {
+        background-color: var(--color-secondary);
+        border-color: var(--color-secondary);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .btn-warning-custom {
+        background-color: var(--color-accent);
+        border-color: var(--color-accent);
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-warning-custom:hover {
+        background-color: #a66f3d;
+        border-color: #a66f3d;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .btn-danger-custom {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        color: white;
+        font-weight: 500;
+    }
+    
+    .btn-danger-custom:hover {
+        background-color: #c82333;
+        border-color: #c82333;
+    }
+    
+    .btn-secondary-custom {
+        background-color: var(--color-light);
+        border-color: var(--color-light);
+        color: var(--color-dark);
+        font-weight: 600;
+    }
+    
+    .btn-secondary-custom:hover {
+        background-color: #e4ddb0;
+        border-color: #e4ddb0;
+        color: var(--color-dark);
+    }
+    
+    .alert-info-custom {
+        background-color: var(--color-light);
+        border-color: var(--color-primary);
+        color: var(--color-dark);
+        border-left: 4px solid var(--color-primary);
+    }
+    
+    .card-alimento {
+        border: 2px solid var(--color-light);
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .card-alimento:hover {
+        border-color: var(--color-primary);
+        box-shadow: 0 4px 12px rgba(188, 208, 159, 0.3);
+    }
+    
+    .card-header-alimento {
+        background-color: var(--color-light);
+        border-bottom: 2px solid var(--color-primary);
+        font-weight: 600;
+        color: var(--color-dark);
+    }
+    
+    .form-label-custom {
+        color: var(--color-secondary);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-select-custom, .form-control-custom {
+        border: 2px solid var(--color-light);
+        transition: border-color 0.3s ease;
+    }
+    
+    .form-select-custom:focus, .form-control-custom:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 0.2rem rgba(188, 208, 159, 0.25);
+    }
+</style>

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartNutriTracker.Back.Database;
-using SmartNutriTracker.Shared.DTOs.Alimentos; // ✅ TipoComidaDTO está en Alimentos/
+using SmartNutriTracker.Shared.DTOs.Alimentos; 
 using SmartNutriTracker.Shared.Endpoints;
 
 namespace SmartNutriTracker.Back.Controllers
@@ -22,7 +22,7 @@ namespace SmartNutriTracker.Back.Controllers
         {
             var tipos = await _context.TiposComida
                 .AsNoTracking()
-                .Select(t => new TipoComidaDTO // ✅ Usar TipoComidaDTO
+                .Select(t => new TipoComidaDTO 
                 {
                     TipoComidaId = t.TipoComidaId,
                     Nombre = t.Nombre

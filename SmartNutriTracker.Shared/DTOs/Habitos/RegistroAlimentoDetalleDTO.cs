@@ -1,4 +1,3 @@
-// Shared/DTOs/Habitos/RegistroAlimentoDetalleDTO.cs
 namespace SmartNutriTracker.Shared.DTOs.Habitos
 {
     public class RegistroAlimentoDetalleDTO

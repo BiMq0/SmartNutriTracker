@@ -1,4 +1,4 @@
-using SmartNutriTracker.Shared.DTOs.Habitos; // ← CAMBIAR namespace
+using SmartNutriTracker.Shared.DTOs.Habitos;
 using SmartNutriTracker.Domain.Models.BaseModels;
 using SmartNutriTracker.Back.Database;
 using Microsoft.EntityFrameworkCore;

@@ -1,7 +1,7 @@
 using SmartNutriTracker.Shared.DTOs.Alimentos;
 using SmartNutriTracker.Shared.Endpoints;
-using System.Text.Json; // AGREGAR ESTA LÍNEA
-using System.Net.Http.Json; // AGREGAR ESTA LÍNEA SI NO ESTÁ
+using System.Text.Json; 
+using System.Net.Http.Json; 
 
 using System.Text;
 

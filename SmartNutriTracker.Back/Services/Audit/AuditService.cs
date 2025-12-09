@@ -15,12 +15,7 @@ namespace SmartNutriTracker.Back.Services.Audit
             _httpContextAccessor = httpContextAccessor;
         }
 
-        /// <summary>
-        /// Registra un evento en la tabla AuditLogs
-        /// </summary>
-        /// <param name="accion">Nombre de la acción ejecutada</param>
-        /// <param name="nivel">Nivel de auditoría (INFO, WARNING, ERROR)</param>
-        /// <param name="detalle">Información adicional opcional</param>
+
         public async Task LogAsync(string accion, string nivel, string detalle = "")
         {
             try

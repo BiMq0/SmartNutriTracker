@@ -1,82 +1,78 @@
+@page "/alimentos/registrar/{estudianteId:int}"
 @page "/alimentos/registrar"
+@rendermode InteractiveServer
 @using SmartNutriTracker.Shared.DTOs.Alimentos
 @using SmartNutriTracker.Front.Services 
 @using System.Text.Json
 @inject RegistroAlimentoService RegistroAlimentoService
-@inject AlimentoService AlimentoService
+@inject AlimentosService AlimentoService
 @inject TipoComidaService TipoComidaService
 @inject NavigationManager Navigation
 
 <div class="container mt-4">
-    <div class="card shadow">
-        <div class="card-header bg-success text-white">
-            <h3 class="mb-0">🍎 Registrar Consumo de Alimentos</h3>
+    <div class="card shadow-lg">
+        <div class="card-header header-custom">
+            <h3 class="mb-0">🍎 Registrar lo que comiste</h3>
+            <p class="mb-0" style="opacity: 0.9; font-size: 0.9rem;">Completa la información de lo que consumiste hoy</p>
         </div>
         
         <div class="card-body">
             @if (isLoadingCatalogos)
             {
                 <div class="text-center py-4">
-                    <div class="spinner-border text-success" role="status">
+                    <div class="spinner-border" style="color: var(--color-accent);" role="status">
                         <span class="visually-hidden">Cargando...</span>
                     </div>
-                    <p class="mt-2">Cargando catálogos...</p>
+                    <p class="mt-2" style="color: var(--color-secondary);">Cargando opciones...</p>
                 </div>
             }
             else
             {
                 <EditForm Model="@nuevoRegistro" OnValidSubmit="@RegistrarConsumo" FormName="RegistroAlimentoForm">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label">ID Estudiante *</label>
-                                <InputNumber class="form-control" @bind-Value="nuevoRegistro.EstudianteId" />
-                                @if (errors.ContainsKey("EstudianteId"))
-                                {
-                                    <small class="text-danger">@errors["EstudianteId"]</small>
-                                }
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label">Fecha *</label>
-                                <input type="date" class="form-control" value="@fechaString" 
-                                       @onchange="@((ChangeEventArgs e) => fechaString = e.Value?.ToString() ?? string.Empty)" />
-                                @if (errors.ContainsKey("Fecha"))
-                                {
-                                    <small class="text-danger">@errors["Fecha"]</small>
-                                }
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label">Hora *</label>
-                                <input type="time" class="form-control" value="@horaString" 
-                                       @onchange="@((ChangeEventArgs e) => horaString = e.Value?.ToString() ?? string.Empty)" />
-                                @if (errors.ContainsKey("Hora"))
-                                {
-                                    <small class="text-danger">@errors["Hora"]</small>
-                                }
+                    <div class="mb-4">
+                        <div class="alert alert-info-custom">
+                            <div class="d-flex align-items-center">
+                                <div style="font-size: 1.5rem; margin-right: 0.5rem;">📅</div>
+                                <div>
+                                    <strong>Registro del día @DateTime.Now.ToString("dd/MM/yyyy")</strong><br/>
+                                    <small>Hora actual: @DateTime.Now.ToString("HH:mm")</small>
+                                </div>
                             </div>
                         </div>
                     </div>
                     
-                    <h5 class="mt-4 mb-3">🍽️ Alimentos Consumidos</h5>
+                    <h5 class="mt-4 mb-3" style="color: var(--color-secondary);">
+                        <span style="font-size: 1.5rem;">🍽️</span> ¿Qué comiste?
+                    </h5>
+                    
+                    @if (nuevoRegistro.AlimentosConsumidos.Count == 0)
+                    {
+                        <div class="alert-empty mb-4">
+                            <div class="text-center py-4">
+                                <div style="font-size: 3rem; opacity: 0.3;">🍎</div>
+                                <p style="color: var(--color-secondary);">Comienza agregando el primer alimento que consumiste</p>
+                            </div>
+                        </div>
+                    }
                     
                     @for (int i = 0; i < nuevoRegistro.AlimentosConsumidos.Count; i++)
                     {
                         var index = i;
-                        <div class="card mb-3">
-                            <div class="card-header bg-light">
+                        <div class="card card-alimento mb-3">
+                            <div class="card-header card-header-alimento">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <span>Alimento @(index + 1)</span>
+                                    <div>
+                                        <span style="font-weight: 600;">Comida #@(index + 1)</span>
+                                        <small style="color: var(--color-secondary); margin-left: 0.5rem;">
+                                            @GetTipoComidaNombre(nuevoRegistro.AlimentosConsumidos[index].TipoComidaId)
+                                        </small>
+                                    </div>
                                     @if (nuevoRegistro.AlimentosConsumidos.Count > 1)
                                     {
-                                        <button type="button" class="btn btn-sm btn-danger" 
-                                                @onclick="() => EliminarAlimento(index)">
-                                            🗑️ Eliminar
+                                        <button type="button" class="btn btn-sm btn-danger-custom" 
+                                                @onclick="() => EliminarAlimento(index)"
+                                                title="Eliminar esta comida">
+                                            🗑️
                                         </button>
                                     }
                                 </div>
@@ -86,9 +82,10 @@
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label class="form-label">Alimento *</label>
-                                            <InputSelect class="form-select" @bind-Value="nuevoRegistro.AlimentosConsumidos[index].AlimentoId">
-                                                <option value="0">-- Seleccionar --</option>
+                                            <label class="form-label form-label-custom">¿Qué alimento fue? *</label>
+                                            <InputSelect class="form-select form-select-custom" 
+                                                       @bind-Value="nuevoRegistro.AlimentosConsumidos[index].AlimentoId">
+                                                <option value="0">-- Selecciona un alimento --</option>
                                                 @foreach (var alimento in alimentos)
                                                 {
                                                     <option value="@alimento.AlimentoId">
@@ -105,9 +102,10 @@
                                     
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label class="form-label">Tipo de Comida *</label>
-                                            <InputSelect class="form-select" @bind-Value="nuevoRegistro.AlimentosConsumidos[index].TipoComidaId">
-                                                <option value="0">-- Seleccionar --</option>
+                                            <label class="form-label form-label-custom">¿En qué comida? *</label>
+                                            <InputSelect class="form-select form-select-custom" 
+                                                       @bind-Value="nuevoRegistro.AlimentosConsumidos[index].TipoComidaId">
+                                                <option value="0">-- Selecciona --</option>
                                                 @foreach (var tipo in tiposComida)
                                                 {
                                                     <option value="@tipo.TipoComidaId">@tipo.Nombre</option>
@@ -122,12 +120,17 @@
                                     
                                     <div class="col-md-4">
                                         <div class="mb-3">
-                                            <label class="form-label">Cantidad (g) *</label>
-                                            <InputNumber min="1" class="form-control" @bind-Value="nuevoRegistro.AlimentosConsumidos[index].Cantidad" />
+                                            <label class="form-label form-label-custom">¿Cuánto comiste? (gramos) *</label>
+                                            <InputNumber min="1" class="form-control form-control-custom" 
+                                                       @bind-Value="nuevoRegistro.AlimentosConsumidos[index].Cantidad"
+                                                       placeholder="Ej: 100" />
                                             @if (errors.ContainsKey($"Cantidad_{index}"))
                                             {
                                                 <small class="text-danger">@errors[$"Cantidad_{index}"]</small>
                                             }
+                                            <small style="color: var(--color-secondary); opacity: 0.8; font-size: 0.8rem;">
+                                                Cantidad en gramos (1 taza ≈ 240g, 1 rebanada ≈ 30g)
+                                            </small>
                                         </div>
                                     </div>
                                 </div>
@@ -135,27 +138,33 @@
                         </div>
                     }
                     
-                    <div class="mt-3 mb-4">
-                        <button type="button" class="btn btn-outline-primary" @onclick="AgregarAlimento">
-                            ➕ Agregar Otro Alimento
+                    <div class="mt-3 mb-4 text-center">
+                        <button type="button" class="btn btn-primary-custom" @onclick="AgregarAlimento">
+                            <span style="font-size: 1.2rem; margin-right: 0.3rem;">➕</span> Agregar otra comida
                         </button>
+                        <p style="color: var(--color-secondary); margin-top: 0.5rem; font-size: 0.9rem;">
+                            Puedes agregar todas las comidas que hayas tenido hoy
+                        </p>
                     </div>
                     
-                    <div class="mt-4">
-                        <button type="submit" class="btn btn-success me-2" disabled="@isSubmitting">
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-warning-custom flex-grow-1" disabled="@isSubmitting">
                             @if (isSubmitting)
                             {
                                 <span class="spinner-border spinner-border-sm me-1" role="status"></span>
-                                <span>Registrando...</span>
+                                <span>Guardando...</span>
                             }
                             else
                             {
-                                <span>💾 Registrar Consumo</span>
+                                <span style="font-size: 1.2rem; margin-right: 0.3rem;">💾</span>
+                                <span>Guardar lo que comí</span>
                             }
                         </button>
                         
-                        <button type="button" class="btn btn-secondary" @onclick="LimpiarFormulario">
-                            🗑️ Limpiar
+                        <button type="button" class="btn btn-secondary-custom" @onclick="LimpiarFormulario"
+                                title="Limpiar todo el formulario">
+                            <span style="font-size: 1.2rem; margin-right: 0.3rem;">🗑️</span>
+                            Limpiar
                         </button>
                     </div>
                 </EditForm>
@@ -163,41 +172,53 @@
                 @if (!string.IsNullOrEmpty(mensajeExito))
                 {
                     <div class="alert alert-success mt-3">
-                        ✅ @mensajeExito
+                        <div class="d-flex align-items-center">
+                            <span style="font-size: 1.5rem; margin-right: 0.5rem;">✅</span>
+                            <div>@mensajeExito</div>
+                        </div>
                     </div>
                 }
                 
                 @if (!string.IsNullOrEmpty(mensajeError))
                 {
                     <div class="alert alert-danger mt-3">
-                        ❌ @mensajeError
+                        <div class="d-flex align-items-center">
+                            <span style="font-size: 1.5rem; margin-right: 0.5rem;">❌</span>
+                            <div>@mensajeError</div>
+                        </div>
                     </div>
                 }
             }
         </div>
         
         <div class="card-footer">
-            <button type="button" class="btn btn-outline-secondary" @onclick="IrAHistorialConsumos">
-                📋 Ver Historial de Consumos
-            </button>
+            <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-custom" @onclick="IrAHistorialConsumos">
+                    <span style="font-size: 1.2rem; margin-right: 0.3rem;">📋</span>
+                    Ver mi historial
+                </button>
+                <div style="color: var(--color-secondary); font-size: 0.9rem;">
+                    Total de alimentos: @nuevoRegistro.AlimentosConsumidos.Count
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 @code {
+    [Parameter]
+    public int estudianteId { get; set; }
+    
     [SupplyParameterFromForm]
     private RegistroConsumoNuevoDTO nuevoRegistro { get; set; } = new();
     
-    private List<AlimentoDTO> alimentos = new();
+    private List<AlimentosDTO> alimentos = new();
     private List<TipoComidaDTO> tiposComida = new();
     private bool isLoadingCatalogos = true;
     private bool isSubmitting = false;
     private string mensajeExito = string.Empty;
     private string mensajeError = string.Empty;
     private Dictionary<string, string> errors = new();
-    
-    private string fechaString = DateTime.Today.ToString("yyyy-MM-dd");
-    private string horaString = DateTime.Now.ToString("HH:mm");
     
     protected override async Task OnInitializedAsync()
     {
@@ -210,25 +231,34 @@
         }
     }
     
+    protected override void OnParametersSet()
+    {
+        if (estudianteId > 0)
+        {
+            nuevoRegistro.EstudianteId = estudianteId;
+            Console.WriteLine($"👤 Estudiante ID establecido desde URL: {estudianteId}");
+        }
+    }
+    
     private async Task CargarCatalogos()
     {
         try
         {
-            Console.WriteLine("📥 Cargando catálogos...");
+            Console.WriteLine("📥 Cargando opciones...");
             var alimentosTask = AlimentoService.ObtenerTodosAsync();
             var tiposComidaTask = TipoComidaService.ObtenerTodosAsync();
             
             await Task.WhenAll(alimentosTask, tiposComidaTask);
             
-            alimentos = await alimentosTask ?? new List<AlimentoDTO>();
+            alimentos = await alimentosTask ?? new List<AlimentosDTO>();
             tiposComida = await tiposComidaTask ?? new List<TipoComidaDTO>();
             
-            Console.WriteLine($"✅ Catálogos cargados: {alimentos.Count} alimentos, {tiposComida.Count} tipos de comida");
+            Console.WriteLine($"✅ Opciones cargadas: {alimentos.Count} alimentos, {tiposComida.Count} tipos de comida");
         }
         catch (Exception ex)
         {
-            mensajeError = $"Error cargando catálogos: {ex.Message}";
-            Console.WriteLine($"❌ Error cargando catálogos: {ex.Message}");
+            mensajeError = $"Error cargando opciones: {ex.Message}";
+            Console.WriteLine($"❌ Error cargando opciones: {ex.Message}");
         }
         finally
         {
@@ -236,18 +266,21 @@
         }
     }
     
+    private string GetTipoComidaNombre(int tipoComidaId)
+    {
+        var tipo = tiposComida.FirstOrDefault(t => t.TipoComidaId == tipoComidaId);
+        return tipo != null ? tipo.Nombre : "Sin seleccionar";
+    }
+    
     private bool ValidarFormulario()
     {
         errors.Clear();
         
         if (nuevoRegistro.EstudianteId <= 0)
-            errors["EstudianteId"] = "El ID del estudiante es requerido";
-        
-        if (!DateOnly.TryParse(fechaString, out _))
-            errors["Fecha"] = "Fecha inválida";
-        
-        if (!TimeOnly.TryParse(horaString, out _))
-            errors["Hora"] = "Hora inválida";
+        {
+            errors["General"] = "No se ha especificado el estudiante";
+            return false;
+        }
         
         if (nuevoRegistro.AlimentosConsumidos == null || !nuevoRegistro.AlimentosConsumidos.Any())
         {
@@ -288,11 +321,11 @@
     
     private async Task RegistrarConsumo()
     {
-        Console.WriteLine("🔄 Iniciando registro de consumo...");
+        Console.WriteLine("🔄 Guardando lo que comiste...");
         
         if (!ValidarFormulario())
         {
-            mensajeError = "Por favor, corrija los errores en el formulario";
+            mensajeError = "Por favor, completa toda la información correctamente";
             mensajeExito = string.Empty;
             return;
         }
@@ -303,37 +336,24 @@
         
         try
         {
-            Console.WriteLine("📤 Convirtiendo fechas...");
+            Console.WriteLine("📤 Estableciendo fecha y hora actual...");
             
-            if (DateOnly.TryParse(fechaString, out var fecha))
-            {
-                nuevoRegistro.Fecha = fecha;
-                Console.WriteLine($"📅 Fecha establecida: {fecha}");
-            }
-            else
-            {
-                throw new InvalidOperationException("Fecha inválida");
-            }
+            nuevoRegistro.Fecha = DateOnly.FromDateTime(DateTime.Now);
+            nuevoRegistro.Hora = TimeOnly.FromDateTime(DateTime.Now);
             
-            if (TimeOnly.TryParse(horaString, out var hora))
-            {
-                nuevoRegistro.Hora = hora;
-                Console.WriteLine($"⏰ Hora establecida: {hora}");
-            }
-            else
-            {
-                throw new InvalidOperationException("Hora inválida");
-            }
-            
+            Console.WriteLine($"📅 Fecha: {nuevoRegistro.Fecha}");
+            Console.WriteLine($"⏰ Hora: {nuevoRegistro.Hora}");
             Console.WriteLine($"📦 Datos a enviar: {JsonSerializer.Serialize(nuevoRegistro)}");
             
             var resultado = await RegistroAlimentoService.RegistrarConsumoAsync(nuevoRegistro);
             
             if (resultado)
             {
-                mensajeExito = "¡Consumo registrado exitosamente!";
-                Console.WriteLine("✅ Consumo registrado exitosamente");
-                await Task.Delay(1500);
+                mensajeExito = "¡Listo! Registramos lo que comiste hoy";
+                Console.WriteLine("✅ Registro guardado exitosamente");
+                
+                await Task.Delay(1000);
+                isSubmitting = false;
                 
                 if (nuevoRegistro.EstudianteId > 0)
                     Navigation.NavigateTo($"/alimentos/historial/{nuevoRegistro.EstudianteId}");
@@ -342,31 +362,30 @@
             }
             else
             {
-                mensajeError = "Error al registrar el consumo. Por favor, intente nuevamente.";
-                Console.WriteLine("❌ Error al registrar consumo");
+                mensajeError = "Hubo un problema al guardar. Intenta de nuevo.";
+                Console.WriteLine("❌ Error al guardar");
+                isSubmitting = false;
             }
         }
         catch (Exception ex)
         {
-            mensajeError = $"Error: {ex.Message}";
-            Console.WriteLine($"❌ Excepción: {ex.Message}");
-            Console.WriteLine($"Stack Trace: {ex.StackTrace}");
-        }
-        finally
-        {
+            if (ex.GetType().Name != "NavigationException")
+            {
+                mensajeError = $"Error: {ex.Message}";
+                Console.WriteLine($"❌ Excepción: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+            }
             isSubmitting = false;
         }
     }
     
     private void LimpiarFormulario()
     {
-        var estudianteId = nuevoRegistro.EstudianteId;
+        var estudianteIdActual = nuevoRegistro.EstudianteId;
         nuevoRegistro = new RegistroConsumoNuevoDTO
         {
-            EstudianteId = estudianteId
+            EstudianteId = estudianteIdActual
         };
-        fechaString = DateTime.Today.ToString("yyyy-MM-dd");
-        horaString = DateTime.Now.ToString("HH:mm");
         AgregarAlimento();
         errors.Clear();
         mensajeError = string.Empty;
@@ -375,7 +394,179 @@
     
     private void IrAHistorialConsumos()
     {
-        Console.WriteLine("🔗 Navegando al historial de consumos...");
-        Navigation.NavigateTo("/alimentos/historial");
+        Console.WriteLine("🔗 Navegando al historial...");
+        if (nuevoRegistro.EstudianteId > 0)
+            Navigation.NavigateTo($"/alimentos/historial/{nuevoRegistro.EstudianteId}");
+        else
+            Navigation.NavigateTo("/alimentos/historial");
     }
 }
+
+<style>
+    :root {
+        --color-primary: #BCD09F;
+        --color-secondary: #576E40;
+        --color-dark: #221C04;
+        --color-accent: #C2854C;
+        --color-light: #F1EAC0;
+    }
+    
+    .header-custom {
+        background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 100%);
+        color: white;
+        border: none;
+        padding: 1.5rem;
+    }
+    
+    .btn-primary-custom {
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+        color: var(--color-dark);
+        font-weight: 600;
+        transition: all 0.3s ease;
+        padding: 0.6rem 1.5rem;
+        border-radius: 8px;
+    }
+    
+    .btn-primary-custom:hover {
+        background-color: var(--color-secondary);
+        border-color: var(--color-secondary);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(87, 110, 64, 0.3);
+    }
+    
+    .btn-warning-custom {
+        background-color: var(--color-accent);
+        border-color: var(--color-accent);
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        padding: 0.8rem 1.5rem;
+        border-radius: 8px;
+        font-size: 1.1rem;
+    }
+    
+    .btn-warning-custom:hover {
+        background-color: #a66f3d;
+        border-color: #a66f3d;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(194, 133, 76, 0.4);
+    }
+    
+    .btn-danger-custom {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        color: white;
+        font-weight: 500;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-danger-custom:hover {
+        background-color: #c82333;
+        border-color: #c82333;
+        transform: scale(1.1);
+    }
+    
+    .btn-secondary-custom {
+        background-color: var(--color-light);
+        border-color: var(--color-light);
+        color: var(--color-dark);
+        font-weight: 600;
+        padding: 0.6rem 1.5rem;
+        border-radius: 8px;
+    }
+    
+    .btn-secondary-custom:hover {
+        background-color: #e4ddb0;
+        border-color: #e4ddb0;
+        color: var(--color-dark);
+    }
+    
+    .btn-outline-custom {
+        background-color: transparent;
+        border-color: var(--color-secondary);
+        color: var(--color-secondary);
+        font-weight: 600;
+        padding: 0.6rem 1.5rem;
+        border-radius: 8px;
+    }
+    
+    .btn-outline-custom:hover {
+        background-color: var(--color-secondary);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(87, 110, 64, 0.3);
+    }
+    
+    .alert-info-custom {
+        background-color: var(--color-light);
+        border-color: var(--color-primary);
+        color: var(--color-dark);
+        border-left: 4px solid var(--color-primary);
+        border-radius: 8px;
+    }
+    
+    .alert-empty {
+        background-color: rgba(188, 208, 159, 0.1);
+        border: 2px dashed var(--color-primary);
+        border-radius: 12px;
+        padding: 2rem;
+    }
+    
+    .card-alimento {
+        border: 2px solid var(--color-light);
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .card-alimento:hover {
+        border-color: var(--color-primary);
+        box-shadow: 0 4px 12px rgba(188, 208, 159, 0.3);
+    }
+    
+    .card-header-alimento {
+        background-color: var(--color-light);
+        border-bottom: 2px solid var(--color-primary);
+        font-weight: 600;
+        color: var(--color-dark);
+    }
+    
+    .form-label-custom {
+        color: var(--color-secondary);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .form-select-custom, .form-control-custom {
+        border: 2px solid var(--color-light);
+        transition: all 0.3s ease;
+        border-radius: 8px;
+        padding: 0.6rem;
+    }
+    
+    .form-select-custom:focus, .form-control-custom:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 0.3rem rgba(188, 208, 159, 0.25);
+    }
+    
+    .alert-success {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+        color: #155724;
+        border-left: 4px solid #28a745;
+        border-radius: 8px;
+    }
+    
+    .alert-danger {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+        color: #721c24;
+        border-left: 4px solid #dc3545;
+        border-radius: 8px;
+    }
+</style>

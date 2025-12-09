@@ -1,4 +1,3 @@
-// .back/Services/Alimentos/RegistroAlimentoService.cs
 using Microsoft.EntityFrameworkCore;
 using SmartNutriTracker.Back.Database;
 using SmartNutriTracker.Domain.Models.BaseModels;
@@ -21,14 +20,12 @@ namespace SmartNutriTracker.Back.Services.Alimentos
     
     try
     {
-        // VALIDAR DATOS DE ENTRADA
         if (registro.EstudianteId <= 0)
             throw new ArgumentException("ID de estudiante inválido");
         
         if (registro.AlimentosConsumidos == null || !registro.AlimentosConsumidos.Any())
             throw new ArgumentException("Debe proporcionar al menos un alimento");
         
-        // Verificar que el estudiante existe
         var estudianteExiste = await _context.Estudiantes
             .AnyAsync(e => e.EstudianteId == registro.EstudianteId);
         
@@ -38,7 +35,6 @@ namespace SmartNutriTracker.Back.Services.Alimentos
         var fechaHora = registro.Fecha.ToDateTime(registro.Hora);
         var fechaUtc = DateTime.SpecifyKind(fechaHora, DateTimeKind.Utc);
 
-        // Crear el registro principal
         var nuevoRegistro = new RegistroHabito
         {
             EstudianteId = registro.EstudianteId,
@@ -48,19 +44,16 @@ namespace SmartNutriTracker.Back.Services.Alimentos
         };
 
         _context.RegistroHabitos.Add(nuevoRegistro);
-        await _context.SaveChangesAsync(); // Guardar para obtener el ID
+        await _context.SaveChangesAsync(); 
 
-        // Ahora crear los alimentos
         foreach (var alimentoConsumido in registro.AlimentosConsumidos)
         {
-            // Validar que el alimento existe
             var alimentoExiste = await _context.Alimentos
                 .AnyAsync(a => a.AlimentoId == alimentoConsumido.AlimentoId);
             
             if (!alimentoExiste)
                 throw new ArgumentException($"El alimento con ID {alimentoConsumido.AlimentoId} no existe");
 
-            // Validar que el tipo de comida existe
             var tipoComidaExiste = await _context.TiposComida
                 .AnyAsync(t => t.TipoComidaId == alimentoConsumido.TipoComidaId);
             
@@ -168,7 +161,6 @@ namespace SmartNutriTracker.Back.Services.Alimentos
             return false;
         }
 
-        // Actualizar fecha si se proporciona
         if (dto.Fecha.HasValue && dto.Hora.HasValue)
         {
             var fechaHora = dto.Fecha.Value.ToDateTime(dto.Hora.Value);
@@ -176,14 +168,12 @@ namespace SmartNutriTracker.Back.Services.Alimentos
             Console.WriteLine($"📅 Fecha actualizada a: {registro.Fecha}");
         }
 
-        // Eliminar alimentos existentes
         if (registro.RegistroAlimentos != null && registro.RegistroAlimentos.Any())
         {
             _context.RegistroAlimentos.RemoveRange(registro.RegistroAlimentos);
             Console.WriteLine($"🗑️ Eliminados {registro.RegistroAlimentos.Count} alimentos existentes");
         }
 
-        // Agregar nuevos alimentos
         if (dto.AlimentosConsumidos != null && dto.AlimentosConsumidos.Any())
         {
             foreach (var alimentoDto in dto.AlimentosConsumidos)

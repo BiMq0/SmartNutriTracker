@@ -43,7 +43,7 @@ namespace SmartNutriTracker.Back.Controllers
             return Ok(lista);
         }
 
-        // ✅ NUEVO ENDPOINT: Obtener hábito por ID
+
         [HttpGet("{registroHabitoId}")]
         public async Task<ActionResult<RegistroHabitoDTO>> ObtenerPorId(int registroHabitoId)
         {

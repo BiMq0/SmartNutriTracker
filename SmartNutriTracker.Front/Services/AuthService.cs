@@ -24,7 +24,6 @@ namespace SmartNutriTracker.Front.Services
             _js = js;
         }
 
-        // Registro de usuario
         public async Task<UsuarioRegistroResponseDTO?> RegisterAsync(UsuarioNuevoDTO nuevoUsuario)
         {
             try
@@ -34,12 +33,10 @@ namespace SmartNutriTracker.Front.Services
 
                 if (response.IsSuccessStatusCode)
                 {
-                    // Retorna la respuesta deserializada
                     var resultado = await response.Content.ReadFromJsonAsync<UsuarioRegistroResponseDTO>();
                     return resultado;
                 }
 
-                // En caso de error, intentar leer el mensaje
                 var error = await response.Content.ReadFromJsonAsync<UsuarioRegistroResponseDTO>();
                 return error;
             }
@@ -49,7 +46,6 @@ namespace SmartNutriTracker.Front.Services
             }
         }
 
-        // Login de usuario
         public async Task<LoginResponseDTO?> LoginAsync(LoginDTO login)
         {
             try
@@ -63,7 +59,6 @@ namespace SmartNutriTracker.Front.Services
 
                 if (resultado != null && !string.IsNullOrEmpty(resultado.Token))
                 {
-                    // Guardar token en localStorage
                     await GuardarTokenAsync(resultado.Token);
                     NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
                 }
@@ -76,22 +71,19 @@ namespace SmartNutriTracker.Front.Services
             }
         }
 
-        // Guardar token en localStorage
         public async Task GuardarTokenAsync(string token)
         {
             _token = token;
             await _js.InvokeVoidAsync("localStorage.setItem", "authToken", token);
         }
 
-        // Obtener token desde localStorage
         public async Task<string?> ObtenerTokenAsync()
         {
             if (_token == null)
             {
-                // Verificar si el prerenderizado est� habilitado
                 if (_js is null)
                 {
-                    return null; // Evitar llamadas durante el prerenderizado
+                    return null; 
                 }
 
                 try
@@ -100,7 +92,6 @@ namespace SmartNutriTracker.Front.Services
                 }
                 catch (InvalidOperationException)
                 {
-                    // Manejar el caso en que la llamada se realiza durante el prerenderizado
                     return null;
                 }
             }
@@ -132,11 +123,9 @@ namespace SmartNutriTracker.Front.Services
             return new AuthenticationState(user);
         }
 
-        // Método para verificar si existe token (hardcodeado por ahora)
         public bool ExistsToken()
         {
-            return false; // Hardcodeado temporalmente para simular que no hay token
-                          // return true; // Hardcodeado temporalmente para simular que hay token
+            return false;
         }
     }
 

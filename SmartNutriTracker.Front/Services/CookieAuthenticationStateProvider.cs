@@ -17,7 +17,6 @@ namespace SmartNutriTracker.Front.Services
      {
          try
         {
-         // Hacer una llamada al backend para verificar si el usuario est� autenticado
              var response = await _httpClient.GetAsync("api/user/me");
 
       if (response.IsSuccessStatusCode)
@@ -39,7 +38,6 @@ namespace SmartNutriTracker.Front.Services
         }
           catch
     {
-                // Si hay error, el usuario no est� autenticado
             }
 
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));

@@ -5,25 +5,25 @@ using System.Text.Json;
 using System.Text;
 namespace SmartNutriTracker.Front.Services
 {
-    public class AlimentoService
+    public class AlimentosService
     {
         private readonly HttpClient _http;
         
-        public AlimentoService(IHttpClientFactory http)
+        public AlimentosService(IHttpClientFactory http)
         {
             _http = http.CreateClient("ApiClient");
         }
         
-        public async Task<List<AlimentoDTO>?> ObtenerTodosAsync()
+        public async Task<List<AlimentosDTO>?> ObtenerTodosAsync()
         {
             try
             {
                 var url = $"{AlimentoEndpoints.BASE}{AlimentoEndpoints.OBTENER_TODOS}";
-                return await _http.GetFromJsonAsync<List<AlimentoDTO>>(url);
+                return await _http.GetFromJsonAsync<List<AlimentosDTO>>(url);
             }
             catch
             {
-                return new List<AlimentoDTO>();
+                return new List<AlimentosDTO>();
             }
         }
     }

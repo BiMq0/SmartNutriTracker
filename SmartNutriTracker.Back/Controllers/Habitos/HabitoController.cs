@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using SmartNutriTracker.Back.Services.Habitos;
-using SmartNutriTracker.Shared.DTOs.Habitos; // ✅ DTO correcto
+using SmartNutriTracker.Shared.DTOs.Habitos; 
 using SmartNutriTracker.Shared.Endpoints;
 
 namespace SmartNutriTracker.Back.Controllers
