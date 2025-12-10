@@ -12,6 +12,7 @@ using SmartNutriTracker.Domain.Models.BaseModels;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
 using System.Text;
+using SmartNutriTracker.Back.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +31,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JWT"));
 builder.Services.AddAllScopes();
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 
 // CORS: permitir solo tu frontend para mayor seguridad
 builder.Services.AddCors(options =>
@@ -101,6 +103,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<NotificacionHub>("/notificacionHub");
 
 // Aplicar migraciones y seed roles
 if (app.Environment.IsDevelopment())
