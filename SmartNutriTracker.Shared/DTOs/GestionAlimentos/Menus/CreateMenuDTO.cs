@@ -10,6 +10,7 @@ namespace SmartNutriTracker.Shared.DTOs.Menus
         [DateNotInPast(ErrorMessage = "La fecha no puede ser anterior a hoy.")]
         public DateTime Fecha { get; set; }
 
+        [MinLength(1, ErrorMessage = "Debe seleccionar al menos un alimento.")]
         public List<int> AlimentoIds { get; set; } = new();
     }
 

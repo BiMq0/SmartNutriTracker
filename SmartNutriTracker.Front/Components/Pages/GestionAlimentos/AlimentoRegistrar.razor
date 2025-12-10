@@ -103,7 +103,7 @@
             Console.WriteLine($"Registrando nuevo alimento");
             Console.WriteLine($"Datos: {System.Text.Json.JsonSerializer.Serialize(createDto)}");
 
-            // ✅ Usar el servicio en lugar de HttpClient directo
+            //Usar el servicio en lugar de HttpClient directo
             var resultado = await AlimentoService.CrearAsync(createDto);
 
             if (resultado != null)
