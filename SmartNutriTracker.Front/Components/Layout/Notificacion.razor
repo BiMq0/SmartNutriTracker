@@ -57,11 +57,14 @@
                 @if (MostrarDiarias)
                 {
                    
+                    @if (NotificacionesDiarias != null)
+                    {
                         <li class="list-group-item">
                             <p class="fw-bold text-success mb-1">@NotificacionesDiarias.NombreEstudiante</p>
                             <p class="small mb-1">@NotificacionesDiarias.Mensaje</p>
                             <p class="text-muted small" style="font-size: 0.8em;">@NotificacionesDiarias.FechaIntento.ToString("g")</p>
                         </li>
+                    }
                     
                 }
                 else
@@ -86,7 +89,7 @@
     private bool MostrarDiarias = true; 
     private string? debugRol;
     private List<NotificacionesAlertaNutricionalDTO> Alertas = new();
-    private NotificacionDiariaDTO NotificacionesDiarias = new();
+    private NotificacionDiariaDTO? NotificacionesDiarias; // Allow null
 
     private bool EsRolValido = false;
 
@@ -115,19 +118,26 @@
 
             if (EsRolValido && rol != null)
             {
-                hubConnection = new HubConnectionBuilder()
-                    .WithUrl(NavigationManager.ToAbsoluteUri("/notificacionHub"))
-                    .WithAutomaticReconnect()
-                    .Build();
-
-                hubConnection.On("RecibirNotificacion", async () =>
+                try
                 {
-                    await CargarDatos();
-                    await InvokeAsync(StateHasChanged);
-                });
+                    hubConnection = new HubConnectionBuilder()
+                        .WithUrl(NavigationManager.ToAbsoluteUri("/notificacionHub"))
+                        .WithAutomaticReconnect()
+                        .Build();
 
-                await hubConnection.StartAsync();
-                await hubConnection.SendAsync("UnirseAGrupo", rol);
+                    hubConnection.On("RecibirNotificacion", async () =>
+                    {
+                        await CargarDatos();
+                        await InvokeAsync(StateHasChanged);
+                    });
+
+                    await hubConnection.StartAsync();
+                    await hubConnection.SendAsync("UnirseAGrupo", rol);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error conectando a SignalR: {ex.Message}");
+                }
             }
         }
 
@@ -159,7 +169,7 @@
 
     private int ObtenerCantidadNotificaciones()
     {
-        return MostrarDiarias ? 1 : Alertas.Count;
+        return MostrarDiarias ? ((NotificacionesDiarias != null) ? 1 : 0) : Alertas.Count;
     }
 
     private void ToggleDropdown()
