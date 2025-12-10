@@ -11,11 +11,11 @@
 @rendermode InteractiveServer
 @using SmartNutriTracker.Front.Components.Layout
 
-@layout SinMain
 
 @if (isLoading)
 {
-    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #576E40 0%, #BCD09F 100%);">
+    <div
+        style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #576E40 0%, #BCD09F 100%);">
         <div style="text-align: center; color: white;">
             <p>Cargando...</p>
         </div>
@@ -23,11 +23,15 @@
 }
 else if (!isAuthenticated)
 {
-    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #576E40 0%, #BCD09F 100%);">
-        <div style="background: #F1EAC0; padding: 40px; border-radius: 20px; box-shadow: 0 10px 40px rgba(34, 28, 4, 0.2); max-width: 500px; width: 100%; text-align: center;">
+    <div
+        style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #576E40 0%, #BCD09F 100%);">
+        <div
+            style="background: #F1EAC0; padding: 40px; border-radius: 20px; box-shadow: 0 10px 40px rgba(34, 28, 4, 0.2); max-width: 500px; width: 100%; text-align: center;">
             <h2 style="color: #221C04; margin-bottom: 10px;">🔐 Acceso Requerido</h2>
             <p style="color: #576E40; margin-bottom: 20px;">Debes iniciar sesión para acceder a la gestión de usuarios.</p>
-            <a href="/login" style="background: #576E40; color: #F1EAC0; padding: 12px 24px; border-radius: 10px; text-decoration: none; font-weight: 600; display: inline-block; transition: all 0.3s ease;" onmouseover="this.style.background='#C2854C'" onmouseout="this.style.background='#576E40'">Ir a Login</a>
+            <a href="/login"
+                style="background: #576E40; color: #F1EAC0; padding: 12px 24px; border-radius: 10px; text-decoration: none; font-weight: 600; display: inline-block; transition: all 0.3s ease;"
+                onmouseover="this.style.background='#C2854C'" onmouseout="this.style.background='#576E40'">Ir a Login</a>
         </div>
     </div>
 }
@@ -57,7 +61,8 @@ else
                     </div>
                 }
 
-                <EditForm Model="@NuevoUsuario" OnSubmit="OnSubmit" FormName="RegistroForm" class="registro-form" Context="editContext">
+                <EditForm Model="@NuevoUsuario" OnSubmit="OnSubmit" FormName="RegistroForm" class="registro-form"
+                    Context="editContext">
                     <DataAnnotationsValidator />
 
                     <div class="form-group">
@@ -69,7 +74,7 @@ else
                     <div class="form-group">
                         <label class="form-label">Contraseña</label>
                         <InputText type="password" @bind-Value="NuevoUsuario.Password" class="form-input"
-                                   placeholder="Crea una contraseña (min 8 caracteres)" />
+                            placeholder="Crea una contraseña (min 8 caracteres)" />
 
                         <ValidationMessage For="@(() => NuevoUsuario.Password)" class="validation-text" />
                     </div>
@@ -77,12 +82,14 @@ else
                     <div class="form-group">
                         <label class="form-label">Confirmar Contraseña</label>
                         <InputText type="password" @bind-Value="ConfirmPassword" class="form-input"
-                                   placeholder="Repite tu contraseña" />
-                        @if (!string.IsNullOrEmpty(NuevoUsuario.Password) && !string.IsNullOrEmpty(ConfirmPassword) && NuevoUsuario.Password != ConfirmPassword)
+                            placeholder="Repite tu contraseña" />
+                        @if (!string.IsNullOrEmpty(NuevoUsuario.Password) && !string.IsNullOrEmpty(ConfirmPassword) &&
+                                            NuevoUsuario.Password != ConfirmPassword)
                         {
                             <div class="validation-text">❌ Las contraseñas no coinciden</div>
                         }
-                        @if (!string.IsNullOrEmpty(NuevoUsuario.Password) && !string.IsNullOrEmpty(ConfirmPassword) && NuevoUsuario.Password == ConfirmPassword)
+                        @if (!string.IsNullOrEmpty(NuevoUsuario.Password) && !string.IsNullOrEmpty(ConfirmPassword) &&
+                                            NuevoUsuario.Password == ConfirmPassword)
                         {
                             <div class="validation-success">✅ Las contraseñas coinciden</div>
                         }
@@ -223,16 +230,16 @@ else
             color: #221C04;
         }
 
-            .form-input:focus,
-            .form-select:focus {
-                outline: none;
-                border-color: #576E40;
-                box-shadow: 0 0 0 3px rgba(87, 110, 64, 0.1);
-            }
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: #576E40;
+            box-shadow: 0 0 0 3px rgba(87, 110, 64, 0.1);
+        }
 
-            .form-input::placeholder {
-                color: #999;
-            }
+        .form-input::placeholder {
+            color: #999;
+        }
 
         .form-select {
             cursor: pointer;
@@ -265,28 +272,28 @@ else
             margin-top: 10px;
         }
 
-            .btn-submit:hover:not(:disabled) {
-                background: #C2854C;
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(194, 133, 76, 0.3);
-            }
+        .btn-submit:hover:not(:disabled) {
+            background: #C2854C;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(194, 133, 76, 0.3);
+        }
 
-            .btn-submit:disabled {
-                background: #999;
-                cursor: not-allowed;
-                opacity: 0.6;
-            }
+        .btn-submit:disabled {
+            background: #999;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
 
         .form-footer {
             text-align: center;
             margin-top: 10px;
         }
 
-            .form-footer p {
-                color: #576E40;
-                font-size: 14px;
-                margin: 0;
-            }
+        .form-footer p {
+            color: #576E40;
+            font-size: 14px;
+            margin: 0;
+        }
 
         .link-login {
             color: #C2854C;
@@ -295,10 +302,10 @@ else
             transition: color 0.3s ease;
         }
 
-            .link-login:hover {
-                color: #221C04;
-                text-decoration: underline;
-            }
+        .link-login:hover {
+            color: #221C04;
+            text-decoration: underline;
+        }
 
         .requisitos-info {
             margin-top: 20px;
@@ -306,35 +313,35 @@ else
             border-top: 1px solid #BCD09F;
         }
 
-            .requisitos-info details {
-                cursor: pointer;
-            }
+        .requisitos-info details {
+            cursor: pointer;
+        }
 
-            .requisitos-info summary {
-                color: #576E40;
-                font-weight: 600;
-                font-size: 13px;
-                padding: 8px;
-                background: #f5f5f5;
-                border-radius: 6px;
-                transition: all 0.3s ease;
-            }
+        .requisitos-info summary {
+            color: #576E40;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 8px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
 
-                .requisitos-info summary:hover {
-                    background: #e8e8e8;
-                }
+        .requisitos-info summary:hover {
+            background: #e8e8e8;
+        }
 
-            .requisitos-info ul {
-                margin: 12px 0 0 0;
-                padding-left: 20px;
-                color: #221C04;
-                font-size: 12px;
-            }
+        .requisitos-info ul {
+            margin: 12px 0 0 0;
+            padding-left: 20px;
+            color: #221C04;
+            font-size: 12px;
+        }
 
-            .requisitos-info li {
-                margin: 4px 0;
-                line-height: 1.4;
-            }
+        .requisitos-info li {
+            margin: 4px 0;
+            line-height: 1.4;
+        }
 
         @@media (max-width: 500px) {
             .registro-card {
@@ -433,10 +440,10 @@ else
     private bool IsFormValid()
     {
         return !string.IsNullOrWhiteSpace(NuevoUsuario.Username) &&
-               !string.IsNullOrWhiteSpace(NuevoUsuario.Password) &&
-               !string.IsNullOrWhiteSpace(ConfirmPassword) &&
-               NuevoUsuario.Password == ConfirmPassword &&
-               NuevoUsuario.RolId > 0;
+        !string.IsNullOrWhiteSpace(NuevoUsuario.Password) &&
+        !string.IsNullOrWhiteSpace(ConfirmPassword) &&
+        NuevoUsuario.Password == ConfirmPassword &&
+        NuevoUsuario.RolId > 0;
     }
 
     private async Task OnSubmit()
@@ -451,7 +458,7 @@ else
         {
             Message = "Por favor, completa el formulario correctamente.";
             Logger.LogWarning("Intento de registro rechazado - formulario inválido para usuario: {Username}",
-                NuevoUsuario?.Username);
+            NuevoUsuario?.Username);
             Enviando = false;
             return;
         }
@@ -466,7 +473,7 @@ else
                 Message = "Usuario registrado correctamente.";
 
                 Logger.LogInformation("Usuario {Username} registrado exitosamente. ID: {UserId}, Rol: {RolId}",
-                    response.Usuario.Username, response.Usuario.Id, response.Usuario.RolId);
+                response.Usuario.Username, response.Usuario.Id, response.Usuario.RolId);
 
                 await Task.Delay(1000);
                 NavigationManager.NavigateTo("/login");
@@ -475,13 +482,13 @@ else
             {
                 Message = response?.Mensaje ?? "Error al registrar el usuario.";
                 Logger.LogWarning("Error al registrar usuario {Username}: {Mensaje}",
-                    NuevoUsuario?.Username, Message);
+                NuevoUsuario?.Username, Message);
             }
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Excepción durante intento de registro de usuario {Username}",
-                NuevoUsuario?.Username);
+            NuevoUsuario?.Username);
             Message = "Ocurrió un error inesperado. Por favor, intenta nuevamente.";
         }
         finally
