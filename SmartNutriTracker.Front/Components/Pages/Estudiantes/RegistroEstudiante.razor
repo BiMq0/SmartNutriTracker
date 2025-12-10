@@ -1,0 +1,206 @@
+﻿@page "/registro-estudiante"
+@using SmartNutriTracker.Shared.DTOs.Estudiantes
+@using SmartNutriTracker.Domain.Statics
+@using SmartNutriTracker.Front.Handlers
+@inject NavigationManager Navigation
+@inject IHttpClientFactory HttpClientFactory
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Registro de Estudiante</h4>
+                </div>
+                <div class="card-body">
+                    <form @onsubmit:preventDefault @onsubmit="ValidarYRegistrar">
+                        
+                        <!-- Nombre Completo -->
+                        <div class="mb-3">
+                            <label class="form-label">Nombre Completo *</label>
+                            <input type="text" 
+                                   @bind="nombreInput"
+                                   @bind:event="oninput"
+                                   class="form-control"
+                                   placeholder="Ej: Juan Pérez" />
+                            @if (!nombreValido && intentoEnviar)
+                            {
+                                <div class="text-danger small mt-1">
+                                    El nombre completo es requerido
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Fecha de Nacimiento -->
+                        <div class="mb-3">
+                            <label class="form-label">Fecha de Nacimiento *</label>
+                            <input type="date" 
+                                   @bind="nuevoEstudiante.FechaNacimiento"
+                                   @bind:format="yyyy-MM-dd"
+                                   class="form-control" />
+                        </div>
+
+                        <!-- Sexo -->
+                        <div class="mb-3">
+                            <label class="form-label">Sexo *</label>
+                            <select @bind="nuevoEstudiante.Sexo" class="form-control">
+                                <option value="@Sexo.Varon">Varón</option>
+                                <option value="@Sexo.Mujer">Mujer</option>
+                            </select>
+                        </div>
+
+                        <!-- Peso -->
+                        <div class="mb-3">
+                            <label class="form-label">Peso (kg) *</label>
+                            <input type="number" 
+                                   step="0.1"
+                                   @bind="nuevoEstudiante.Peso"
+                                   class="form-control" 
+                                   placeholder="Ej: 65.5" />
+                        </div>
+
+                        <!-- Altura -->
+                        <div class="mb-3">
+                            <label class="form-label">Altura (m) *</label>
+                            <input type="number" 
+                                   step="0.01"
+                                   @bind="nuevoEstudiante.Altura"
+                                   class="form-control" 
+                                   placeholder="Ej: 1.65" />
+                        </div>
+
+                        <!-- Botón de registro -->
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg py-3" disabled="@isLoading">
+                                @if (isLoading)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                    <span>Registrando...</span>
+                                }
+                                else
+                                {
+                                    <span>Registrar Estudiante</span>
+                                }
+                            </button>
+                        </div>
+
+                        <!-- Mensaje de resultado -->
+                        @if (!string.IsNullOrEmpty(mensaje))
+                        {
+                            <div class="alert @(mensaje.Contains("exito") ? "alert-success" : "alert-danger") mt-3">
+                                @mensaje
+                            </div>
+                        }
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private EstudianteRegistroDTO nuevoEstudiante = new();
+    private string nombreInput = "";
+    private bool isLoading = false;
+    private string mensaje = "";
+    private bool intentoEnviar = false;
+    private bool nombreValido = true;
+
+    protected override void OnInitialized()
+    {
+        // Valores por defecto
+        nuevoEstudiante.FechaNacimiento = new DateTime(2005, 1, 1);
+        nuevoEstudiante.Sexo = Sexo.Varon;
+        nuevoEstudiante.Peso = 60;
+        nuevoEstudiante.Altura = 1.65m;
+    }
+
+    private async Task ValidarYRegistrar()
+    {
+        intentoEnviar = true;
+        isLoading = true;
+        mensaje = "";
+        StateHasChanged();
+        
+        // Asignar nombre desde el input separado
+        nuevoEstudiante.NombreCompleto = nombreInput?.Trim() ?? "";
+        
+        // Validación manual
+        nombreValido = !string.IsNullOrWhiteSpace(nuevoEstudiante.NombreCompleto) 
+                     && nuevoEstudiante.NombreCompleto.Length >= 2;
+        
+        if (!nombreValido)
+        {
+            mensaje = "El nombre completo es requerido (mínimo 2 caracteres)";
+            isLoading = false;
+            StateHasChanged();
+            return;
+        }
+        
+        if (nuevoEstudiante.Peso <= 0)
+        {
+            mensaje = "El peso debe ser mayor a 0";
+            isLoading = false;
+            StateHasChanged();
+            return;
+        }
+        
+        if (nuevoEstudiante.Altura <= 0)
+        {
+            mensaje = "La altura debe ser mayor a 0";
+            isLoading = false;
+            StateHasChanged();
+            return;
+        }
+        
+        // Si pasa validación, registrar
+        await RegistrarEstudiante();
+    }
+
+    private async Task RegistrarEstudiante()
+    {
+        try
+        {
+            // Usar HttpClientFactory para obtener el cliente configurado
+            var httpClient = HttpClientFactory.CreateClient("ApiClient");
+            
+            var response = await httpClient.PostAsJsonAsync("api/estudiantes", nuevoEstudiante);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            
+            if (response.IsSuccessStatusCode)
+            {
+                mensaje = "Estudiante registrado exitosamente!";
+                
+                // Limpiar formulario
+                nuevoEstudiante = new EstudianteRegistroDTO();
+                nuevoEstudiante.FechaNacimiento = new DateTime(2005, 1, 1);
+                nuevoEstudiante.Sexo = Sexo.Varon;
+                nuevoEstudiante.Peso = 60;
+                nuevoEstudiante.Altura = 1.65m;
+                nombreInput = "";
+                intentoEnviar = false;
+                nombreValido = true;
+                
+                await Task.Delay(1000);
+                Navigation.NavigateTo("/dashboard");
+            }
+            else
+            {
+                mensaje = $"Error al registrar estudiante ({(int)response.StatusCode}): {responseContent}";
+            }
+        }
+        catch (Exception ex)
+        {
+            mensaje = $"Error de conexión: {ex.Message}";
+            if (ex.InnerException != null)
+            {
+                mensaje += $" | Detalle: {ex.InnerException.Message}";
+            }
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+}

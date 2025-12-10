@@ -1,0 +1,280 @@
+﻿@page "/dashboard"
+@using SmartNutriTracker.Shared.DTOs.Estudiantes
+@using SmartNutriTracker.Shared.Endpoints
+@inject HttpClient Http
+
+<style>
+    /* Estilos personalizados con tu paleta de colores */
+    .btn-primary-custom {
+        background-color: #576E40; /* Verde oscuro */
+        border-color: #576E40;
+        color: #F1EAC0; /* Beige claro */
+    }
+    .btn-primary-custom:hover {
+        background-color: #BCD09F; /* Verde más claro */
+        border-color: #BCD09F;
+        color: #000;
+    }
+    .card-custom {
+        border-color: #BCD09F;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .card-header-custom {
+        background-color: #576E40;
+        color: #F1EAC0;
+    }
+    .text-custom-secondary {
+        color: #C2854C; /* Naranja/Marrón */
+    }
+    .badge-custom-success {
+        background-color: #576E40 !important;
+        color: #F1EAC0 !important;
+    }
+    .badge-custom-warning {
+        background-color: #C2854C !important;
+        color: #000 !important;
+    }
+    .badge-custom-danger {
+        background-color: #8B4513 !important;
+        color: #F1EAC0 !important;
+    }
+    .card-summary-normal {
+        background-color: #576E40 !important;
+        color: #F1EAC0 !important;
+    }
+    .card-summary-bajo {
+        background-color: #BCD09F !important;
+        color: #000 !important;
+    }
+    .card-summary-sobrepeso {
+        background-color: #C2854C !important;
+        color: #000 !important;
+    }
+    .card-summary-obesidad {
+        background-color: #8B4513 !important;
+        color: #F1EAC0 !important;
+    }
+    .progress-bar-success {
+        background-color: #576E40;
+    }
+    .progress-bar-warning {
+        background-color: #C2854C;
+    }
+    .progress-bar-danger {
+        background-color: #8B4513;
+    }
+    .alert-info-custom {
+        background-color: #BCD09F;
+        border-color: #576E40;
+        color: #000;
+    }
+    .alert-danger-custom {
+        background-color: #F8D7DA;
+        border-color: #8B4513;
+        color: #8B4513;
+    }
+    .table-custom th {
+        background-color: #576E40;
+        color: #F1EAC0;
+    }
+    .table-custom tr:hover {
+        background-color: #F1EAC0;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-custom">
+                <div class="card-header card-header-custom">
+                    <h4 class="mb-0">📊 Dashboard de Estudiantes</h4>
+                </div>
+                <div class="card-body">
+                    @if (isLoading)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border text-custom-secondary" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                            <p class="mt-2 text-custom-secondary">Cargando estudiantes...</p>
+                        </div>
+                    }
+                    else if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger-custom">
+                            <strong>⚠️ Error:</strong> @errorMessage
+                        </div>
+                    }
+                    else if (estudiantes != null && estudiantes.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-custom table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>👤 Nombre Completo</th>
+                                        <th>⚖️ IMC</th>
+                                        <th>🏷️ Estado</th>
+                                        <th>📊 Indicador</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var estudiante in estudiantes)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@estudiante.NombreCompleto</strong>
+                                            </td>
+                                            <td>
+                                                <span class="fw-bold">@estudiante.IMC.ToString("F2")</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge @GetBadgeClass(estudiante.CategoriaIMC)">
+                                                    @estudiante.CategoriaIMC
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="progress" style="height: 20px; width: 200px;">
+                                                    <div class="progress-bar @GetProgressBarClass(estudiante.IMC)" 
+                                                         role="progressbar" 
+                                                         style="width: @CalculateProgressWidth(estudiante.IMC)%"
+                                                         aria-valuenow="@estudiante.IMC" 
+                                                         aria-valuemin="15" 
+                                                         aria-valuemax="40">
+                                                        <small class="fw-bold">@estudiante.IMC.ToString("F1")</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-4 p-3 rounded" style="background-color: #F1EAC0;">
+                            <h5 class="text-custom-secondary">📈 Resumen del Grupo</h5>
+                            <div class="row text-center mt-3">
+                                <div class="col-md-3 mb-3">
+                                    <div class="card card-summary-normal">
+                                        <div class="card-body">
+                                            <h4 class="display-6">@estudiantes.Count(e => e.CategoriaIMC == "Normal")</h4>
+                                            <p class="mb-0">📍 Peso Normal</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="card card-summary-bajo">
+                                        <div class="card-body">
+                                            <h4 class="display-6">@estudiantes.Count(e => e.CategoriaIMC == "Bajo peso")</h4>
+                                            <p class="mb-0">📉 Bajo Peso</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="card card-summary-sobrepeso">
+                                        <div class="card-body">
+                                            <h4 class="display-6">@estudiantes.Count(e => e.CategoriaIMC == "Sobrepeso")</h4>
+                                            <p class="mb-0">📊 Sobrepeso</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="card card-summary-obesidad">
+                                        <div class="card-body">
+                                            <h4 class="display-6">@estudiantes.Count(e => e.CategoriaIMC == "Obesidad")</h4>
+                                            <p class="mb-0">⚠️ Obesidad</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3 text-center">
+                                <small class="text-muted">
+                                    📋 Total de estudiantes: <strong>@estudiantes.Count</strong>
+                                </small>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info-custom text-center">
+                            <p class="mb-3">📭 No hay estudiantes registrados aún.</p>
+                            <a href="/registro-estudiante" class="btn btn-primary-custom">
+                                📝 Registrar Primer Estudiante
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<EstudianteDashboardItem>? estudiantes;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDashboard();
+    }
+
+    private async Task CargarDashboard()
+    {
+        isLoading = true;
+        errorMessage = null;
+        
+        try
+        {
+            // Usa HTTP en lugar de HTTPS para evitar problemas SSL
+            estudiantes = await Http.GetFromJsonAsync<List<EstudianteDashboardItem>>(
+                "http://localhost:5073/api/estudiantes/dashboard");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error al cargar dashboard: {ex.Message}";
+            Console.WriteLine($"Error detallado: {ex}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetBadgeClass(string categoria)
+    {
+        return categoria switch
+        {
+            "Bajo peso" => "badge-custom-warning",
+            "Normal" => "badge-custom-success",
+            "Sobrepeso" => "badge-custom-warning",
+            "Obesidad" => "badge-custom-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetProgressBarClass(decimal imc)
+    {
+        if (imc < 18.5m) return "progress-bar-warning";
+        if (imc < 25m) return "progress-bar-success";
+        if (imc < 30m) return "progress-bar-warning";
+        return "progress-bar-danger";
+    }
+
+    private int CalculateProgressWidth(decimal imc)
+    {
+        var min = 15m;
+        var max = 40m;
+        var porcentaje = (imc - min) / (max - min) * 100;
+        return Math.Clamp((int)porcentaje, 5, 95);
+    }
+
+    public class EstudianteDashboardItem
+    {
+        public int EstudianteId { get; set; }
+        public string NombreCompleto { get; set; } = "";
+        public decimal IMC { get; set; }
+        public string CategoriaIMC { get; set; } = "";
+        public bool TieneAlerta { get; set; }
+    }
+}

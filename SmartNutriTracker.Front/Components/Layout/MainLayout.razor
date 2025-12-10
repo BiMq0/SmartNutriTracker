@@ -4,7 +4,7 @@
 @inject NavigationManager NavigationManager
 
 <div class="page">
-    @if (AuthService.ExistsToken())
+    @if (!AuthService.ExistsToken())
     {
         <div class="sidebar">
             <NavMenu />
