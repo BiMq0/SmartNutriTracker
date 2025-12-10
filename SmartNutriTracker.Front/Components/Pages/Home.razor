@@ -10,13 +10,7 @@
     {
         if (!AuthService.ExistsToken())
         {
-            try { 
-                NavigationManager.NavigateTo("/login");
-            }
-            catch (Exception ex)
-            {
-				Console.WriteLine($"Error during navigation: {ex.Message}");
-            }
+            NavigationManager.NavigateTo("/login");
         }
     }
 }

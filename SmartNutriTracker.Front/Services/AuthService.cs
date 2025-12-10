@@ -8,6 +8,7 @@ using Microsoft.JSInterop;
 using SmartNutriTracker.Shared.DTOs.Usuarios;
 using SmartNutriTracker.Shared.Endpoints;
 
+
 namespace SmartNutriTracker.Front.Services
 {
     public class AuthService : AuthenticationStateProvider
@@ -70,7 +71,6 @@ namespace SmartNutriTracker.Front.Services
             }
         }
 
-        // Guardar token en localStorage
         public async Task GuardarTokenAsync(string token)
         {
             _token = token;
@@ -125,11 +125,7 @@ namespace SmartNutriTracker.Front.Services
 
         public bool ExistsToken()
         {
-            // Versión pre-produccion (funcional)
-            return !string.IsNullOrEmpty(_token); // Hardcodeado temporalmente para simular que no hay token
-            
-            // Mi Version (esta en comentario)
-            // return false;
+            return false;
         }
     }
 

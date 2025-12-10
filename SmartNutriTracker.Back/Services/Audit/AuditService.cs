@@ -1,7 +1,6 @@
 ﻿using SmartNutriTracker.Back.Database;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
-using Microsoft.Extensions.Logging;
 
 namespace SmartNutriTracker.Back.Services.Audit
 {
@@ -9,13 +8,11 @@ namespace SmartNutriTracker.Back.Services.Audit
     {
         private readonly ApplicationDbContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ILogger<AuditService> _logger;
 
-        public AuditService(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor, ILogger<AuditService> logger)
+        public AuditService(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
-            _logger = logger;
         }
 
 
@@ -48,7 +45,7 @@ namespace SmartNutriTracker.Back.Services.Audit
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error registrando auditoría: {Message}", ex.Message);
+                Console.WriteLine($"Error registrando auditoría: {ex.Message}");
             }
         }
     }

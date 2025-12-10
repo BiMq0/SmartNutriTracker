@@ -20,11 +20,7 @@ public class Estudiante
 
     [NotMapped]
     public decimal TMB =>
-        // La fórmula Mifflin–St Jeor espera Altura en centímetros.
-        // En la entidad `Estudiante` la propiedad `Altura` se utiliza
-        // para el cálculo de IMC como metros (IMC = Peso / (Altura * Altura)).
-        // Por consistencia convertimos Altura a centímetros multiplicando por 100.
-        10 * Peso + 6.25m * (Altura * 100m) - 5 * Edad + (Sexo == Sexo.Varon ? 5 : -161);
+        10 * Peso + 6.25m * Altura - 5 * Edad + (Sexo == Sexo.Varon ? 5 : -161);
 
     [NotMapped]
     public int Edad =>

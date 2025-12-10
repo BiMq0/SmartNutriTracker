@@ -38,10 +38,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddScopedServices();
         services.AddScopedMappers();
-        
-        // Registrar validadores específicamente
-        services.AddScoped<SmartNutriTracker.Back.Services.Nutrition.INutritionValidator, SmartNutriTracker.Back.Services.Nutrition.NutritionValidator>();
-        
         return services;
     }
 }

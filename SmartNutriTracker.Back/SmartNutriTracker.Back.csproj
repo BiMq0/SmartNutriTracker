@@ -20,7 +20,6 @@
 <PackageReference Include="Microsoft.OpenApi" Version="1.6.0" />
 <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
 <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.1.2" />
-<PackageReference Include="iTextSharp" Version="5.5.13.3" />
 
   </ItemGroup>
 	<ItemGroup>
