@@ -2,12 +2,19 @@
 @using SmartNutriTracker.Front.Services.NotificacionesInternas
 @using SmartNutriTracker.Shared.DTOs.Notificaciones
 @using SmartNutriTracker.Shared.DTOs.NotificacionesLimite
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider authStateProvider
 @inject NotificacionesLimiteService NotiService
 @inject NotificacionesInternasService NotiInternasService
 @rendermode InteractiveServer
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-dyM..." crossorigin="anonymous" referrerpolicy="no-referrer" />
 
+@if (EsRolValido)
+{
 <div class="dropdown position-relative">
 
     <button class="btn btn-light border border-success rounded-circle dropdown-toggle position-relative"
@@ -49,14 +56,13 @@
             <ul class="list-group list-group-flush" style="max-height: 280px; overflow-y: auto;">
                 @if (MostrarDiarias)
                 {
-                    @foreach (var noti in NotificacionesDiarias)
-                    {
+                   
                         <li class="list-group-item">
-                            <p class="fw-bold text-success mb-1">@noti.NombreEstudiante</p>
-                            <p class="small mb-1">@noti.Mensaje</p>
-                            <p class="text-muted small" style="font-size: 0.8em;">@noti.FechaIntento.ToString("g")</p>
+                            <p class="fw-bold text-success mb-1">@NotificacionesDiarias.NombreEstudiante</p>
+                            <p class="small mb-1">@NotificacionesDiarias.Mensaje</p>
+                            <p class="text-muted small" style="font-size: 0.8em;">@NotificacionesDiarias.FechaIntento.ToString("g")</p>
                         </li>
-                    }
+                    
                 }
                 else
                 {
@@ -73,25 +79,77 @@
         }
     </div>
 </div>
+}
 
 @code {
     private bool IsOpen = false;
-    
     private bool MostrarDiarias = true; 
-
+    private string? debugRol;
     private List<NotificacionesAlertaNutricionalDTO> Alertas = new();
-    private List<NotificacionDiariaDTO> NotificacionesDiarias = new();
+    private NotificacionDiariaDTO NotificacionesDiarias = new();
+
+    private bool EsRolValido = false;
+
+    private HubConnection? hubConnection;
 
     protected override async Task OnInitializedAsync()
     {
-        await CargarDatos();
+        var authState = await authStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity is not null && user.Identity.IsAuthenticated)
+        {
+            var rol = user.FindFirst(c => c.Type == "role" || c.Type == ClaimTypes.Role)?.Value;
+            debugRol = rol;
+            Console.WriteLine("Rol: " + rol);
+            if (rol == "3")
+            {
+                MostrarDiarias = true;
+                EsRolValido = true;
+            }
+            else if (rol == "2") 
+            {
+                MostrarDiarias = false;
+                EsRolValido = true;
+            }
+
+            if (EsRolValido && rol != null)
+            {
+                hubConnection = new HubConnectionBuilder()
+                    .WithUrl(NavigationManager.ToAbsoluteUri("/notificacionHub"))
+                    .WithAutomaticReconnect()
+                    .Build();
+
+                hubConnection.On("RecibirNotificacion", async () =>
+                {
+                    await CargarDatos();
+                    await InvokeAsync(StateHasChanged);
+                });
+
+                await hubConnection.StartAsync();
+                await hubConnection.SendAsync("UnirseAGrupo", rol);
+            }
+        }
+
+        if (EsRolValido)
+        {
+            await CargarDatos();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
     }
 
     private async Task CargarDatos()
     {
         if (MostrarDiarias)
         {
-            NotificacionesDiarias = await NotiInternasService.ObtenerNotificacionesPendientesAsync();
+            NotificacionesDiarias = await NotiInternasService.ObtenerNotificacionPorEstudianteAsync(1);
         }
         else
         {
@@ -101,7 +159,7 @@
 
     private int ObtenerCantidadNotificaciones()
     {
-        return MostrarDiarias ? NotificacionesDiarias.Count : Alertas.Count;
+        return MostrarDiarias ? 1 : Alertas.Count;
     }
 
     private void ToggleDropdown()

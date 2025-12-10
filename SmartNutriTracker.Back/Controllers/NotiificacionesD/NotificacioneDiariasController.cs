@@ -31,5 +31,5 @@ public class NotificacionDiariaController : ControllerBase
             return NotFound(new { mensaje = "Estudiante no encontrado o no requiere recordatorio." });
         }
         return Ok(recordatorio);
-    }
+    }
 }

@@ -3,15 +3,19 @@ using SmartNutriTracker.Back.Database;
 using SmartNutriTracker.Domain.Models.BaseModels;
 using SmartNutriTracker.Shared.DTOs.Notificaciones;
 
+using Microsoft.Extensions.Logging;
+
 namespace SmartNutriTracker.Back.Services.Notificaciones;
 
 public class NotificacionDiariaService : INotificacionDiariaService
 {
     private readonly ApplicationDbContext _context;
+    private readonly ILogger<NotificacionDiariaService> _logger;
 
-    public NotificacionDiariaService(ApplicationDbContext context)
+    public NotificacionDiariaService(ApplicationDbContext context, ILogger<NotificacionDiariaService> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
 
@@ -21,6 +25,7 @@ public class NotificacionDiariaService : INotificacionDiariaService
     /// <returns>Lista de recordatorios diarios.</returns>
     public async Task<List<NotificacionDiariaDTO>> ObtenerPendientesDiariosAsync()
     {
+        _logger.LogInformation("Inicio del proceso: ObtenerPendientesDiariosAsync realizado hoy {Fecha}", DateTime.Today);
         var hoy = DateTime.Today;
         
         var estudiantes = await _context.Estudiantes
@@ -40,6 +45,7 @@ public class NotificacionDiariaService : INotificacionDiariaService
             }
         }
 
+        _logger.LogInformation("Se encontraron {Cantidad} recordatorios pendientes.", recordatorios.Count);
         return recordatorios;
     }
 
@@ -50,6 +56,7 @@ public class NotificacionDiariaService : INotificacionDiariaService
     /// <returns>Recordatorio diario pendiente para el estudiante.</returns>
     public async Task<NotificacionDiariaDTO?> ObtenerRecordatorioPorEstudianteAsync(int estudianteId)
     {
+        _logger.LogInformation("Buscando recordatorio para estudiante con ID {EstudianteId}", estudianteId);
         var hoy = DateTime.Today;
 
         var estudiante = await _context.Estudiantes
@@ -58,9 +65,20 @@ public class NotificacionDiariaService : INotificacionDiariaService
                 .ThenInclude(ra => ra.Alimento)
             .FirstOrDefaultAsync(e => e.EstudianteId == estudianteId);
 
-        if (estudiante == null) return null;
+        if (estudiante == null)
+        {
+            _logger.LogWarning("Estudiante con ID {EstudianteId} no encontrado.", estudianteId);
+            return null;
+        }
 
-        return ProcesarEstudiante(estudiante, hoy);
+        var recordatorio = ProcesarEstudiante(estudiante, hoy);
+        
+        if (recordatorio != null)
+        {
+            _logger.LogInformation("Recordatorio generado para estudiante {Nombre}.", estudiante.NombreCompleto);
+        }
+
+        return recordatorio;
     }
 
     /// <summary>

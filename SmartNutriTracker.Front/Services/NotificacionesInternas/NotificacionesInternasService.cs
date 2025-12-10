@@ -18,7 +18,6 @@ namespace SmartNutriTracker.Front.Services.NotificacionesInternas
         /// </summary>
         public async Task<List<NotificacionDiariaDTO>> ObtenerNotificacionesPendientesAsync()
         {
-            // Corregimos la concatenación de la URL eliminando el slash extra
             var url = $"{NotificacionesDiariasEndpoints.BASE}{NotificacionesDiariasEndpoints.OBTENER_PENDIENTES_DIARIOS}";
 
             try
@@ -46,7 +45,6 @@ namespace SmartNutriTracker.Front.Services.NotificacionesInternas
 
             try
             {
-                // Usamos GetAsync para poder manejar el 404 (NotFound) sin lanzar excepción
                 var response = await _http.GetAsync(url);
 
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
