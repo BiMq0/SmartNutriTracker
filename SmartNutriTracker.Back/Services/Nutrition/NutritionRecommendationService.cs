@@ -127,27 +127,47 @@ namespace SmartNutriTracker.Back.Services.Nutrition
             var actividad = solicitud.NivelActividad ?? "sedentario";
 
             // Pedir explícitamente un bloque JSON con variación de comidas
-            return $@"Eres un nutricionista escolar. Genera recomendaciones claras y VARIADAS para un estudiante.
-Provee:
-1) Un campo 'textoRecomendacion' con un resumen breve (2-3 líneas).
-2) Un campo 'comidas' (array) con 4-5 COMIDAS DIFERENTES Y VARIADAS para el día, asegurándote que NO se repitan alimentos.
+            return $@"Eres un nutricionista escolar profesional. Basándote en los valores nutricionales calculados, crea un plan de alimentación personalizado y VARIADO.
 
-Cada elemento en 'comidas' debe tener: nombre, calorias, proteinas_g, grasas_g, carbohidratos_g, descripcion.
+VALORES NUTRICIONALES OBJETIVO DIARIO:
+- Calorías totales diarias: {numeric.CaloriasObjetivo} kcal
+- Proteínas totales: {numeric.ProteinasGr} g
+- Grasas totales: {numeric.GrasasGr} g
+- Carbohidratos totales: {numeric.CarbohidratosGr} g
 
-Datos calculados:
-- TMB: {numeric.TMB} kcal
-- Calorías mantenimiento: {numeric.CaloriasMantenimiento} kcal
-- Calorías objetivo: {numeric.CaloriasObjetivo} kcal
-- Proteínas: {numeric.ProteinasGr} g
-- Grasas: {numeric.GrasasGr} g
-- Carbohidratos: {numeric.CarbohidratosGr} g
-Objetivo: {objetivo}
-Nivel de actividad: {actividad}
+PERFIL DEL ESTUDIANTE:
+- Objetivo: {objetivo}
+- Nivel de actividad física: {actividad}
+
+TU TAREA:
+Crea un plan de alimentación con 4-5 comidas DIFERENTES para distribuir a lo largo del día (desayuno, almuerzo, merienda, cena, etc.).
+
+REQUISITOS:
+1. Cada comida debe ser COMPLETAMENTE DIFERENTE, con alimentos y preparaciones variadas
+2. La suma de todas las comidas debe aproximarse a los valores objetivo diarios
+3. Las comidas deben ser realistas, saludables y apropiadas para un estudiante
+4. Incluye alimentos de diferentes grupos (proteínas, vegetales, frutas, cereales, lácteos, etc.)
+
+FORMATO DE RESPUESTA (JSON):
+{{
+  ""textoRecomendacion"": ""Un párrafo breve (2-3 líneas) explicando por qué este plan es adecuado para el estudiante basándote en su objetivo y nivel de actividad. NO repitas los valores numéricos calculados."",
+  ""comidas"": [
+    {{
+      ""nombre"": ""Nombre de la comida (ej: Desayuno energético)"",
+      ""calorias"": 450,
+      ""proteinas_g"": 25,
+      ""grasas_g"": 15,
+      ""carbohidratos_g"": 50,
+      ""descripcion"": ""Descripción detallada de los alimentos incluidos y preparación""
+    }}
+  ]
+}}
 
 IMPORTANTE: 
-- Devuelve SOLO un objeto JSON válido con las propiedades 'textoRecomendacion' (string) y 'comidas' (array).
-- Las comidas deben ser VARIADAS y NO repetidas (diferentes alimentos en cada comida).
-- No incluyas texto adicional fuera del JSON."
+- Devuelve SOLO el objeto JSON, sin texto adicional
+- NO repitas los valores calculados en el textoRecomendacion
+- Las comidas deben ser VARIADAS (no repetir los mismos alimentos)
+- La descripción debe ser específica sobre qué comer y cómo prepararlo"
                         ;
         }
 

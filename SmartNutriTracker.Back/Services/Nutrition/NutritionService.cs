@@ -93,8 +93,19 @@ namespace SmartNutriTracker.Back.Services.Nutrition
                 carbGr = Math.Round(restoKcal / 4m, 2);
             }
 
+            // Calcular IMC
+            decimal imc = 0m;
+            string categoriaIMC = "No calculado";
+            if (alturaM > 0)
+            {
+                imc = Math.Round(peso / (alturaM * alturaM), 2);
+                categoriaIMC = ClasificarIMC(imc);
+            }
+
             var result = new NutritionResultDTO
             {
+                IMC = imc,
+                CategoriaIMC = categoriaIMC,
                 TMB = Math.Round(tmb, 2),
                 CaloriasMantenimiento = Math.Round(mantenimiento, 2),
                 CaloriasObjetivo = Math.Round(objetivoKcal, 2),
@@ -139,6 +150,16 @@ namespace SmartNutriTracker.Back.Services.Nutrition
                 return f;
             }
             return 1.2m;
+        }
+
+        private string ClasificarIMC(decimal imc)
+        {
+            if (imc < 18.5m) return "Bajo peso";
+            if (imc < 25m) return "Peso normal";
+            if (imc < 30m) return "Sobrepeso";
+            if (imc < 35m) return "Obesidad grado I";
+            if (imc < 40m) return "Obesidad grado II";
+            return "Obesidad grado III";
         }
     }
 }
