@@ -1,6 +1,0 @@
-@SmartNutriTracker.Back_HostAddress = http://localhost:5073
-
-GET {{SmartNutriTracker.Back_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

@@ -10,24 +10,32 @@
 <style>
     /* Estilos personalizados con tu paleta de colores */
     .btn-primary-custom {
-        background-color: #576E40; /* Verde oscuro */
+        background-color: #576E40;
+        /* Verde oscuro */
         border-color: #576E40;
-        color: #F1EAC0; /* Beige claro */
+        color: #F1EAC0;
+        /* Beige claro */
     }
+
     .btn-primary-custom:hover {
-        background-color: #BCD09F; /* Verde más claro */
+        background-color: #BCD09F;
+        /* Verde más claro */
         border-color: #BCD09F;
     }
+
     .card-custom {
         border-color: #BCD09F;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
+
     .card-header-custom {
         background-color: #576E40;
         color: #F1EAC0;
     }
+
     .text-custom-secondary {
-        color: #C2854C; /* Naranja/Marrón */
+        color: #C2854C;
+        /* Naranja/Marrón */
     }
 </style>
 
@@ -63,12 +71,14 @@
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <label for="nombreCompleto" class="form-label">Nombre Completo:</label>
-                                    <InputText id="nombreCompleto" class="form-control" @bind-Value="estudianteUpdateDTO.NombreCompleto" />
+                                    <InputText id="nombreCompleto" class="form-control"
+                                        @bind-Value="estudianteUpdateDTO.NombreCompleto" />
                                     <ValidationMessage For="@(() => estudianteUpdateDTO.NombreCompleto)" />
                                 </div>
                                 <div class="col-md-6">
                                     <label for="fechaNacimiento" class="form-label">Fecha de Nacimiento:</label>
-                                    <InputDate id="fechaNacimiento" class="form-control" @bind-Value="estudianteUpdateDTO.FechaNacimiento" />
+                                    <InputDate id="fechaNacimiento" class="form-control"
+                                        @bind-Value="estudianteUpdateDTO.FechaNacimiento" />
                                     <ValidationMessage For="@(() => estudianteUpdateDTO.FechaNacimiento)" />
                                 </div>
                             </div>
@@ -93,14 +103,16 @@
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <label for="altura" class="form-label">Altura (m):</label>
-                                    <InputNumber id="altura" class="form-control" @bind-Value="estudianteUpdateDTO.Altura" />
+                                    <InputNumber id="altura" class="form-control"
+                                        @bind-Value="estudianteUpdateDTO.Altura" />
                                     <ValidationMessage For="@(() => estudianteUpdateDTO.Altura)" />
                                 </div>
                             </div>
 
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                                 <button type="button" class="btn btn-secondary" @onclick="Volver">Cancelar</button>
-                                <button type="submit" class="btn btn-primary-custom" disabled="@isSaving">Guardar Cambios</button>
+                                <button type="submit" class="btn btn-primary-custom" disabled="@isSaving">Guardar
+                                    Cambios</button>
                             </div>
                         </EditForm>
                     }
@@ -138,8 +150,8 @@
             {
                 // Mapear los datos del estudiante existente al DTO de actualización
                 estudianteUpdateDTO.NombreCompleto = estudiante.NombreCompleto;
-                estudianteUpdateDTO.FechaNacimiento = estudiante.FechaNacimiento;  @* ← CAMBIADO: FechaNacimiento en lugar de Edad *@
-                estudianteUpdateDTO.Sexo = estudiante.Sexo;  @* ← AHORA: Sexo enum *@
+                estudianteUpdateDTO.FechaNacimiento = estudiante.FechaNacimiento; @* ← CAMBIADO: FechaNacimiento en lugar de Edad *@
+                estudianteUpdateDTO.Sexo = estudiante.Sexo; @* ← AHORA: Sexo enum *@
                 estudianteUpdateDTO.Peso = estudiante.Peso;
                 estudianteUpdateDTO.Altura = estudiante.Altura;
             }

@@ -1,0 +1,111 @@
+@using SmartNutriTracker.Front.Services
+@using SmartNutriTracker.Front.Services.NotificacionesInternas
+@using SmartNutriTracker.Shared.DTOs.Notificaciones
+@using SmartNutriTracker.Shared.DTOs.NotificacionesLimite
+@inject NotificacionesLimiteService NotiService
+@inject NotificacionesInternasService NotiInternasService
+@rendermode InteractiveServer
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-dyM..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<div class="dropdown position-relative">
+
+    <button class="btn btn-light border border-success rounded-circle dropdown-toggle position-relative"
+            type="button"
+            @onclick="ToggleDropdown">
+
+        <i class="fas fa-bell text-success fs-4"></i>
+
+        @if (ObtenerCantidadNotificaciones() > 0)
+        {
+            <span class="badge bg-success position-absolute top-0 start-100 translate-middle">
+                @ObtenerCantidadNotificaciones()
+            </span>
+        }
+    </button>
+
+    <div class="dropdown-menu @((IsOpen ? "show" : "")) shadow-lg border border-success"
+         style="width: 320px; right: 0; left: auto;">
+        
+        <div class="bg-success text-white fw-semibold p-3 rounded-top">
+            @if (MostrarDiarias)
+            {
+                <span>Recordatorios Diarios</span>
+            }
+            else
+            {
+                <span>Alertas Nutricionales</span>
+            }
+        </div>
+
+        @if (ObtenerCantidadNotificaciones() == 0)
+        {
+            <div class="p-4 text-center text-muted">
+                No hay notificaciones por el momento.
+            </div>
+        }
+        else
+        {
+            <ul class="list-group list-group-flush" style="max-height: 280px; overflow-y: auto;">
+                @if (MostrarDiarias)
+                {
+                    @foreach (var noti in NotificacionesDiarias)
+                    {
+                        <li class="list-group-item">
+                            <p class="fw-bold text-success mb-1">@noti.NombreEstudiante</p>
+                            <p class="small mb-1">@noti.Mensaje</p>
+                            <p class="text-muted small" style="font-size: 0.8em;">@noti.FechaIntento.ToString("g")</p>
+                        </li>
+                    }
+                }
+                else
+                {
+                    @foreach (var alerta in Alertas)
+                    {
+                        <li class="list-group-item">
+                            <p class="fw-bold text-success mb-1">@alerta.NombreEstudiante</p>
+                            <p class="small mb-1">@alerta.Mensaje</p>
+                            <p class="text-success small">Exceso: <strong>@alerta.Exceso kcal</strong></p>
+                        </li>
+                    }
+                }
+            </ul>
+        }
+    </div>
+</div>
+
+@code {
+    private bool IsOpen = false;
+    
+    private bool MostrarDiarias = true; 
+
+    private List<NotificacionesAlertaNutricionalDTO> Alertas = new();
+    private List<NotificacionDiariaDTO> NotificacionesDiarias = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        if (MostrarDiarias)
+        {
+            NotificacionesDiarias = await NotiInternasService.ObtenerNotificacionesPendientesAsync();
+        }
+        else
+        {
+            Alertas = await NotiService.ObtenerAlertasAsync();
+        }
+    }
+
+    private int ObtenerCantidadNotificaciones()
+    {
+        return MostrarDiarias ? NotificacionesDiarias.Count : Alertas.Count;
+    }
+
+    private void ToggleDropdown()
+    {
+        IsOpen = !IsOpen;
+    }
+}

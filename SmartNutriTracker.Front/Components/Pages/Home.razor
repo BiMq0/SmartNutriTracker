@@ -3,6 +3,8 @@
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
 @inject AuthService AuthService
+@using SmartNutriTracker.Front.Components.Layout
+
 <PageTitle>Home</PageTitle>
 
 @code {
@@ -10,12 +12,13 @@
     {
         if (!AuthService.ExistsToken())
         {
-            try { 
+            try
+            {
                 NavigationManager.NavigateTo("/login");
             }
             catch (Exception ex)
             {
-				Console.WriteLine($"Error during navigation: {ex.Message}");
+                Console.WriteLine($"Error during navigation: {ex.Message}");
             }
         }
     }
