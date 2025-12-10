@@ -1,7 +1,7 @@
 @page "/menus/resumen/{MenuId:int}"
 @using SmartNutriTracker.Shared.DTOs.Menus
 @using SmartNutriTracker.Shared.DTOs.Alimentos
-@inject SmartNutriTracker.Front.Services.Menus.MenuService MenuService
+@inject HttpClient Http
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
@@ -32,136 +32,144 @@
         }
         else
         {
-        <div class="resumen-header">
-            <div class="header-content">
-                <h2 class="resumen-title">📊 Resumen Nutricional Completo</h2>
-                <p class="resumen-fecha"> @menu.Fecha.ToString("dddd, dd 'de' MMMM 'de' yyyy")</p>
-            </div>
-            <a href="/menus" class="btn-back-header">← Volver a Menús</a>
-        </div>
-
-        <div class="resumen-content">
-            <!-- Tarjetas de Totales -->
-            <div class="totales-grid">
-                <div class="total-card calorias-card">
-                    <div class="card-icon">🔥</div>
-                    <div class="card-content">
-                        <span class="card-label">Calorías Totales</span>
-                        <span class="card-value">@totalCalorias</span>
-                        <span class="card-unit">kcal</span>
-                    </div>
+            <div class="resumen-header">
+                <div class="header-content">
+                    <h2 class="resumen-title">📊 Resumen Nutricional Completo</h2>
+                    <p class="resumen-fecha">📅 @menu.Fecha.ToString("dddd, dd 'de' MMMM 'de' yyyy")</p>
                 </div>
-
-                <div class="total-card proteinas-card">
-                    <div class="card-icon">🥩</div>
-                    <div class="card-content">
-                        <span class="card-label">Proteínas</span>
-                        <span class="card-value">@totalProteinas.ToString("F1")</span>
-                        <span class="card-unit">gramos</span>
-                    </div>
-                </div>
-
-                <div class="total-card carbohidratos-card">
-                    <div class="card-icon">🍞</div>
-                    <div class="card-content">
-                        <span class="card-label">Carbohidratos</span>
-                        <span class="card-value">@totalCarbohidratos.ToString("F1")</span>
-                        <span class="card-unit">gramos</span>
-                    </div>
-                </div>
-
-                <div class="total-card grasas-card">
-                    <div class="card-icon">🥑</div>
-                    <div class="card-content">
-                        <span class="card-label">Grasas</span>
-                        <span class="card-value">@totalGrasas.ToString("F1")</span>
-                        <span class="card-unit">gramos</span>
-                    </div>
-                </div>
+                <a href="/menus" class="btn-back-header">← Volver a Menús</a>
             </div>
 
-            <!-- Análisis Nutricional -->
-            <div class="analisis-section">
-                <h3 class="section-title"> Análisis Nutricional</h3>
-                <div class="analisis-cards">
-                    <div class="analisis-card @GetClasificacionCalorias()">
-                        <h4>Nivel Calórico</h4>
-                        <p class="analisis-valor">@GetTextoNivelCalorias()</p>
-                        <p class="analisis-descripcion">@GetDescripcionCalorias()</p>
-                    </div>
-
-                    <div class="analisis-card">
-                        <h4>Alimentos en el Menú</h4>
-                        <p class="analisis-valor">@cantidadAlimentos alimento@(cantidadAlimentos != 1 ? "s" : "")</p>
-                        <p class="analisis-descripcion">
-                            @if (cantidadAlimentos < 3)
-                            {
-                                <span>⚠️ Considera agregar más variedad al menú</span>
-                            }
-                            else if (cantidadAlimentos <= 5)
-                            {
-                                <span>✅ Buena variedad de alimentos</span>
-                            }
-                            else
-                            {
-                                <span>🌟 Excelente variedad nutricional</span>
-                            }
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Detalles de Alimentos -->
-            <div class="alimentos-section">
-                <h3 class="section-title"> Detalle de Alimentos</h3>
-                <div class="table-wrapper">
-                    <table class="alimentos-table">
-                        <thead>
-                            <tr>
-                                <th>Alimento</th>
-                                <th class="text-center">Calorías</th>
-                                <th class="text-center">Proteínas (g)</th>
-                                <th class="text-center">Carbohidratos (g)</th>
-                                <th class="text-center">Grasas (g)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (menu.Alimentos != null && menu.Alimentos.Any())
-                            {
-                                @foreach (var alimento in menu.Alimentos)
-                                {
-                                    <tr>
-                                        <td class="alimento-nombre">
-                                            <span class="emoji-food">🍴</span>
-                                            <strong>@alimento.Nombre</strong>
-                                        </td>
-                                        <td class="text-center">@alimento.Calorias kcal</td>
-                                        <td class="text-center">@alimento.Proteinas g</td>
-                                        <td class="text-center">@alimento.Carbohidratos g</td>
-                                        <td class="text-center">@alimento.Grasas g</td>
-                                    </tr>
-                                }
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <!-- Recomendaciones -->
-            <div class="recomendaciones-section">
-                <h3 class="section-title"> Recomendaciones</h3>
-                <div class="recomendaciones-content">
-                    @foreach (var recomendacion in GetRecomendaciones())
-                    {
-                        <div class="recomendacion-item">
-                            <span class="recomendacion-icon">@recomendacion.Icon</span>
-                            <p>@recomendacion.Texto</p>
+            <div class="resumen-content">
+                <!-- Tarjetas de Totales -->
+                <div class="totales-grid">
+                    <div class="total-card calorias-card">
+                        <div class="card-icon">🔥</div>
+                        <div class="card-content">
+                            <span class="card-label">Calorías Totales</span>
+                            <span class="card-value">@totalCalorias</span>
+                            <span class="card-unit">kcal</span>
                         </div>
-                    }
+                    </div>
+
+                    <div class="total-card proteinas-card">
+                        <div class="card-icon">🥩</div>
+                        <div class="card-content">
+                            <span class="card-label">Proteínas</span>
+                            <span class="card-value">@totalProteinas.ToString("F1")</span>
+                            <span class="card-unit">gramos</span>
+                        </div>
+                    </div>
+
+                    <div class="total-card carbohidratos-card">
+                        <div class="card-icon">🍞</div>
+                        <div class="card-content">
+                            <span class="card-label">Carbohidratos</span>
+                            <span class="card-value">@totalCarbohidratos.ToString("F1")</span>
+                            <span class="card-unit">gramos</span>
+                        </div>
+                    </div>
+
+                    <div class="total-card grasas-card">
+                        <div class="card-icon">🥑</div>
+                        <div class="card-content">
+                            <span class="card-label">Grasas</span>
+                            <span class="card-value">@totalGrasas.ToString("F1")</span>
+                            <span class="card-unit">gramos</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Análisis Nutricional -->
+                <div class="analisis-section">
+                    <h3 class="section-title">🔍 Análisis Nutricional</h3>
+                    <div class="analisis-cards">
+                        <div class="analisis-card @GetClasificacionCalorias()">
+                            <h4>Nivel Calórico</h4>
+                            <p class="analisis-valor">@GetTextoNivelCalorias()</p>
+                            <p class="analisis-descripcion">@GetDescripcionCalorias()</p>
+                        </div>
+
+                        <div class="analisis-card">
+                            <h4>Alimentos en el Menú</h4>
+                            <p class="analisis-valor">@cantidadAlimentos alimento@(cantidadAlimentos != 1 ? "s" : "")</p>
+                            <p class="analisis-descripcion">
+                                @if (cantidadAlimentos < 3)
+                                {
+                                    <span>⚠️ Considera agregar más variedad al menú</span>
+                                }
+                                else if (cantidadAlimentos <= 5)
+                                {
+                                    <span>✅ Buena variedad de alimentos</span>
+                                }
+                                else
+                                {
+                                    <span>🌟 Excelente variedad nutricional</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detalles de Alimentos -->
+                <div class="alimentos-section">
+                    <h3 class="section-title">🍽️ Detalle de Alimentos</h3>
+                    <div class="table-wrapper">
+                        <table class="alimentos-table">
+                            <thead>
+                                <tr>
+                                    <th>Alimento</th>
+                                    <th class="text-center">Calorías</th>
+                                    <th class="text-center">Proteínas (g)</th>
+                                    <th class="text-center">Carbohidratos (g)</th>
+                                    <th class="text-center">Grasas (g)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (menu.Alimentos != null && menu.Alimentos.Any())
+                                {
+                                    @foreach (var alimento in menu.Alimentos)
+                                    {
+                                        <tr>
+                                            <td class="alimento-nombre">
+                                                <span class="emoji-food">🍴</span>
+                                                <strong>@alimento.Nombre</strong>
+                                            </td>
+                                            <td class="text-center">@alimento.Calorias kcal</td>
+                                            <td class="text-center">@alimento.Proteinas g</td>
+                                            <td class="text-center">@alimento.Carbohidratos g</td>
+                                            <td class="text-center">@alimento.Grasas g</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Recomendaciones -->
+                <div class="recomendaciones-section">
+                    <h3 class="section-title">💡 Recomendaciones</h3>
+                    <div class="recomendaciones-content">
+                        @foreach (var recomendacion in GetRecomendaciones())
+                        {
+                            <div class="recomendacion-item">
+                                <span class="recomendacion-icon">@recomendacion.Icon</span>
+                                <p>@recomendacion.Texto</p>
+                            </div>
+                        }
+                    </div>
                 </div>
             </div>
-        </div>
-    }
+        }
     </main>
+
+    <footer class="app-footer">
+        <div class="footer-band-top"></div>
+        <div class="footer-band-main">
+            <p>Creado con <span class="footer-icon">🌱</span> para mejorar tu bienestar.</p>
+        </div>
+    </footer>
 </div>
 
 @code {
@@ -196,9 +204,7 @@
         try
         {
             isLoading = true;
-            
-            // ✅ Usar el servicio en lugar de HttpClient directo
-            menu = await MenuService.ObtenerPorIdAsync(MenuId);
+            menu = await Http.GetFromJsonAsync<MenuDTO>($"https://localhost:7187/api/menus/GetById/{MenuId}");
         }
         catch (Exception ex)
         {
@@ -236,38 +242,86 @@
     {
         var recomendaciones = new List<(string, string)>();
 
-        // Análisis de proteínas
-        if (porcentajeProteinas < 15)
-            recomendaciones.Add(("🥩", "Considera agregar más fuentes de proteína como pollo, pescado, huevos o legumbres."));
-        else if (porcentajeProteinas > 35)
-            recomendaciones.Add(("⚠️", "El contenido de proteínas es muy alto. Balancea con más carbohidratos y vegetales."));
+        // Análisis detallado de CALORÍAS
+        if (totalCalorias < 1200)
+            recomendaciones.Add(("⚠️", $"Este menú aporta solo {totalCalorias} kcal, lo cual es muy bajo. El mínimo recomendado para la mayoría de personas es 1,200-1,500 kcal diarias. Considera agregar alimentos energéticos como frutos secos, aceites saludables o cereales integrales."));
+        else if (totalCalorias >= 1200 && totalCalorias < 1500)
+            recomendaciones.Add(("⚡", $"Con {totalCalorias} kcal, este menú está en el límite bajo para una alimentación saludable. Es apropiado solo si buscas pérdida de peso supervisada. De lo contrario, considera incrementar las porciones."));
+        else if (totalCalorias >= 1500 && totalCalorias <= 2000)
+            recomendaciones.Add(("✅", $"Excelente. Este menú aporta {totalCalorias} kcal, lo cual es ideal para mantener un peso saludable en la mayoría de adultos con actividad moderada."));
+        else if (totalCalorias > 2000 && totalCalorias <= 2500)
+            recomendaciones.Add(("✅", $"Este menú aporta {totalCalorias} kcal, apropiado para personas activas o con mayor requerimiento energético. Asegúrate de que coincida con tus objetivos nutricionales."));
+        else if (totalCalorias > 2500 && totalCalorias <= 3000)
+            recomendaciones.Add(("⚠️", $"Con {totalCalorias} kcal, este menú es alto en energía. Es adecuado solo para atletas o personas con alta demanda física. Si no es tu caso, considera reducir porciones o alimentos altos en grasas."));
         else
-            recomendaciones.Add(("✅", "El aporte de proteínas está bien balanceado."));
+            recomendaciones.Add(("🚨", $"¡Atención! Este menú aporta {totalCalorias} kcal, lo cual es excesivamente alto para la mayoría de personas. Revisa las porciones y el tipo de alimentos incluidos para evitar un exceso calórico."));
 
-        // Análisis de carbohidratos
-        if (porcentajeCarbohidratos < 40)
-            recomendaciones.Add(("🍞", "Considera agregar más carbohidratos complejos como arroz integral, avena o papa."));
-        else if (porcentajeCarbohidratos > 60)
-            recomendaciones.Add(("⚠️", "El contenido de carbohidratos es alto. Considera reducir y agregar más proteínas."));
+        // Análisis detallado de PROTEÍNAS
+        var proteinasGramos = totalProteinas;
+        if (porcentajeProteinas < 10)
+            recomendaciones.Add(("🥩", $"Muy bajo en proteínas ({proteinasGramos:F1}g, {porcentajeProteinas:F0}% de calorías). Se recomienda al menos 15-20% de las calorías totales. Agrega fuentes como: pollo, pescado, huevos, legumbres (frijoles, lentejas), tofu o queso bajo en grasa."));
+        else if (porcentajeProteinas >= 10 && porcentajeProteinas < 15)
+            recomendaciones.Add(("🥩", $"Bajo en proteínas ({proteinasGramos:F1}g, {porcentajeProteinas:F0}%). Lo ideal es 15-30% de las calorías. Considera incrementar con: atún, yogurt griego, pavo, almendras o quinoa."));
+        else if (porcentajeProteinas >= 15 && porcentajeProteinas <= 30)
+            recomendaciones.Add(("✅", $"Perfecto balance proteico: {proteinasGramos:F1}g ({porcentajeProteinas:F0}%). Este rango (15-30%) es ideal para reparación muscular, saciedad y metabolismo saludable."));
+        else if (porcentajeProteinas > 30 && porcentajeProteinas <= 40)
+            recomendaciones.Add(("⚠️", $"Alto en proteínas ({proteinasGramos:F1}g, {porcentajeProteinas:F0}%). Aunque es útil para deportistas o pérdida de peso, asegúrate de mantener buena hidratación y no excluir otros nutrientes importantes."));
         else
-            recomendaciones.Add(("✅", "El aporte de carbohidratos está bien distribuido."));
+            recomendaciones.Add(("🚨", $"Proteínas excesivas ({proteinasGramos:F1}g, {porcentajeProteinas:F0}%). Más del 40% puede sobrecargar riñones y desplazar carbohidratos y grasas saludables. Balancea mejor tu menú."));
 
-        // Análisis de grasas
-        if (porcentajeGrasas < 20)
-            recomendaciones.Add(("🥑", "Considera agregar grasas saludables como aguacate, frutos secos o aceite de oliva."));
-        else if (porcentajeGrasas > 35)
-            recomendaciones.Add(("⚠️", "El contenido de grasas es alto. Modera el consumo de alimentos fritos y grasosos."));
+        // Análisis detallado de CARBOHIDRATOS
+        var carbohidratosGramos = totalCarbohidratos;
+        if (porcentajeCarbohidratos < 30)
+            recomendaciones.Add(("🍞", $"Muy bajo en carbohidratos ({carbohidratosGramos:F1}g, {porcentajeCarbohidratos:F0}%). Esto puede afectar tu energía. Se recomienda 45-65% de las calorías. Agrega: arroz integral, avena, frutas, papa dulce, pan integral o pasta de trigo entero."));
+        else if (porcentajeCarbohidratos >= 30 && porcentajeCarbohidratos < 45)
+            recomendaciones.Add(("🍞", $"Bajo en carbohidratos ({carbohidratosGramos:F1}g, {porcentajeCarbohidratos:F0}%). Está bien si sigues una dieta baja en carbos, pero considera agregar frutas y cereales integrales para más fibra y energía sostenida."));
+        else if (porcentajeCarbohidratos >= 45 && porcentajeCarbohidratos <= 65)
+            recomendaciones.Add(("✅", $"Excelente aporte de carbohidratos: {carbohidratosGramos:F1}g ({porcentajeCarbohidratos:F0}%). Este rango (45-65%) proporciona energía óptima para el cerebro, músculos y actividades diarias."));
+        else if (porcentajeCarbohidratos > 65 && porcentajeCarbohidratos <= 75)
+            recomendaciones.Add(("⚠️", $"Alto en carbohidratos ({carbohidratosGramos:F1}g, {porcentajeCarbohidratos:F0}%). Puede ser adecuado para atletas de resistencia, pero para la mayoría, considera reducir porciones de harinas y azúcares, e incrementar proteínas."));
         else
-            recomendaciones.Add(("✅", "El aporte de grasas está dentro del rango saludable."));
+            recomendaciones.Add(("🚨", $"Carbohidratos excesivos ({carbohidratosGramos:F1}g, {porcentajeCarbohidratos:F0}%). Más del 75% puede elevar glucosa en sangre y promover almacenamiento de grasa. Reduce harinas refinadas y azúcares, aumenta proteínas y vegetales."));
 
-        // Variedad
-        if (cantidadAlimentos < 3)
-            recomendaciones.Add(("🌈", "Intenta agregar más variedad de alimentos para obtener diferentes nutrientes."));
+        // Análisis detallado de GRASAS
+        var grasasGramos = totalGrasas;
+        if (porcentajeGrasas < 15)
+            recomendaciones.Add(("🥑", $"Muy bajo en grasas ({grasasGramos:F1}g, {porcentajeGrasas:F0}%). Las grasas son esenciales para absorción de vitaminas y salud hormonal. Se recomienda 20-35%. Agrega: aguacate, aceite de oliva, frutos secos, semillas de chía o salmón."));
+        else if (porcentajeGrasas >= 15 && porcentajeGrasas < 20)
+            recomendaciones.Add(("🥑", $"Bajo en grasas ({grasasGramos:F1}g, {porcentajeGrasas:F0}%). Considera incrementar con grasas saludables: aceite de oliva extra virgen, nueces, almendras, semillas de linaza o pescados grasos."));
+        else if (porcentajeGrasas >= 20 && porcentajeGrasas <= 35)
+            recomendaciones.Add(("✅", $"Balance ideal de grasas: {grasasGramos:F1}g ({porcentajeGrasas:F0}%). Este rango (20-35%) es perfecto para salud cardiovascular, cerebral y hormonal cuando provienen de fuentes saludables."));
+        else if (porcentajeGrasas > 35 && porcentajeGrasas <= 45)
+            recomendaciones.Add(("⚠️", $"Alto en grasas ({grasasGramos:F1}g, {porcentajeGrasas:F0}%). Puede ser apropiado en dietas cetogénicas, pero asegúrate de que sean grasas saludables (aguacate, pescado, nueces) y no saturadas o trans."));
+        else
+            recomendaciones.Add(("🚨", $"Grasas excesivas ({grasasGramos:F1}g, {porcentajeGrasas:F0}%). Más del 45% puede elevar colesterol y calorías totales. Reduce alimentos fritos, mantequilla y embutidos. Prefiere fuentes saludables en cantidades moderadas."));
+
+        // Análisis de VARIEDAD de alimentos
+        if (cantidadAlimentos == 1)
+            recomendaciones.Add(("🌈", "Solo hay 1 alimento en este menú. Una alimentación saludable requiere VARIEDAD de nutrientes. Agrega al menos 4-6 alimentos diferentes: proteína, cereales, frutas, vegetales y grasas saludables."));
+        else if (cantidadAlimentos == 2)
+            recomendaciones.Add(("🌈", $"Con solo {cantidadAlimentos} alimentos, este menú carece de variedad. Se recomienda incluir al menos 5 grupos de alimentos diferentes para obtener vitaminas, minerales y antioxidantes diversos."));
+        else if (cantidadAlimentos >= 3 && cantidadAlimentos < 5)
+            recomendaciones.Add(("🌈", $"Variedad aceptable con {cantidadAlimentos} alimentos, pero puede mejorarse. Intenta incluir: 1 proteína, 1 cereal integral, 2 vegetales, 1 fruta y 1 fuente de grasa saludable para maximizar nutrientes."));
+        else if (cantidadAlimentos >= 5 && cantidadAlimentos <= 7)
+            recomendaciones.Add(("✅", $"Excelente variedad con {cantidadAlimentos} alimentos. Esta diversidad asegura un amplio espectro de vitaminas, minerales, fibra y antioxidantes esenciales para una salud óptima."));
+        else
+            recomendaciones.Add(("🌟", $"¡Sobresaliente! {cantidadAlimentos} alimentos diferentes proporcionan una riqueza nutricional excepcional. Mantén esta variedad para obtener todos los nutrientes que tu cuerpo necesita."));
+
+        // Recomendación GENERAL basada en el balance global
+        var desbalance = "";
+        if (porcentajeProteinas < 15 && porcentajeCarbohidratos > 65)
+            desbalance = "Tu menú tiene exceso de carbohidratos y déficit de proteínas. Esto puede causar picos de azúcar en sangre y poca saciedad. ACCIÓN: Reemplaza una porción de pan/arroz por pollo, pescado o legumbres.";
+        else if (porcentajeProteinas > 35 && porcentajeCarbohidratos < 30)
+            desbalance = "Menú muy alto en proteínas y bajo en carbohidratos. Puede ser útil para pérdida de peso a corto plazo, pero asegúrate de incluir frutas y vegetales para fibra y micronutrientes.";
+        else if (porcentajeGrasas > 40 && porcentajeProteinas < 20)
+            desbalance = "Alto en grasas y bajo en proteínas. Aunque las grasas saludables son importantes, necesitas más proteína para mantener masa muscular. Agrega huevos, pescado o yogurt griego.";
+
+        if (!string.IsNullOrEmpty(desbalance))
+            recomendaciones.Add(("💡", $"CONSEJO CLAVE: {desbalance}"));
 
         return recomendaciones;
     }
 }
-
 <style>
     :root {
         --color-light-green: #BCD09F;

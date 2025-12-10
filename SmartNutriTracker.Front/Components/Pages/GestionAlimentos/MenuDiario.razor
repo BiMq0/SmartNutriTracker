@@ -24,7 +24,7 @@
         }
         else
         {
-            <EditForm Model="createDto" OnValidSubmit="CrearMenu" FormName="CrearMenu">
+            <EditForm Model="createDto" OnSubmit="CrearMenu" FormName="CrearMenu">
                 <DataAnnotationsValidator />
                 @if (mostrarErrorAlimentos)
                 {
@@ -39,9 +39,8 @@
 
                     <div class="form-group">
                         <label>Fecha del Menú:</label>
-                        <InputDate class="form-control" 
-                                @bind-Value="createDto.Fecha" 
-                                min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                        <InputDate class="form-control" @bind-Value="createDto.Fecha"
+                            min="@DateTime.Today.ToString("yyyy-MM-dd")" />
                         <ValidationMessage For="@(() => createDto.Fecha)" />
                     </div>
 
@@ -50,7 +49,8 @@
                         <div class="alimentos-selection-container">
                             @if (alimentosDisponibles == null || !alimentosDisponibles.Any())
                             {
-                                <p class="no-alimentos-text">No hay alimentos disponibles. <a href="/alimentos/registrar">Crear alimento</a></p>
+                                <p class="no-alimentos-text">No hay alimentos disponibles. <a href="/alimentos/registrar">Crear
+                                        alimento</a></p>
                             }
                             else
                             {
@@ -59,9 +59,8 @@
                                     var isSelected = alimentosSeleccionados.Contains(alimento.AlimentoId);
                                     <div class="alimento-checkbox-item @(isSelected ? "selected" : "")">
                                         <label>
-                                            <input type="checkbox" 
-                                                   checked="@isSelected"
-                                                   @onchange="@(() => ToggleAlimento(alimento.AlimentoId))" />
+                                            <input type="checkbox" checked="@isSelected"
+                                                @onchange="@(() => ToggleAlimento(alimento.AlimentoId))" />
                                             <span class="alimento-nombre">@alimento.Nombre</span>
                                             <span class="alimento-calorias">(@alimento.Calorias kcal)</span>
                                         </label>
@@ -162,7 +161,7 @@
         {
             isLoadingAlimentos = true;
             alimentosDisponibles = await AlimentoService.ObtenerTodosAsync();
-            
+
             if (alimentosDisponibles == null)
             {
                 alimentosDisponibles = new List<AlimentoDTO>();
@@ -190,7 +189,7 @@
         {
             alimentosSeleccionados.Add(alimentoId);
         }
-        
+
         if (alimentosSeleccionados.Count > 0)
         {
             mostrarErrorAlimentos = false;
@@ -200,33 +199,34 @@
     private int CalcularCaloriasTotales()
     {
         return alimentosDisponibles?
-            .Where(a => alimentosSeleccionados.Contains(a.AlimentoId))
-            .Sum(a => a.Calorias) ?? 0;
+        .Where(a => alimentosSeleccionados.Contains(a.AlimentoId))
+        .Sum(a => a.Calorias) ?? 0;
     }
 
     private decimal CalcularProteinasTotales()
     {
         return alimentosDisponibles?
-            .Where(a => alimentosSeleccionados.Contains(a.AlimentoId))
-            .Sum(a => a.Proteinas) ?? 0;
+        .Where(a => alimentosSeleccionados.Contains(a.AlimentoId))
+        .Sum(a => a.Proteinas) ?? 0;
     }
 
     private decimal CalcularCarbohidratosTotales()
     {
         return alimentosDisponibles?
-            .Where(a => alimentosSeleccionados.Contains(a.AlimentoId))
-            .Sum(a => a.Carbohidratos) ?? 0;
+        .Where(a => alimentosSeleccionados.Contains(a.AlimentoId))
+        .Sum(a => a.Carbohidratos) ?? 0;
     }
 
     private decimal CalcularGrasasTotales()
     {
         return alimentosDisponibles?
-            .Where(a => alimentosSeleccionados.Contains(a.AlimentoId))
-            .Sum(a => a.Grasas) ?? 0;
+        .Where(a => alimentosSeleccionados.Contains(a.AlimentoId))
+        .Sum(a => a.Grasas) ?? 0;
     }
 
     private async Task CrearMenu()
     {
+        Console.WriteLine("Creando menu");
         if (alimentosSeleccionados.Count == 0)
         {
             mostrarErrorAlimentos = true;
@@ -287,7 +287,7 @@
     .app-header {
         width: 100%;
     }
-    
+
     .header-band-main {
         background-color: var(--color-dark-green);
         padding: 1.5rem 2rem;
@@ -302,7 +302,7 @@
         font-size: 2.2rem;
         text-shadow: 1px 1px 2px var(--color-dark-brown);
     }
-    
+
     .header-subtitle {
         color: var(--color-light-green);
         margin: 0.25rem 0 0;
@@ -338,7 +338,7 @@
         background: white;
         padding: 2rem;
         border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     .form-group {
@@ -513,7 +513,8 @@
         margin-top: 2rem;
     }
 
-    .btn-save, .btn-cancel {
+    .btn-save,
+    .btn-cancel {
         flex: 1;
         padding: 0.75rem 1.5rem;
         border: none;
@@ -558,7 +559,7 @@
         width: 100%;
         margin-top: auto;
     }
-    
+
     .footer-band-top {
         height: 10px;
         background-color: var(--color-orange-brown);
@@ -569,7 +570,7 @@
         padding: 1.5rem 2rem;
         text-align: center;
     }
-    
+
     .footer-band-main p {
         color: var(--color-dark-brown);
         margin: 0;

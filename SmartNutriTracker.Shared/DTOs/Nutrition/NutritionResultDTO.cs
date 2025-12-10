@@ -2,6 +2,8 @@ namespace SmartNutriTracker.Shared.DTOs.Nutrition
 {
     public class NutritionResultDTO
     {
+        public decimal IMC { get; set; }
+        public string CategoriaIMC { get; set; } = string.Empty;
         public decimal TMB { get; set; }
         public decimal CaloriasMantenimiento { get; set; }
         public decimal CaloriasObjetivo { get; set; }
