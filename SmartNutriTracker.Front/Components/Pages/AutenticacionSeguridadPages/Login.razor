@@ -1,8 +1,10 @@
 ﻿@page "/login"
 @using SmartNutriTracker.Shared.DTOs.Usuarios
 @using SmartNutriTracker.Front.Services
+@using Microsoft.Extensions.Logging
 @inject AuthService AuthService
 @inject NavigationManager NavigationManager
+@inject ILogger<Login> Logger
 @rendermode InteractiveServer
 
 <div class="login-page">
@@ -45,9 +47,6 @@
                     @(enviando ? "Iniciando sesión..." : "Iniciar Sesión")
                 </button>
 
-                <div class="form-footer">
-                    <p>¿No tienes cuenta? <a href="/gestion-usuarios" class="link-register">Regístrate aquí</a></p>
-                </div>
             </EditForm>
         </div>
     </div>
@@ -221,40 +220,85 @@
     private string mensajeError = string.Empty;
     private string mensajeExito = string.Empty;
 
-    private async void IniciarSesion()
+    private async Task IniciarSesion()
     {
-        enviando = true;
-        mensajeError = string.Empty;
-        mensajeExito = string.Empty;
+        Logger.LogInformation("Intento de inicio de sesión para usuario: {Username}", loginModel?.Username);
 
-        if (string.IsNullOrWhiteSpace(loginModel.Username) || string.IsNullOrWhiteSpace(loginModel.Password))
+        try
         {
-            mensajeError = "Usuario y contraseña son obligatorios.";
+            enviando = true;
+            mensajeError = string.Empty;
+            mensajeExito = string.Empty;
+
+            if (string.IsNullOrWhiteSpace(loginModel.Username) || string.IsNullOrWhiteSpace(loginModel.Password))
+            {
+                mensajeError = "Usuario y contraseña son obligatorios.";
+                Logger.LogWarning("Intento de login rechazado - credenciales incompletas para usuario: {Username}", 
+                    loginModel?.Username);
+                enviando = false;
+                return;
+            }
+
+            Logger.LogDebug("Enviando solicitud de autenticación para usuario: {Username}", loginModel.Username);
+            
+            var resultado = await AuthService.LoginAsync(loginModel);
+
+            if (resultado == null || resultado.Usuario == null)
+            {
+                mensajeError = "Credenciales incorrectas o error en el servidor.";
+                Logger.LogWarning("Login fallido para usuario: {Username}. Respuesta nula o usuario nulo", 
+                    loginModel?.Username);
+                enviando = false;
+                return;
+            }
+
+            mensajeExito = resultado.Mensaje ?? "Inicio de sesión exitoso.";
+            
+            Logger.LogInformation("Login exitoso para usuario: {Username}. ID: {UserId}, Rol: {RolId}", 
+                resultado.Usuario.Username, resultado.Usuario.Id, resultado.Usuario.RolId);
+            
+            await Task.Delay(500);
+            
+            // Redirigir según el rol del usuario
+            if (resultado.Usuario.RolId == 1) // Administrador
+            {
+                Logger.LogInformation("Redirigiendo usuario {Username} (Administrador) a gestion-usuarios", 
+                    resultado.Usuario.Username);
+                NavigationManager.NavigateTo("/gestion-usuarios", forceLoad: true);
+            }
+            else if (resultado.Usuario.RolId == 2) // Docente
+            {
+                Logger.LogInformation("Redirigiendo usuario {Username} (Docente) a gestion-usuarios", 
+                    resultado.Usuario.Username);
+                NavigationManager.NavigateTo("/gestion-usuarios", forceLoad: true);
+            }
+            else if (resultado.Usuario.RolId == 3 || resultado.Usuario.RolId == 4) // Nutricionista o Estudiante
+            {
+                Logger.LogInformation("Redirigiendo usuario {Username} (Nutricionista/Estudiante) a pagina-equis", 
+                    resultado.Usuario.Username);
+                NavigationManager.NavigateTo("/pagina-equis", forceLoad: true);
+            }
+            else
+            {
+                mensajeError = "Rol de usuario no reconocido.";
+                Logger.LogError("Rol de usuario desconocido para {Username}. RolId: {RolId}", 
+                    resultado.Usuario.Username, resultado.Usuario.RolId);
+            }
+
             enviando = false;
-            return;
         }
-
-        var resultado = await AuthService.LoginAsync(loginModel);
-
-        if (resultado == null)
+        catch (HttpRequestException ex)
         {
-            mensajeError = "Credenciales incorrectas o error en el servidor.";
+            Logger.LogError(ex, "Error de conexión al intentar login para usuario {Username}", loginModel?.Username);
+            mensajeError = $"Error de conexión: {ex.Message}";
             enviando = false;
-            return;
         }
-
-        mensajeExito = resultado.Mensaje ?? "Inicio de sesión exitoso.";
-        await Task.Delay(1000);
-        if (resultado.Usuario.RolId == 1)
+        catch (Exception ex)
         {
-            NavigationManager.NavigateTo("/gestion-usuarios");
+            Logger.LogError(ex, "Error inesperado durante login para usuario {Username}", loginModel?.Username);
+            mensajeError = $"Error durante el inicio de sesión: {ex.Message}";
+            enviando = false;
         }
-        else
-        {
-			NavigationManager.NavigateTo("/pagina-equis"); //coloca la ruta adecuada si no es admin
-        }
-
-        enviando = false;
     }
 
 
