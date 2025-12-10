@@ -1,0 +1,584 @@
+@page "/menus/resumen/{MenuId:int}"
+@using SmartNutriTracker.Shared.DTOs.Menus
+@using SmartNutriTracker.Shared.DTOs.Alimentos
+@inject SmartNutriTracker.Front.Services.Menus.MenuService MenuService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<div class="page-wrapper">
+    <header class="app-header">
+        <div class="header-band-main">
+            <h1 class="header-title">
+                <span class="icon-emoji">📊</span> Resumen Nutricional
+            </h1>
+            <p class="header-subtitle">Análisis detallado del menú diario</p>
+        </div>
+        <div class="header-band-bottom"></div>
+    </header>
+
+    <main class="resumen-container">
+        @if (isLoading)
+        {
+            <div class="loading-section">
+                <p class="loading-text">Cargando resumen nutricional...</p>
+            </div>
+        }
+        else if (menu == null)
+        {
+            <div class="error-section">
+                <p class="error-text">❌ No se encontró el menú solicitado.</p>
+                <a href="/menus" class="btn-back">Volver a Menús</a>
+            </div>
+        }
+        else
+        {
+        <div class="resumen-header">
+            <div class="header-content">
+                <h2 class="resumen-title">📊 Resumen Nutricional Completo</h2>
+                <p class="resumen-fecha"> @menu.Fecha.ToString("dddd, dd 'de' MMMM 'de' yyyy")</p>
+            </div>
+            <a href="/menus" class="btn-back-header">← Volver a Menús</a>
+        </div>
+
+        <div class="resumen-content">
+            <!-- Tarjetas de Totales -->
+            <div class="totales-grid">
+                <div class="total-card calorias-card">
+                    <div class="card-icon">🔥</div>
+                    <div class="card-content">
+                        <span class="card-label">Calorías Totales</span>
+                        <span class="card-value">@totalCalorias</span>
+                        <span class="card-unit">kcal</span>
+                    </div>
+                </div>
+
+                <div class="total-card proteinas-card">
+                    <div class="card-icon">🥩</div>
+                    <div class="card-content">
+                        <span class="card-label">Proteínas</span>
+                        <span class="card-value">@totalProteinas.ToString("F1")</span>
+                        <span class="card-unit">gramos</span>
+                    </div>
+                </div>
+
+                <div class="total-card carbohidratos-card">
+                    <div class="card-icon">🍞</div>
+                    <div class="card-content">
+                        <span class="card-label">Carbohidratos</span>
+                        <span class="card-value">@totalCarbohidratos.ToString("F1")</span>
+                        <span class="card-unit">gramos</span>
+                    </div>
+                </div>
+
+                <div class="total-card grasas-card">
+                    <div class="card-icon">🥑</div>
+                    <div class="card-content">
+                        <span class="card-label">Grasas</span>
+                        <span class="card-value">@totalGrasas.ToString("F1")</span>
+                        <span class="card-unit">gramos</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Análisis Nutricional -->
+            <div class="analisis-section">
+                <h3 class="section-title"> Análisis Nutricional</h3>
+                <div class="analisis-cards">
+                    <div class="analisis-card @GetClasificacionCalorias()">
+                        <h4>Nivel Calórico</h4>
+                        <p class="analisis-valor">@GetTextoNivelCalorias()</p>
+                        <p class="analisis-descripcion">@GetDescripcionCalorias()</p>
+                    </div>
+
+                    <div class="analisis-card">
+                        <h4>Alimentos en el Menú</h4>
+                        <p class="analisis-valor">@cantidadAlimentos alimento@(cantidadAlimentos != 1 ? "s" : "")</p>
+                        <p class="analisis-descripcion">
+                            @if (cantidadAlimentos < 3)
+                            {
+                                <span>⚠️ Considera agregar más variedad al menú</span>
+                            }
+                            else if (cantidadAlimentos <= 5)
+                            {
+                                <span>✅ Buena variedad de alimentos</span>
+                            }
+                            else
+                            {
+                                <span>🌟 Excelente variedad nutricional</span>
+                            }
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detalles de Alimentos -->
+            <div class="alimentos-section">
+                <h3 class="section-title"> Detalle de Alimentos</h3>
+                <div class="table-wrapper">
+                    <table class="alimentos-table">
+                        <thead>
+                            <tr>
+                                <th>Alimento</th>
+                                <th class="text-center">Calorías</th>
+                                <th class="text-center">Proteínas (g)</th>
+                                <th class="text-center">Carbohidratos (g)</th>
+                                <th class="text-center">Grasas (g)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (menu.Alimentos != null && menu.Alimentos.Any())
+                            {
+                                @foreach (var alimento in menu.Alimentos)
+                                {
+                                    <tr>
+                                        <td class="alimento-nombre">
+                                            <span class="emoji-food">🍴</span>
+                                            <strong>@alimento.Nombre</strong>
+                                        </td>
+                                        <td class="text-center">@alimento.Calorias kcal</td>
+                                        <td class="text-center">@alimento.Proteinas g</td>
+                                        <td class="text-center">@alimento.Carbohidratos g</td>
+                                        <td class="text-center">@alimento.Grasas g</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Recomendaciones -->
+            <div class="recomendaciones-section">
+                <h3 class="section-title"> Recomendaciones</h3>
+                <div class="recomendaciones-content">
+                    @foreach (var recomendacion in GetRecomendaciones())
+                    {
+                        <div class="recomendacion-item">
+                            <span class="recomendacion-icon">@recomendacion.Icon</span>
+                            <p>@recomendacion.Texto</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    </main>
+</div>
+
+@code {
+    [Parameter] public int MenuId { get; set; }
+
+    private MenuDTO? menu;
+    private bool isLoading = true;
+
+    private int totalCalorias => menu?.Alimentos?.Sum(a => a.Calorias) ?? 0;
+    private decimal totalProteinas => menu?.Alimentos?.Sum(a => a.Proteinas) ?? 0;
+    private decimal totalCarbohidratos => menu?.Alimentos?.Sum(a => a.Carbohidratos) ?? 0;
+    private decimal totalGrasas => menu?.Alimentos?.Sum(a => a.Grasas) ?? 0;
+    private int cantidadAlimentos => menu?.Alimentos?.Count ?? 0;
+
+    private decimal totalCaloriasDecimal => totalCalorias;
+    private decimal caloriasProteinas => totalProteinas * 4;
+    private decimal caloriasCarbohidratos => totalCarbohidratos * 4;
+    private decimal caloriasGrasas => totalGrasas * 9;
+    private decimal totalCaloriasMacros => caloriasProteinas + caloriasCarbohidratos + caloriasGrasas;
+
+    private decimal porcentajeProteinas => totalCaloriasMacros > 0 ? (caloriasProteinas / totalCaloriasMacros * 100) : 0;
+    private decimal porcentajeCarbohidratos => totalCaloriasMacros > 0 ? (caloriasCarbohidratos / totalCaloriasMacros * 100) : 0;
+    private decimal porcentajeGrasas => totalCaloriasMacros > 0 ? (caloriasGrasas / totalCaloriasMacros * 100) : 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarMenu();
+    }
+
+    private async Task CargarMenu()
+    {
+        try
+        {
+            isLoading = true;
+            
+            // ✅ Usar el servicio en lugar de HttpClient directo
+            menu = await MenuService.ObtenerPorIdAsync(MenuId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al cargar menú: {ex.Message}");
+            menu = null;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string GetClasificacionCalorias()
+    {
+        if (totalCalorias < 1500) return "nivel-bajo";
+        if (totalCalorias <= 2500) return "nivel-moderado";
+        return "nivel-alto";
+    }
+
+    private string GetTextoNivelCalorias()
+    {
+        if (totalCalorias < 1500) return "Bajo";
+        if (totalCalorias <= 2500) return "Moderado";
+        return "Alto";
+    }
+
+    private string GetDescripcionCalorias()
+    {
+        if (totalCalorias < 1500) return "Este menú tiene un aporte calórico bajo. Considera agregar más alimentos energéticos.";
+        if (totalCalorias <= 2500) return "Este menú tiene un aporte calórico adecuado para una alimentación balanceada.";
+        return "Este menú tiene un aporte calórico alto. Verifica que sea apropiado para los objetivos nutricionales.";
+    }
+
+    private List<(string Icon, string Texto)> GetRecomendaciones()
+    {
+        var recomendaciones = new List<(string, string)>();
+
+        // Análisis de proteínas
+        if (porcentajeProteinas < 15)
+            recomendaciones.Add(("🥩", "Considera agregar más fuentes de proteína como pollo, pescado, huevos o legumbres."));
+        else if (porcentajeProteinas > 35)
+            recomendaciones.Add(("⚠️", "El contenido de proteínas es muy alto. Balancea con más carbohidratos y vegetales."));
+        else
+            recomendaciones.Add(("✅", "El aporte de proteínas está bien balanceado."));
+
+        // Análisis de carbohidratos
+        if (porcentajeCarbohidratos < 40)
+            recomendaciones.Add(("🍞", "Considera agregar más carbohidratos complejos como arroz integral, avena o papa."));
+        else if (porcentajeCarbohidratos > 60)
+            recomendaciones.Add(("⚠️", "El contenido de carbohidratos es alto. Considera reducir y agregar más proteínas."));
+        else
+            recomendaciones.Add(("✅", "El aporte de carbohidratos está bien distribuido."));
+
+        // Análisis de grasas
+        if (porcentajeGrasas < 20)
+            recomendaciones.Add(("🥑", "Considera agregar grasas saludables como aguacate, frutos secos o aceite de oliva."));
+        else if (porcentajeGrasas > 35)
+            recomendaciones.Add(("⚠️", "El contenido de grasas es alto. Modera el consumo de alimentos fritos y grasosos."));
+        else
+            recomendaciones.Add(("✅", "El aporte de grasas está dentro del rango saludable."));
+
+        // Variedad
+        if (cantidadAlimentos < 3)
+            recomendaciones.Add(("🌈", "Intenta agregar más variedad de alimentos para obtener diferentes nutrientes."));
+
+        return recomendaciones;
+    }
+}
+
+<style>
+    :root {
+        --color-light-green: #BCD09F;
+        --color-dark-green: #576E40;
+        --color-dark-brown: #221C04;
+        --color-orange-brown: #C2854C;
+        --color-cream: #F1EAC0;
+        --color-grey-dark: #3c3c3c;
+    }
+
+    .page-wrapper {
+        background-color: var(--color-cream);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .app-header {
+        width: 100%;
+    }
+
+    .header-band-main {
+        background-color: var(--color-dark-green);
+        padding: 1.5rem 2rem;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-title {
+        color: var(--color-cream);
+        font-weight: 700;
+        margin: 0;
+        font-size: 2.2rem;
+        text-shadow: 1px 1px 2px var(--color-dark-brown);
+    }
+
+    .header-subtitle {
+        color: var(--color-light-green);
+        margin: 0.25rem 0 0;
+        font-size: 1.1rem;
+    }
+
+    .icon-emoji {
+        font-size: 1.5em;
+        vertical-align: middle;
+        margin-right: 0.5rem;
+    }
+
+    .header-band-bottom {
+        height: 10px;
+        background-color: var(--color-orange-brown);
+    }
+
+    .app-footer {
+        width: 100%;
+        margin-top: auto;
+    }
+
+    .footer-band-top {
+        height: 10px;
+        background-color: var(--color-orange-brown);
+    }
+
+    .footer-band-main {
+        background-color: var(--color-light-green);
+        padding: 1.5rem 2rem;
+        text-align: center;
+    }
+
+    .footer-band-main p {
+        color: var(--color-dark-brown);
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    .footer-icon {
+        font-size: 1.2em;
+    }
+
+    .resumen-container {
+        flex-grow: 1;
+        padding: 2rem;
+    }
+
+    .loading-section, .error-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 60vh;
+        gap: 1rem;
+    }
+
+    .loading-text, .error-text {
+        font-size: 1.3rem;
+        color: var(--color-dark-green);
+    }
+
+    .resumen-header {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .resumen-title {
+        color: var(--color-dark-green);
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .resumen-fecha {
+        color: var(--color-orange-brown);
+        font-size: 1.1rem;
+        margin: 0.5rem 0 0 0;
+        font-weight: 600;
+    }
+
+    .btn-back, .btn-back-header {
+        background-color: var(--color-dark-green);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+        display: inline-block;
+    }
+
+    .btn-back:hover, .btn-back-header:hover {
+        background-color: var(--color-dark-brown);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .resumen-content {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .totales-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .total-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .card-icon {
+        font-size: 3rem;
+    }
+
+    .card-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .card-label {
+        font-size: 0.9rem;
+        color: #666;
+        font-weight: 500;
+    }
+
+    .card-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--color-dark-green);
+    }
+
+    .card-unit {
+        font-size: 0.85rem;
+        color: #888;
+    }
+
+    .analisis-section, .alimentos-section, .recomendaciones-section {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .section-title {
+        color: var(--color-dark-green);
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0 0 1.5rem 0;
+        padding-bottom: 0.75rem;
+        border-bottom: 3px solid var(--color-light-green);
+    }
+
+    .analisis-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .analisis-card {
+        background: var(--color-cream);
+        border-radius: 8px;
+        padding: 1.5rem;
+        border-left: 4px solid var(--color-dark-green);
+    }
+
+    .analisis-card h4 {
+        color: var(--color-dark-green);
+        margin: 0 0 1rem 0;
+        font-size: 1.1rem;
+    }
+
+    .analisis-valor {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--color-orange-brown);
+        margin: 0.5rem 0;
+    }
+
+    .analisis-descripcion {
+        color: #666;
+        margin: 0.5rem 0 0 0;
+        font-size: 0.95rem;
+    }
+
+    .nivel-bajo { border-left-color: #f39c12; }
+    .nivel-moderado { border-left-color: #27ae60; }
+    .nivel-alto { border-left-color: #e74c3c; }
+
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    .alimentos-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .alimentos-table thead th {
+        background-color: var(--color-dark-green);
+        color: white;
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+    }
+
+    .alimentos-table tbody tr {
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .alimentos-table tbody tr:hover {
+        background-color: var(--color-cream);
+    }
+
+    .alimentos-table tbody td {
+        padding: 1rem;
+    }
+
+    .alimento-nombre {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: var(--color-dark-brown);
+    }
+
+    .emoji-food {
+        font-size: 1.3rem;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .recomendaciones-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .recomendacion-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem;
+        background: var(--color-cream);
+        border-radius: 8px;
+        border-left: 4px solid var(--color-orange-brown);
+    }
+
+    .recomendacion-icon {
+        font-size: 1.5rem;
+    }
+
+    .recomendacion-item p {
+        margin: 0;
+        color: var(--color-dark-brown);
+        line-height: 1.6;
+    }
+</style>

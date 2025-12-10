@@ -1,0 +1,194 @@
+@page "/perfil"
+@using SmartNutriTracker.Shared.DTOs.Estudiantes
+@inject NavigationManager Navigation
+@inject SmartNutriTracker.Front.Services.EstudianteService EstudianteService
+
+<style>
+    .perfil-simple {
+        max-width: 600px;
+        margin: 40px auto;
+        padding: 25px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(87, 110, 64, 0.1);
+        border: 1px solid #BCD09F;
+    }
+    
+    .perfil-titulo {
+        color: #576E40;
+        border-bottom: 2px solid #BCD09F;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        font-weight: 600;
+    }
+    
+    .dato-linea {
+        padding: 12px 0;
+        border-bottom: 1px solid #F1EAC0;
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .dato-linea:last-child {
+        border-bottom: none;
+    }
+    
+    .dato-label {
+        color: #221C04;
+        font-weight: 500;
+    }
+    
+    .dato-valor {
+        color: #576E40;
+        font-weight: 600;
+    }
+    
+    .imc-dato {
+        background-color: #F1EAC0;
+        padding: 10px 15px;
+        border-radius: 6px;
+        margin-top: 5px;
+    }
+    
+    .tmb-dato {
+        background-color: rgba(194, 133, 76, 0.1);
+        padding: 10px 15px;
+        border-radius: 6px;
+        margin-top: 5px;
+    }
+    
+    .cargando {
+        text-align: center;
+        padding: 40px;
+        color: #576E40;
+    }
+    
+    .error {
+        background-color: rgba(194, 133, 76, 0.1);
+        border: 1px solid #C2854C;
+        border-radius: 8px;
+        padding: 20px;
+        color: #8B4513;
+        margin: 20px 0;
+    }
+</style>
+
+<div class="perfil-simple">
+    <h3 class="perfil-titulo">Perfil del Estudiante</h3>
+    
+    @if (perfil is null && estudiante is null && errorMessage is null)
+    {
+        <div class="cargando">
+            Cargando...
+        </div>
+    }
+    else if (errorMessage is not null)
+    {
+        <div class="error">
+            @errorMessage
+        </div>
+    }
+    else if (perfil is not null)
+    {
+        <div class="dato-linea">
+            <span class="dato-label">Nombre:</span>
+            <span class="dato-valor">@perfil.NombreCompleto</span>
+        </div>
+        
+        <div class="dato-linea">
+            <span class="dato-label">Edad:</span>
+            <span class="dato-valor">@perfil.Edad años</span>
+        </div>
+        
+        <div class="dato-linea">
+            <span class="dato-label">Sexo:</span>
+            <span class="dato-valor">@perfil.Sexo</span>
+        </div>
+        
+        <div class="dato-linea">
+            <span class="dato-label">Peso:</span>
+            <span class="dato-valor">@perfil.Peso kg</span>
+        </div>
+        
+        <div class="dato-linea">
+            <span class="dato-label">Altura:</span>
+            <span class="dato-valor">@perfil.Altura m</span>
+        </div>
+        
+        <div class="dato-linea">
+            <span class="dato-label">IMC:</span>
+            <span class="dato-valor imc-dato">@perfil.IMC</span>
+        </div>
+        
+        <div class="dato-linea">
+            <span class="dato-label">TMB:</span>
+            <span class="dato-valor tmb-dato">@perfil.TMB</span>
+        </div>
+    }
+    else if (estudiante is not null)
+    {
+        <div class="dato-linea">
+            <span class="dato-label">Nombre:</span>
+            <span class="dato-valor">@estudiante.NombreCompleto</span>
+        </div>
+        
+        <div class="dato-linea">
+            <span class="dato-label">Edad:</span>
+            <span class="dato-valor">@estudiante.Edad años</span>
+        </div>
+        
+        <div class="dato-linea">
+            <span class="dato-label">Sexo:</span>
+            <span class="dato-valor">@estudiante.Sexo</span>
+        </div>
+        
+        <div class="dato-linea">
+            <span class="dato-label">Peso:</span>
+            <span class="dato-valor">@estudiante.Peso kg</span>
+        </div>
+        
+        <div class="dato-linea">
+            <span class="dato-label">Altura:</span>
+            <span class="dato-valor">@estudiante.Altura m</span>
+        </div>
+        
+        <div class="dato-linea">
+            <span class="dato-label">IMC:</span>
+            <span class="dato-valor imc-dato">@estudiante.IMC</span>
+        </div>
+        
+        <div class="dato-linea">
+            <span class="dato-label">TMB:</span>
+            <span class="dato-valor tmb-dato">@estudiante.TMB</span>
+        </div>
+    }
+</div>
+
+@code {
+    PerfilEstudianteDTO? perfil;
+    SmartNutriTracker.Domain.Models.BaseModels.Estudiante? estudiante;
+    string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Intentar cargar el estudiante real por ID 1 (pruebas). Si no existe, usar el endpoint de perfil.
+            estudiante = await EstudianteService.ObtenerEstudiantePorIdAsync(1);
+
+            if (estudiante is null)
+            {
+                perfil = await EstudianteService.ObtenerPerfilAsync(1);
+            }
+
+            if (estudiante is null && perfil is null)
+            {
+                errorMessage = "No se encontró el estudiante con ID 1.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error al cargar el perfil: {ex.Message}";
+        }
+    }
+}

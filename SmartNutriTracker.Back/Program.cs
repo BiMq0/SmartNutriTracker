@@ -95,7 +95,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // Usar CORS antes de Authentication/Authorization
-app.UseCors("AllowFrontend");
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();
