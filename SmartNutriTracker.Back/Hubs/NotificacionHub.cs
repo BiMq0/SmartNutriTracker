@@ -6,13 +6,19 @@ namespace SmartNutriTracker.Back.Hubs
     {
         public async Task UnirseAGrupo(string rol)
         {
-            if (rol == "3") 
+            try{
+                if (rol == "3") 
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, "Estudiantes");
             }
             else if (rol == "2") 
             {
                 await Groups.AddToGroupAsync(Context.ConnectionId, "Docentes");
+            }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error al unirse al grupo: " + ex.Message);
             }
         }
 
